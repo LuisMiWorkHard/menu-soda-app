@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.ui
+package com.fullwar.menuapp.presentation.features.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
 import com.fullwar.menuapp.ui.theme.SodaGray
 import com.fullwar.menuapp.ui.theme.SodaGrayLight
 import com.fullwar.menuapp.ui.theme.SodaOrange
@@ -30,7 +32,10 @@ import com.fullwar.menuapp.ui.theme.SodaOrangeLight
 import com.fullwar.menuapp.ui.theme.WhatsAppGreen
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    navController: NavController,
+    sharedViewModel: SharedViewModel,
+) {
     var documentType by remember { mutableStateOf("DNI") }
     var documentNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -73,7 +78,7 @@ fun LoginScreen() {
             text = "Access your dashboard to share\ntoday's menu via WhatsApp.",
             fontSize = 16.sp,
             color = SodaGray,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(40.dp))
