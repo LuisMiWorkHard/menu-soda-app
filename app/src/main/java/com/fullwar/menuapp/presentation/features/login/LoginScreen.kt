@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.features.login
 
+import android.R.color.white
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,15 +26,19 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import com.fullwar.menuapp.ui.theme.SodaGray
 import com.fullwar.menuapp.ui.theme.SodaGrayLight
 import com.fullwar.menuapp.ui.theme.SodaOrange
 import com.fullwar.menuapp.ui.theme.SodaOrangeLight
 import com.fullwar.menuapp.ui.theme.WhatsAppGreen
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun LoginScreen(
     navController: NavController,
+    viewModel: LoginViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel,
 ) {
     var documentType by remember { mutableStateOf("DNI") }
@@ -180,7 +185,7 @@ fun SegmentedControl(
             .fillMaxWidth()
             .height(48.dp)
     ) {
-        Row(modifier = Modifier.fillMaxSize().padding(4.dp)) {
+        Row(modifier = Modifier.fillMaxSize().background(color = Color.White).padding(4.dp)) {
             options.forEach { option ->
                 val isSelected = option == selectedOption
                 Box(
@@ -268,5 +273,9 @@ fun LoginTextField(
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    LoginScreen(
+        navController = rememberNavController(),
+        viewModel = LoginViewModel(),
+        sharedViewModel = SharedViewModel()
+    )
 }
