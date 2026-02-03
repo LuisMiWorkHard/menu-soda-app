@@ -27,11 +27,29 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.fullwar.menuapp.domain.model.TipoDocumento
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
+import com.fullwar.menuapp.ui.theme.ButtonHeightLarge
+import com.fullwar.menuapp.ui.theme.ButtonHeightMedium
+import com.fullwar.menuapp.ui.theme.CornerRadiusLarge
+import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
+import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
+import com.fullwar.menuapp.ui.theme.IconSizeLarge
+import com.fullwar.menuapp.ui.theme.IconSizeSmall
 import com.fullwar.menuapp.ui.theme.SodaGray
 import com.fullwar.menuapp.ui.theme.SodaGrayLight
 import com.fullwar.menuapp.ui.theme.SodaOrange
 import com.fullwar.menuapp.ui.theme.SodaOrangeLight
+import com.fullwar.menuapp.ui.theme.SpacingLarge
+import com.fullwar.menuapp.ui.theme.SpacingMedium
+import com.fullwar.menuapp.ui.theme.SpacingSmall
+import com.fullwar.menuapp.ui.theme.SpacingXLarge
+import com.fullwar.menuapp.ui.theme.SpacingXSmall
+import com.fullwar.menuapp.ui.theme.SpacingXXLarge
+import com.fullwar.menuapp.ui.theme.TextSizeLarge
+import com.fullwar.menuapp.ui.theme.TextSizeMedium
+import com.fullwar.menuapp.ui.theme.TextSizeSmall
+import com.fullwar.menuapp.ui.theme.TextSizeXLarge
 import com.fullwar.menuapp.ui.theme.WhatsAppGreen
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -39,9 +57,9 @@ import org.koin.compose.viewmodel.koinViewModel
 fun LoginScreen(
     navController: NavController,
     viewModel: LoginViewModel = koinViewModel(),
-    sharedViewModel: SharedViewModel,
+    sharedViewModel: SharedViewModel = koinViewModel(),
 ) {
-    var documentType by remember { mutableStateOf("DNI") }
+    var documentType by remember { mutableStateOf(viewModel.tiposDocumento[0]) }
     var documentNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -49,62 +67,62 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(24.dp),
+            .background(SodaGrayLight)
+            .padding(SpacingXLarge),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(SpacingXXLarge))
 
         // Icon Header
         Surface(
-            modifier = Modifier.size(80.dp),
-            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.size(IconSizeLarge),
+            shape = RoundedCornerShape(CornerRadiusLarge),
             color = SodaOrangeLight
         ) {
             Icon(
                 imageVector = Icons.Filled.Favorite,
                 contentDescription = null,
                 tint = SodaOrange,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(SpacingLarge)
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(SpacingXLarge))
 
         // Title and Subtitle
         Text(
             text = "Welcome back!",
-            fontSize = 32.sp,
+            fontSize = TextSizeXLarge,
             fontWeight = FontWeight.Bold,
             color = Color.Black
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SpacingSmall))
         Text(
             text = "Access your dashboard to share\ntoday's menu via WhatsApp.",
-            fontSize = 16.sp,
+            fontSize = TextSizeMedium,
             color = SodaGray,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(SpacingXXLarge))
 
         // Document Type Selector
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = "Document Type",
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
+                fontSize = TextSizeMedium,
                 color = Color.Black
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(SpacingMedium))
             SegmentedControl(
-                options = listOf("DNI", "RUC", "OTHER"),
+                options = viewModel.tiposDocumento,
                 selectedOption = documentType,
                 onOptionSelected = { documentType = it }
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(SpacingXLarge))
 
         // Document Number Field
         LoginTextField(
@@ -115,7 +133,7 @@ fun LoginScreen(
             leadingIcon = Icons.Filled.AccountBox
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(SpacingXLarge))
 
         // Password Field
         LoginTextField(
@@ -130,25 +148,25 @@ fun LoginScreen(
             isPasswordField = true
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(SpacingXLarge))
 
         // Login Button
         Button(
             onClick = { /* TODO: Login logic */ },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(ButtonHeightLarge),
             colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(CornerRadiusMedium)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Login", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Login", fontSize = TextSizeLarge, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.width(SpacingSmall))
                 Icon(imageVector = Icons.Filled.AccountCircle, contentDescription = null)
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(SpacingXLarge))
 
         // WhatsApp Status
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -156,10 +174,10 @@ fun LoginScreen(
                 imageVector = Icons.Filled.CheckCircle,
                 contentDescription = null,
                 tint = WhatsAppGreen,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(IconSizeSmall)
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Ready to share on WhatsApp", color = SodaGray, fontSize = 14.sp)
+            Spacer(modifier = Modifier.width(SpacingSmall))
+            Text(text = "Ready to share on WhatsApp", color = SodaGray, fontSize = TextSizeSmall)
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -174,18 +192,21 @@ fun LoginScreen(
 
 @Composable
 fun SegmentedControl(
-    options: List<String>,
-    selectedOption: String,
-    onOptionSelected: (String) -> Unit
+    options: List<TipoDocumento>,
+    selectedOption: TipoDocumento,
+    onOptionSelected: (TipoDocumento) -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(CornerRadiusMedium),
         color = SodaGrayLight,
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(ButtonHeightMedium)
     ) {
-        Row(modifier = Modifier.fillMaxSize().background(color = Color.White).padding(4.dp)) {
+        Row(modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color.White)
+            .padding(SpacingXSmall)) {
             options.forEach { option ->
                 val isSelected = option == selectedOption
                 Box(
@@ -194,13 +215,13 @@ fun SegmentedControl(
                         .fillMaxHeight()
                         .background(
                             if (isSelected) SodaOrange else Color.Transparent,
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(CornerRadiusSmall)
                         )
                         .clickable { onOptionSelected(option) },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = option,
+                        text = option.descripcionDocumento,
                         color = if (isSelected) Color.White else SodaGray,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
@@ -231,25 +252,27 @@ fun LoginTextField(
             Text(
                 text = label,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
+                fontSize = TextSizeMedium,
                 color = Color.Black
             )
             if (isPasswordField) {
                 Text(
                     text = "Forgot?",
                     color = SodaOrange,
-                    fontSize = 14.sp,
+                    fontSize = TextSizeSmall,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SpacingSmall))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = Color.White, shape = RoundedCornerShape(CornerRadiusMedium)),
             placeholder = { Text(text = placeholder, color = SodaGray) },
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(CornerRadiusMedium),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = SodaOrange,
                 unfocusedBorderColor = SodaGrayLight.copy(alpha = 0.5f),
@@ -275,7 +298,7 @@ fun LoginTextField(
 fun LoginScreenPreview() {
     LoginScreen(
         navController = rememberNavController(),
-        viewModel = LoginViewModel(),
-        sharedViewModel = SharedViewModel()
+        viewModel = koinViewModel(),
+        sharedViewModel = koinViewModel()
     )
 }
