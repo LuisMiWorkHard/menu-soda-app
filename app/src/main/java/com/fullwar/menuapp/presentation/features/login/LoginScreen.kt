@@ -1,6 +1,5 @@
 package com.fullwar.menuapp.presentation.features.login
 
-import android.R.color.white
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,8 +14,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.AccountCircle
@@ -34,7 +31,7 @@ import com.fullwar.menuapp.ui.theme.ButtonHeightMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusLarge
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
-import com.fullwar.menuapp.ui.theme.IconSizeLarge
+import com.fullwar.menuapp.ui.theme.IconSize3XLarge
 import com.fullwar.menuapp.ui.theme.IconSizeSmall
 import com.fullwar.menuapp.ui.theme.SodaGray
 import com.fullwar.menuapp.ui.theme.SodaGrayLight
@@ -45,11 +42,11 @@ import com.fullwar.menuapp.ui.theme.SpacingMedium
 import com.fullwar.menuapp.ui.theme.SpacingSmall
 import com.fullwar.menuapp.ui.theme.SpacingXLarge
 import com.fullwar.menuapp.ui.theme.SpacingXSmall
-import com.fullwar.menuapp.ui.theme.SpacingXXLarge
+import com.fullwar.menuapp.ui.theme.Spacing3XLarge
 import com.fullwar.menuapp.ui.theme.TextSizeLarge
 import com.fullwar.menuapp.ui.theme.TextSizeMedium
 import com.fullwar.menuapp.ui.theme.TextSizeSmall
-import com.fullwar.menuapp.ui.theme.TextSizeXLarge
+import com.fullwar.menuapp.ui.theme.TextSize3XLarge
 import com.fullwar.menuapp.ui.theme.WhatsAppGreen
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -71,11 +68,11 @@ fun LoginScreen(
             .padding(SpacingXLarge),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(SpacingXXLarge))
+        Spacer(modifier = Modifier.height(Spacing3XLarge))
 
         // Icon Header
         Surface(
-            modifier = Modifier.size(IconSizeLarge),
+            modifier = Modifier.size(IconSize3XLarge),
             shape = RoundedCornerShape(CornerRadiusLarge),
             color = SodaOrangeLight
         ) {
@@ -92,7 +89,7 @@ fun LoginScreen(
         // Title and Subtitle
         Text(
             text = "Welcome back!",
-            fontSize = TextSizeXLarge,
+            fontSize = TextSize3XLarge,
             fontWeight = FontWeight.Bold,
             color = Color.Black
         )
@@ -104,7 +101,7 @@ fun LoginScreen(
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(SpacingXXLarge))
+        Spacer(modifier = Modifier.height(Spacing3XLarge))
 
         // Document Type Selector
         Column(modifier = Modifier.fillMaxWidth()) {
