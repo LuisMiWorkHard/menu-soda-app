@@ -323,7 +323,7 @@ fun LoginTextField(
 fun LoginScreenPreview() {
     LoginScreen(
         navController = rememberNavController(),
-        viewModel = koinViewModel(),
-        sharedViewModel = koinViewModel()
+        viewModel = LoginViewModel(),
+        sharedViewModel = SharedViewModel()
     )
 }
