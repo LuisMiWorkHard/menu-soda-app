@@ -28,9 +28,44 @@ class LoginViewModel() : ViewModel(), DynamicForm {
 
     override fun validate(): Boolean {
         val errors = mutableMapOf<String, String>()
-        if(formFields.fields["TipoDocumento"] == null) errors["TipoDocumento"] = "Seleccione un tipo de documento"
-        if(formFields.fields["numeroDocumento"]?.let { (it as TextFieldValue).text.isBlank() } != false) errors["numeroDocumento"] = "Ingrese su número de documento"
-        if(formFields.fields["contrasena"]?.let { (it as TextFieldValue).text.isBlank() } != false) errors["contrasena"] = "Ingrese su contraseña"
+        val tipoDoc = formFields.fields["TipoDocumento"] as? TipoDocumento
+        val numDoc = (formFields.fields["numeroDocumento"] as? TextFieldValue)?.text ?: ""
+        val password = (formFields.fields["contrasena"] as? TextFieldValue)?.text ?: ""
+
+        if (tipoDoc == null) {
+            errors["TipoDocumento"] = "Seleccione un tipo de documento"
+        } else {
+            when (tipoDoc.tipoDocumento) {
+                1 -> { // DNI
+                    if (!numDoc.matches(Regex("^\\d{8}$"))) {
+                        errors["numeroDocumento"] = "El DNI deben ser 8 dígitos exactos"
+                    }
+                }
+                2 -> { // CE
+                    if (!numDoc.matches(Regex("^[a-zA-Z0-0]{12}$"))) {
+                        errors["numeroDocumento"] = "El CE deben ser 12 caracteres alfanuméricos"
+                    }
+                }
+                3 -> { // RUC
+                    if (!numDoc.matches(Regex("^\\d{12}$"))) {
+                        errors["numeroDocumento"] = "El RUC deben ser 12 dígitos exactos"
+                    }
+                }
+            }
+        }
+
+        if (numDoc.isBlank()) {
+            errors["numeroDocumento"] = "Ingrese su número de documento"
+        }
+
+        if (password.isBlank()) {
+            errors["contrasena"] = "Ingrese su contraseña"
+        } else {
+            val passwordRegex = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$")
+            if (!passwordRegex.matches(password)) {
+                errors["contrasena"] = "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial"
+            }
+        }
 
         formFields = formFields.copy(errors = errors)
         return errors.isEmpty()

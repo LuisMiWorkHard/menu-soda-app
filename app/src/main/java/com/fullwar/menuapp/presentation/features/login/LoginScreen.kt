@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -56,10 +57,12 @@ fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinViewModel(),
 ) {
-    var documentType by remember { mutableStateOf(viewModel.tiposDocumento[0]) }
-    var documentNumber by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var documentType by remember { mutableStateOf(viewModel.formFields.fields["TipoDocumento"] as? TipoDocumento ?: viewModel.tiposDocumento[0]) }
+    var documentNumber by remember { mutableStateOf((viewModel.formFields.fields["numeroDocumento"] as? TextFieldValue)?.text ?: "") }
+    var password by remember { mutableStateOf((viewModel.formFields.fields["contrasena"] as? TextFieldValue)?.text ?: "") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    val errors = viewModel.formFields.errors
 
     Column(
         modifier = Modifier
@@ -115,7 +118,10 @@ fun LoginScreen(
             SegmentedControl(
                 options = viewModel.tiposDocumento,
                 selectedOption = documentType,
-                onOptionSelected = { documentType = it }
+                onOptionSelected = {
+                    documentType = it
+                    viewModel.updateField("TipoDocumento", it)
+                }
             )
         }
 
@@ -125,9 +131,13 @@ fun LoginScreen(
         LoginTextField(
             label = "Document Number",
             value = documentNumber,
-            onValueChange = { documentNumber = it },
+            onValueChange = {
+                documentNumber = it
+                viewModel.updateField("numeroDocumento", TextFieldValue(it))
+            },
             placeholder = "Enter your document number",
-            leadingIcon = Icons.Filled.AccountBox
+            leadingIcon = Icons.Filled.AccountBox,
+            error = errors["numeroDocumento"]
         )
 
         Spacer(modifier = Modifier.height(SpacingXLarge))
@@ -136,20 +146,28 @@ fun LoginScreen(
         LoginTextField(
             label = "Password",
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                viewModel.updateField("contrasena", TextFieldValue(it))
+            },
             placeholder = "Enter your password",
             leadingIcon = null,
             trailingIcon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
             onTrailingIconClick = { passwordVisible = !passwordVisible },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            isPasswordField = true
+            isPasswordField = true,
+            error = errors["contrasena"]
         )
 
         Spacer(modifier = Modifier.height(SpacingXLarge))
 
         // Login Button
         Button(
-            onClick = { /* TODO: Login logic */ },
+            onClick = {
+                if (viewModel.validate()) {
+                    /* TODO: Login logic */
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(ButtonHeightLarge),
@@ -238,7 +256,8 @@ fun LoginTextField(
     trailingIcon: ImageVector? = null,
     onTrailingIconClick: (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    isPasswordField: Boolean = false
+    isPasswordField: Boolean = false,
+    error: String? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -285,8 +304,17 @@ fun LoginTextField(
                 }
             },
             visualTransformation = visualTransformation,
-            singleLine = true
+            singleLine = true,
+            isError = error != null
         )
+        if (error != null) {
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = SpacingSmall, top = SpacingXSmall)
+            )
+        }
     }
 }
 
