@@ -1,3 +1,26 @@
 <resources>
     <string name="app_name">MenuApp</string>
+
+    <!-- Login Screen -->
+    <string name="login_welcome_back">¡Bienvenido de nuevo!</string>
+    <string name="login_subtitle">Accede para crear\nel menú de hoy por WhatsApp.</string>
+    <string name="login_document_type">Tipo de Documento</string>
+    <string name="login_document_number">Número de Documento</string>
+    <string name="login_document_number_placeholder">Ingresa tu número de documento</string>
+    <string name="login_password">Contraseña</string>
+    <string name="login_password_placeholder">Ingresa tu contraseña</string>
+    <string name="login_forgot_password">¿Lo olvidaste?</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="login_whatsapp_ready">Listo para compartir en WhatsApp</string>
+    <string name="login_footer_no_account">¿No tienes una cuenta? </string>
+    <string name="login_footer_signup">Regístrate</string>
+
+    <!-- Login Validations -->
+    <string name="error_select_document_type">Seleccione un tipo de documento</string>
+    <string name="error_dni_length">El DNI debe tener 8 dígitos exactos</string>
+    <string name="error_ce_length">El CE debe tener 12 caracteres alfanuméricos</string>
+    <string name="error_ruc_length">El RUC debe tener 12 dígitos exactos</string>
+    <string name="error_empty_document_number">Ingrese su número de documento</string>
+    <string name="error_empty_password">Ingrese su contraseña</string>
+    <string name="error_invalid_password">La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial</string>
 </resources>

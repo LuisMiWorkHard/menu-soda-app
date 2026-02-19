@@ -3,7 +3,9 @@ package com.fullwar.menuapp.presentation.features.login
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,16 +17,24 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Dining
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.fullwar.menuapp.R
 import com.fullwar.menuapp.domain.model.TipoDocumento
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import com.fullwar.menuapp.ui.theme.ButtonHeightLarge
@@ -57,150 +67,184 @@ fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinViewModel(),
 ) {
-    var documentType by remember { mutableStateOf(viewModel.formFields.fields["TipoDocumento"] as? TipoDocumento ?: viewModel.tiposDocumento[0]) }
-    var documentNumber by remember { mutableStateOf((viewModel.formFields.fields["numeroDocumento"] as? TextFieldValue)?.text ?: "") }
-    var password by remember { mutableStateOf((viewModel.formFields.fields["contrasena"] as? TextFieldValue)?.text ?: "") }
+    var documentType by remember {
+        mutableStateOf(
+            viewModel.formFields.fields["TipoDocumento"] as? TipoDocumento
+                ?: viewModel.tiposDocumento[0]
+        )
+    }
+    var documentNumber by remember {
+        mutableStateOf(
+            (viewModel.formFields.fields["numeroDocumento"] as? TextFieldValue)?.text ?: ""
+        )
+    }
+    var password by remember {
+        mutableStateOf(
+            (viewModel.formFields.fields["contrasena"] as? TextFieldValue)?.text ?: ""
+        )
+    }
     var passwordVisible by remember { mutableStateOf(false) }
 
     val errors = viewModel.formFields.errors
+    val scrollState = rememberScrollState()
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SodaGrayLight)
-            .padding(SpacingXLarge),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(SodaGrayLight),
+        contentAlignment = Alignment.TopCenter
     ) {
-        Spacer(modifier = Modifier.height(Spacing3XLarge))
-
-        // Icon Header
-        Surface(
-            modifier = Modifier.size(IconSize3XLarge),
-            shape = RoundedCornerShape(CornerRadiusLarge),
-            color = SodaOrangeLight
+        Column(
+            modifier = Modifier
+                .widthIn(max = 480.dp)
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(SpacingXLarge),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = null,
-                tint = SodaOrange,
-                modifier = Modifier.padding(SpacingLarge)
-            )
-        }
+            Spacer(modifier = Modifier.height(Spacing3XLarge))
 
-        Spacer(modifier = Modifier.height(SpacingXLarge))
 
-        // Title and Subtitle
-        Text(
-            text = "Welcome back!",
-            fontSize = TextSize3XLarge,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-        Spacer(modifier = Modifier.height(SpacingSmall))
-        Text(
-            text = "Access your dashboard to share\ntoday's menu via WhatsApp.",
-            fontSize = TextSizeMedium,
-            color = SodaGray,
-            textAlign = TextAlign.Center
-        )
+            // Icon Header
+            Surface(
+                modifier = Modifier.size(IconSize3XLarge),
+                shape = RoundedCornerShape(CornerRadiusLarge),
+                color = SodaOrangeLight
+            ) {
+                Icon(imageVector = Icons.Filled.Dining, contentDescription = null, tint = SodaOrange)
+            }
 
-        Spacer(modifier = Modifier.height(Spacing3XLarge))
+            Spacer(modifier = Modifier.height(SpacingXLarge))
 
-        // Document Type Selector
-        Column(modifier = Modifier.fillMaxWidth()) {
+            // Title and Subtitle
             Text(
-                text = "Document Type",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = TextSizeMedium,
+                text = stringResource(id = R.string.login_welcome_back),
+                fontSize = TextSize3XLarge,
+                fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
-            Spacer(modifier = Modifier.height(SpacingMedium))
-            SegmentedControl(
-                options = viewModel.tiposDocumento,
-                selectedOption = documentType,
-                onOptionSelected = {
-                    documentType = it
-                    viewModel.updateField("TipoDocumento", it)
-                }
+            Spacer(modifier = Modifier.height(SpacingSmall))
+            Text(
+                text = stringResource(id = R.string.login_subtitle),
+                fontSize = TextSizeMedium,
+                color = SodaGray,
+                textAlign = TextAlign.Center
             )
-        }
 
-        Spacer(modifier = Modifier.height(SpacingXLarge))
+            Spacer(modifier = Modifier.height(Spacing3XLarge))
 
-        // Document Number Field
-        LoginTextField(
-            label = "Document Number",
-            value = documentNumber,
-            onValueChange = {
-                documentNumber = it
-                viewModel.updateField("numeroDocumento", TextFieldValue(it))
-            },
-            placeholder = "Enter your document number",
-            leadingIcon = Icons.Filled.AccountBox,
-            error = errors["numeroDocumento"]
-        )
-
-        Spacer(modifier = Modifier.height(SpacingXLarge))
-
-        // Password Field
-        LoginTextField(
-            label = "Password",
-            value = password,
-            onValueChange = {
-                password = it
-                viewModel.updateField("contrasena", TextFieldValue(it))
-            },
-            placeholder = "Enter your password",
-            leadingIcon = null,
-            trailingIcon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-            onTrailingIconClick = { passwordVisible = !passwordVisible },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            isPasswordField = true,
-            error = errors["contrasena"]
-        )
-
-        Spacer(modifier = Modifier.height(SpacingXLarge))
-
-        // Login Button
-        Button(
-            onClick = {
-                if (viewModel.validate()) {
-                    /* TODO: Login logic */
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(ButtonHeightLarge),
-            colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
-            shape = RoundedCornerShape(CornerRadiusMedium)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Login", fontSize = TextSizeLarge, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.width(SpacingSmall))
-                Icon(imageVector = Icons.Filled.AccountCircle, contentDescription = null)
+            // Document Type Selector
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(id = R.string.login_document_type),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = TextSizeMedium,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(SpacingMedium))
+                SegmentedControl(
+                    options = viewModel.tiposDocumento,
+                    selectedOption = documentType,
+                    onOptionSelected = {
+                        documentType = it
+                        viewModel.updateField("TipoDocumento", it)
+                    }
+                )
             }
-        }
 
-        Spacer(modifier = Modifier.height(SpacingXLarge))
+            Spacer(modifier = Modifier.height(SpacingXLarge))
 
-        // WhatsApp Status
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Filled.CheckCircle,
-                contentDescription = null,
-                tint = WhatsAppGreen,
-                modifier = Modifier.size(IconSizeSmall)
+            // Document Number Field
+            LoginTextField(
+                label = stringResource(id = R.string.login_document_number),
+                value = documentNumber,
+                onValueChange = {
+                    documentNumber = it
+                    viewModel.updateField("numeroDocumento", TextFieldValue(it))
+                },
+                placeholder = stringResource(id = R.string.login_document_number_placeholder),
+                leadingIcon = Icons.Filled.Badge,
+                error = errors["numeroDocumento"]
             )
-            Spacer(modifier = Modifier.width(SpacingSmall))
-            Text(text = "Ready to share on WhatsApp", color = SodaGray, fontSize = TextSizeSmall)
-        }
 
-        Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(SpacingXLarge))
 
-        // Footer
-        Row {
-            Text(text = "Don't have an account? ", color = SodaGray)
-            Text(text = "Sign up", color = SodaOrange, fontWeight = FontWeight.Bold)
+            // Password Field
+            LoginTextField(
+                label = stringResource(id = R.string.login_password),
+                value = password,
+                onValueChange = {
+                    password = it
+                    viewModel.updateField("contrasena", TextFieldValue(it))
+                },
+                placeholder = stringResource(id = R.string.login_password_placeholder),
+                leadingIcon = null,
+                trailingIcon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                onTrailingIconClick = { passwordVisible = !passwordVisible },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                isPasswordField = true,
+                error = errors["contrasena"]
+            )
+
+            Spacer(modifier = Modifier.height(SpacingXLarge))
+
+            // Login Button
+            Button(
+                onClick = {
+                    if (viewModel.validate()) {
+                        /* TODO: Login logic */
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(ButtonHeightLarge),
+                colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
+                shape = RoundedCornerShape(CornerRadiusMedium)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(id = R.string.login_button),
+                        fontSize = TextSizeLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(SpacingSmall))
+                    Icon(imageVector = Icons.AutoMirrored.Filled.Login, contentDescription = null)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(SpacingXLarge))
+
+            // WhatsApp Status
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = null,
+                    tint = WhatsAppGreen,
+                    modifier = Modifier.size(IconSizeSmall)
+                )
+                Spacer(modifier = Modifier.width(SpacingSmall))
+                Text(
+                    text = stringResource(id = R.string.login_whatsapp_ready),
+                    color = SodaGray,
+                    fontSize = TextSizeSmall
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Footer
+            Row {
+                Text(
+                    text = stringResource(id = R.string.login_footer_no_account),
+                    color = SodaGray,
+                    modifier = Modifier.padding(end = SpacingSmall)
+                )
+                Text(
+                    text = stringResource(id = R.string.login_footer_signup),
+                    color = SodaOrange,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
@@ -218,10 +262,12 @@ fun SegmentedControl(
             .fillMaxWidth()
             .height(ButtonHeightMedium)
     ) {
-        Row(modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White)
-            .padding(SpacingXSmall)) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color.White)
+                .padding(SpacingXSmall)
+        ) {
             options.forEach { option ->
                 val isSelected = option == selectedOption
                 Box(
@@ -257,7 +303,7 @@ fun LoginTextField(
     onTrailingIconClick: (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     isPasswordField: Boolean = false,
-    error: String? = null
+    error: Int? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -273,7 +319,7 @@ fun LoginTextField(
             )
             if (isPasswordField) {
                 Text(
-                    text = "Forgot?",
+                    text = stringResource(id = R.string.login_forgot_password),
                     color = SodaOrange,
                     fontSize = TextSizeSmall,
                     fontWeight = FontWeight.Bold
@@ -286,7 +332,10 @@ fun LoginTextField(
             onValueChange = onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = Color.White, shape = RoundedCornerShape(CornerRadiusMedium)),
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(CornerRadiusMedium)
+                ),
             placeholder = { Text(text = placeholder, color = SodaGray) },
             shape = RoundedCornerShape(CornerRadiusMedium),
             colors = OutlinedTextFieldDefaults.colors(
@@ -297,7 +346,11 @@ fun LoginTextField(
             trailingIcon = {
                 if (trailingIcon != null) {
                     IconButton(onClick = { onTrailingIconClick?.invoke() }) {
-                        Icon(imageVector = trailingIcon, contentDescription = null, tint = SodaGray)
+                        Icon(
+                            imageVector = trailingIcon,
+                            contentDescription = null,
+                            tint = SodaGray
+                        )
                     }
                 } else if (leadingIcon != null) {
                     Icon(imageVector = leadingIcon, contentDescription = null, tint = SodaGray)
@@ -309,7 +362,7 @@ fun LoginTextField(
         )
         if (error != null) {
             Text(
-                text = error,
+                text = stringResource(id = error),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(start = SpacingSmall, top = SpacingXSmall)
