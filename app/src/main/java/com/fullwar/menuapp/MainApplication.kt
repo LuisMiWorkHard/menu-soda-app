@@ -1,6 +1,7 @@
 package com.fullwar.menuapp
 
 import android.app.Application
+import com.fullwar.menuapp.di.networkModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext.startKoin
 
@@ -10,7 +11,7 @@ class MainApplication: Application() {
 
         startKoin {
             androidContext(this@MainApplication)
-            modules(appModule)
+            modules(appModule, networkModule)
         }
     }
 }
