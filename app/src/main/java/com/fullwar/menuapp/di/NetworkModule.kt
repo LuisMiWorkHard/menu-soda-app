@@ -1,5 +1,7 @@
 package com.fullwar.menuapp.di
 
+import android.content.Context
+import android.provider.Settings
 import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
@@ -21,6 +23,9 @@ val networkModule = module {
 
     // Cliente PÚBLICO: sin token, utilizado para login / refresh / logout
     single(named("PublicClient")) {
+        val context = get<Context>()
+        val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+
         HttpClient(Android) {
             install(Logging) {
                 logger = Logger.SIMPLE
@@ -36,12 +41,15 @@ val networkModule = module {
             defaultRequest {
                 url("https://menu-soda-dev.up.railway.app/")
                 contentType(ContentType.Application.Json)
+                header("DeviceId", deviceId)
             }
         }
     }
 
     // Cliente PRIVADO: inyecta Bearer token en cada petición
     single(named("AuthClient")) {
+        val context = get<Context>()
+        val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
         val tokenProvider = get<TokenProvider>()
 
         HttpClient(Android) {
@@ -59,6 +67,7 @@ val networkModule = module {
             defaultRequest {
                 url("https://menu-soda-dev.up.railway.app/")
                 contentType(ContentType.Application.Json)
+                header("DeviceId", deviceId)
                 tokenProvider.getToken()?.let { token ->
                     header("Authorization", "Bearer $token")
                 }
