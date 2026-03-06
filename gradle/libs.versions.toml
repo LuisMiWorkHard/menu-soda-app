@@ -14,6 +14,7 @@ navigationCompose = "2.9.7"
 koin = "4.1.1"
 lifecycleViewmodelKtx = "2.10.0"
 ktor = "2.3.12"
+kvault = "1.12.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +42,7 @@ ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+kvault = { group = "com.liftric", name = "kvault", version.ref = "kvault" }
 
 
 [plugins]

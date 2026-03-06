@@ -15,28 +15,23 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
-import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Dining
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.domain.model.TipoDocumento
+import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
+import com.fullwar.menuapp.presentation.navigation.AppScreens
 import com.fullwar.menuapp.ui.theme.ButtonHeightLarge
 import com.fullwar.menuapp.ui.theme.ButtonHeightMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusLarge
@@ -67,6 +62,15 @@ fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinViewModel(),
 ) {
+    // Observar loginState para navegar al Home tras login exitoso
+    LaunchedEffect(viewModel.loginState) {
+        if (viewModel.loginState is State.Success) {
+            navController.navigate(AppScreens.HomeScreen.route) {
+                popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+            }
+        }
+    }
+
     var documentType by remember {
         mutableStateOf(
             viewModel.formFields.fields["TipoDocumento"] as? TipoDocumento
@@ -103,7 +107,6 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(Spacing3XLarge))
-
 
             // Icon Header
             Surface(
@@ -190,26 +193,42 @@ fun LoginScreen(
 
             // Login Button
             Button(
-                onClick = {
-                    if (viewModel.validate()) {
-                        /* TODO: Login logic */
-                    }
-                },
+                onClick = { viewModel.login() },
+                enabled = viewModel.loginState !is State.Loading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(ButtonHeightLarge),
                 colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
                 shape = RoundedCornerShape(CornerRadiusMedium)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = stringResource(id = R.string.login_button),
-                        fontSize = TextSizeLarge,
-                        fontWeight = FontWeight.Bold
+                if (viewModel.loginState is State.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
                     )
-                    Spacer(modifier = Modifier.width(SpacingSmall))
-                    Icon(imageVector = Icons.AutoMirrored.Filled.Login, contentDescription = null)
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(id = R.string.login_button),
+                            fontSize = TextSizeLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(SpacingSmall))
+                        Icon(imageVector = Icons.AutoMirrored.Filled.Login, contentDescription = null)
+                    }
                 }
+            }
+
+            // Error de login
+            val currentState = viewModel.loginState
+            if (currentState is State.Error) {
+                Text(
+                    text = currentState.message,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = TextSizeSmall,
+                    modifier = Modifier.padding(top = SpacingSmall)
+                )
             }
 
             Spacer(modifier = Modifier.height(SpacingXLarge))
@@ -369,14 +388,4 @@ fun LoginTextField(
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    LoginScreen(
-        navController = rememberNavController(),
-        viewModel = LoginViewModel(),
-        sharedViewModel = SharedViewModel()
-    )
 }

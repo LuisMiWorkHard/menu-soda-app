@@ -23,4 +23,20 @@
     <string name="error_empty_document_number">Ingrese su número de documento</string>
     <string name="error_empty_password">Ingrese su contraseña</string>
     <string name="error_invalid_password">La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial</string>
+
+    <!-- Bottom Bar -->
+    <string name="tab_historial">Historial</string>
+    <string name="tab_nuevo">Nuevo</string>
+    <string name="tab_perfil">Perfil</string>
+    <string name="tab_nuevo_placeholder">Crear nuevo menú</string>
+    <string name="tab_perfil_placeholder">Datos de perfil</string>
+
+    <!-- Historial Screen -->
+    <string name="historial_titulo">Historial de Menús</string>
+    <string name="historial_buscar">Buscar platos o palabras clave</string>
+    <string name="historial_recientes">MENÚS RECIENTES</string>
+    <string name="historial_nuevo_menu">Nuevo Menú</string>
+
+    <!-- Login Error -->
+    <string name="login_error_generic">Error al iniciar sesión</string>
 </resources>
