@@ -1,5 +1,9 @@
 package com.fullwar.menuapp.presentation.features.login
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -26,6 +31,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.domain.model.TipoDocumento
@@ -62,6 +68,38 @@ fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinViewModel(),
 ) {
+    val context = LocalContext.current
+
+    // Launcher para solicitar permisos de ubicación
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        viewModel.onLocationPermisoResultado(allGranted)
+    }
+
+    // Solicitar permisos al cargar la pantalla
+    LaunchedEffect(Unit) {
+        val fineLocationGranted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        val coarseLocationGranted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!fineLocationGranted || !coarseLocationGranted) {
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        } else {
+            // Permisos ya concedidos, actualizar ubicación
+            viewModel.onLocationPermisoResultado(true)
+        }
+    }
+
     // Observar loginState para navegar al Home tras login exitoso
     LaunchedEffect(viewModel.loginState) {
         if (viewModel.loginState is State.Success) {
@@ -90,6 +128,7 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
 
     val errors = viewModel.formFields.errors
+    val serverErrors = viewModel.formFields.serverErrors
     val scrollState = rememberScrollState()
 
     Box(
@@ -167,7 +206,8 @@ fun LoginScreen(
                 },
                 placeholder = stringResource(id = R.string.login_document_number_placeholder),
                 leadingIcon = Icons.Filled.Badge,
-                error = errors["numeroDocumento"]
+                error = errors["numeroDocumento"],
+                serverError = serverErrors["numeroDocumento"]
             )
 
             Spacer(modifier = Modifier.height(SpacingXLarge))
@@ -186,7 +226,8 @@ fun LoginScreen(
                 onTrailingIconClick = { passwordVisible = !passwordVisible },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 isPasswordField = true,
-                error = errors["contrasena"]
+                error = errors["contrasena"],
+                serverError = serverErrors["contrasena"]
             )
 
             Spacer(modifier = Modifier.height(SpacingXLarge))
@@ -322,8 +363,11 @@ fun LoginTextField(
     onTrailingIconClick: (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     isPasswordField: Boolean = false,
-    error: Int? = null
+    error: Int? = null,
+    serverError: String? = null
 ) {
+    val hasError = serverError != null || error != null
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -377,9 +421,16 @@ fun LoginTextField(
             },
             visualTransformation = visualTransformation,
             singleLine = true,
-            isError = error != null
+            isError = hasError
         )
-        if (error != null) {
+        if (serverError != null) {
+            Text(
+                text = serverError,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = SpacingSmall, top = SpacingXSmall)
+            )
+        } else if (error != null) {
             Text(
                 text = stringResource(id = error),
                 color = MaterialTheme.colorScheme.error,

@@ -1,8 +1,10 @@
 package com.fullwar.menuapp
 
+import com.fullwar.menuapp.data.datasource.local.LocationProvider
 import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import com.fullwar.menuapp.data.datasource.remote.AuthService
 import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
+import com.fullwar.menuapp.data.repository.LocationProviderImpl
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import com.liftric.kvault.KVault
@@ -25,4 +27,7 @@ val appModule = module {
 
     // AuthRepositoryImpl implementa TokenProvider
     singleOf(::AuthRepositoryImpl) bind TokenProvider::class
+
+    // LocationProviderImpl implementa LocationProvider
+    singleOf(::LocationProviderImpl) bind LocationProvider::class
 }

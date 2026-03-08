@@ -7,8 +7,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullwar.menuapp.R
+import com.fullwar.menuapp.data.model.ApiException
 import com.fullwar.menuapp.data.model.LoginRequestDto
 import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
+import com.fullwar.menuapp.data.repository.LocationProviderImpl
 import com.fullwar.menuapp.domain.model.TipoDocumento
 import com.fullwar.menuapp.presentation.common.components.dynamic.DynamicForm
 import com.fullwar.menuapp.presentation.common.components.dynamic.DynamicFormState
@@ -16,7 +18,8 @@ import com.fullwar.menuapp.presentation.common.utils.State
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val authRepository: AuthRepositoryImpl
+    private val authRepository: AuthRepositoryImpl,
+    private val locationProvider: LocationProviderImpl
 ) : ViewModel(), DynamicForm {
 
     val tiposDocumento: List<TipoDocumento> = listOf(
@@ -38,6 +41,9 @@ class LoginViewModel(
     var loginState by mutableStateOf<State<Unit>>(State.Initial)
         private set
 
+    var ubicacionPermitida by mutableStateOf(false)
+        private set
+
     fun login() {
         if (!validate()) return
 
@@ -54,15 +60,41 @@ class LoginViewModel(
         viewModelScope.launch {
             loginState = State.Loading
             try {
+                locationProvider.actualizarUbicacion(ubicacionPermitida)
+
+                if (locationProvider.getLatitude() == null || locationProvider.getLongitude() == null) {
+                    loginState = State.Error("Se requiere permiso de ubicación para iniciar sesión")
+                    return@launch
+                }
+
                 authRepository.loginAsync(request)
                 loginState = State.Success(Unit)
+            } catch (e: ApiException) {
+                if (e.validationErrors != null) {
+                    handleValidationErrors(e.validationErrors, FIELD_MAPPING)
+                    loginState = State.Initial
+                } else {
+                    loginState = State.Error(e.message ?: "Error al iniciar sesión")
+                }
             } catch (e: Exception) {
                 loginState = State.Error(e.message ?: "Error al iniciar sesión")
             }
         }
     }
 
+    fun onLocationPermisoResultado(concedido: Boolean) {
+        ubicacionPermitida = concedido
+        if (concedido) {
+            viewModelScope.launch {
+                locationProvider.actualizarUbicacion(true)
+            }
+        }
+    }
+
     override fun validate(): Boolean {
+        // Limpiar errores del servidor al re-validar
+        formFields = formFields.copy(serverErrors = emptyMap())
+
         val errors = mutableMapOf<String, Int?>()
         val tipoDoc = formFields.fields["TipoDocumento"] as? TipoDocumento
         val numDoc = (formFields.fields["numeroDocumento"] as? TextFieldValue)?.text ?: ""
@@ -100,5 +132,13 @@ class LoginViewModel(
 
         formFields = formFields.copy(errors = errors)
         return errors.isEmpty()
+    }
+
+    companion object {
+        private val FIELD_MAPPING = mapOf(
+            "contrasena" to "contrasena",
+            "numerodocumento" to "numeroDocumento",
+            "tipodocumento" to "TipoDocumento"
+        )
     }
 }

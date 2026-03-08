@@ -2,9 +2,15 @@ package com.fullwar.menuapp.di
 
 import android.content.Context
 import android.provider.Settings
+import com.fullwar.menuapp.data.datasource.local.LocationProvider
 import com.fullwar.menuapp.data.datasource.local.TokenProvider
+import com.fullwar.menuapp.data.model.ApiErrorResponseDto
+import com.fullwar.menuapp.data.model.ApiException
+import com.fullwar.menuapp.data.model.ApiValidationErrorResponseDto
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
@@ -25,6 +31,7 @@ val networkModule = module {
     single(named("PublicClient")) {
         val context = get<Context>()
         val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        val locationProvider = get<LocationProvider>()
 
         HttpClient(Android) {
             install(Logging) {
@@ -38,10 +45,40 @@ val networkModule = module {
                     ignoreUnknownKeys = true
                 })
             }
+            HttpResponseValidator {
+                validateResponse { response ->
+                    if (response.status.value !in 200..299) {
+                        if (response.status.value == 422) {
+                            val validationError = try {
+                                response.body<ApiValidationErrorResponseDto>()
+                            } catch (e: Exception) { null }
+
+                            throw ApiException(
+                                statusCode = 422,
+                                errorDetail = validationError?.detail,
+                                errorCode = validationError?.code,
+                                validationErrors = validationError?.errors
+                            )
+                        }
+
+                        val errorBody = try {
+                            response.body<ApiErrorResponseDto>()
+                        } catch (e: Exception) { null }
+
+                        throw ApiException(
+                            statusCode = response.status.value,
+                            errorDetail = errorBody?.detail,
+                            errorCode = errorBody?.code
+                        )
+                    }
+                }
+            }
             defaultRequest {
                 url("https://menu-soda-dev.up.railway.app/")
                 contentType(ContentType.Application.Json)
                 header("DeviceId", deviceId)
+                locationProvider.getLatitude()?.let { header("GeoLat", it) }
+                locationProvider.getLongitude()?.let { header("GeoLon", it) }
             }
         }
     }
@@ -51,6 +88,7 @@ val networkModule = module {
         val context = get<Context>()
         val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
         val tokenProvider = get<TokenProvider>()
+        val locationProvider = get<LocationProvider>()
 
         HttpClient(Android) {
             install(Logging) {
@@ -64,10 +102,40 @@ val networkModule = module {
                     ignoreUnknownKeys = true
                 })
             }
+            HttpResponseValidator {
+                validateResponse { response ->
+                    if (response.status.value !in 200..299) {
+                        if (response.status.value == 422) {
+                            val validationError = try {
+                                response.body<ApiValidationErrorResponseDto>()
+                            } catch (e: Exception) { null }
+
+                            throw ApiException(
+                                statusCode = 422,
+                                errorDetail = validationError?.detail,
+                                errorCode = validationError?.code,
+                                validationErrors = validationError?.errors
+                            )
+                        }
+
+                        val errorBody = try {
+                            response.body<ApiErrorResponseDto>()
+                        } catch (e: Exception) { null }
+
+                        throw ApiException(
+                            statusCode = response.status.value,
+                            errorDetail = errorBody?.detail,
+                            errorCode = errorBody?.code
+                        )
+                    }
+                }
+            }
             defaultRequest {
                 url("https://menu-soda-dev.up.railway.app/")
                 contentType(ContentType.Application.Json)
                 header("DeviceId", deviceId)
+                locationProvider.getLatitude()?.let { header("GeoLat", it) }
+                locationProvider.getLongitude()?.let { header("GeoLon", it) }
                 tokenProvider.getToken()?.let { token ->
                     header("Authorization", "Bearer $token")
                 }
