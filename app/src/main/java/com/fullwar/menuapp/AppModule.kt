@@ -4,7 +4,7 @@ import com.fullwar.menuapp.data.datasource.local.LocationProvider
 import com.fullwar.menuapp.data.datasource.local.SecureStorageProvider
 import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import com.fullwar.menuapp.data.datasource.remote.AuthService
-import com.fullwar.menuapp.data.repository.AndroidSecureStorageImpl
+import com.fullwar.menuapp.data.repository.SecureDataStoreImpl
 import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
 import com.fullwar.menuapp.data.repository.LocationProviderImpl
 import com.fullwar.menuapp.data.repository.SecureCookiesStorageImpl
@@ -21,8 +21,8 @@ val appModule = module {
     viewModelOf(::SharedViewModel)
     viewModelOf(::LoginViewModel)
 
-    // Almacenamiento seguro cifrado (EncryptedSharedPreferences + Android Keystore)
-    single<SecureStorageProvider> { AndroidSecureStorageImpl(androidContext()) }
+    // Almacenamiento seguro cifrado (DataStore + Tink + Android Keystore)
+    single<SecureStorageProvider> { SecureDataStoreImpl(androidContext()) }
 
     // Almacenamiento persistente de cookies (refresh token)
     single { SecureCookiesStorageImpl(get()) }
