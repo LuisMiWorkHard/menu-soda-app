@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.features.login
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -21,6 +22,15 @@ class LoginViewModel(
     private val authRepository: AuthRepositoryImpl,
     private val locationProvider: LocationProviderImpl
 ) : ViewModel(), DynamicForm {
+
+    companion object {
+        private const val TAG = "LoginViewModel"
+        private val FIELD_MAPPING = mapOf(
+            "contrasena" to "contrasena",
+            "numerodocumento" to "numeroDocumento",
+            "tipodocumento" to "TipoDocumento"
+        )
+    }
 
     val tiposDocumento: List<TipoDocumento> = listOf(
         TipoDocumento(tipoDocumento = 1, descripcionDocumento = "DNI"),
@@ -58,18 +68,38 @@ class LoginViewModel(
         )
 
         viewModelScope.launch {
+            val totalStartTime = System.currentTimeMillis()
             loginState = State.Loading
+
             try {
-                locationProvider.actualizarUbicacion(ubicacionPermitida)
+                // Si la ubicación no está cacheada, obtenerla ahora
+                if (locationProvider.getLatitude() == null && ubicacionPermitida) {
+                    Log.d(TAG, "Location not cached, fetching now...")
+                    val locationStartTime = System.currentTimeMillis()
+                    locationProvider.actualizarUbicacion(true)
+                    val locationElapsed = System.currentTimeMillis() - locationStartTime
+                    Log.d(TAG, "Location fetched in ${locationElapsed}ms")
+                }
 
                 if (locationProvider.getLatitude() == null || locationProvider.getLongitude() == null) {
                     loginState = State.Error("Se requiere permiso de ubicación para iniciar sesión")
                     return@launch
                 }
 
+                Log.d(TAG, "Starting login request...")
+                val loginStartTime = System.currentTimeMillis()
                 authRepository.loginAsync(request)
+                val loginElapsed = System.currentTimeMillis() - loginStartTime
+                Log.d(TAG, "Login request completed in ${loginElapsed}ms")
+
+                val totalElapsed = System.currentTimeMillis() - totalStartTime
+                Log.d(TAG, "Total login flow completed in ${totalElapsed}ms")
+
                 loginState = State.Success(Unit)
             } catch (e: ApiException) {
+                val totalElapsed = System.currentTimeMillis() - totalStartTime
+                Log.e(TAG, "Login failed after ${totalElapsed}ms: ${e.message}")
+
                 if (e.validationErrors != null) {
                     handleValidationErrors(e.validationErrors, FIELD_MAPPING)
                     loginState = State.Initial
@@ -77,6 +107,8 @@ class LoginViewModel(
                     loginState = State.Error(e.message ?: "Error al iniciar sesión")
                 }
             } catch (e: Exception) {
+                val totalElapsed = System.currentTimeMillis() - totalStartTime
+                Log.e(TAG, "Login failed after ${totalElapsed}ms: ${e.message}", e)
                 loginState = State.Error(e.message ?: "Error al iniciar sesión")
             }
         }
@@ -85,8 +117,13 @@ class LoginViewModel(
     fun onLocationPermisoResultado(concedido: Boolean) {
         ubicacionPermitida = concedido
         if (concedido) {
+            // Pre-cargar ubicación cuando se concede el permiso
             viewModelScope.launch {
+                Log.d(TAG, "Location permission granted, pre-loading...")
+                val startTime = System.currentTimeMillis()
                 locationProvider.actualizarUbicacion(true)
+                val elapsed = System.currentTimeMillis() - startTime
+                Log.d(TAG, "Location pre-loaded after permission in ${elapsed}ms")
             }
         }
     }
@@ -132,13 +169,5 @@ class LoginViewModel(
 
         formFields = formFields.copy(errors = errors)
         return errors.isEmpty()
-    }
-
-    companion object {
-        private val FIELD_MAPPING = mapOf(
-            "contrasena" to "contrasena",
-            "numerodocumento" to "numeroDocumento",
-            "tipodocumento" to "TipoDocumento"
-        )
     }
 }

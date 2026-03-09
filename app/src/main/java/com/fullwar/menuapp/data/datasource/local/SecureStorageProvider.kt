@@ -3,15 +3,17 @@ package com.fullwar.menuapp.data.datasource.local
 /**
  * Abstracción de almacenamiento seguro de key-value.
  *
+ * Todas las operaciones son suspendibles para no bloquear el hilo principal.
+ *
  * En KMP, esta interfaz se convertiría en:
- *   expect class SecureStorageProvider { fun getString(...): String?; fun putString(...); ... }
+ *   expect class SecureStorageProvider { suspend fun getString(...): String?; suspend fun putString(...); ... }
  * Con implementaciones:
- *   - Android (actual): EncryptedSharedPreferences + Keystore
+ *   - Android (actual): DataStore + Tink + Android Keystore
  *   - iOS (actual): Keychain Services
  */
 interface SecureStorageProvider {
-    fun getString(key: String): String?
-    fun putString(key: String, value: String)
-    fun remove(key: String)
-    fun clear()
+    suspend fun getString(key: String): String?
+    suspend fun putString(key: String, value: String)
+    suspend fun remove(key: String)
+    suspend fun clear()
 }

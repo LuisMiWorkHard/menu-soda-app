@@ -17,7 +17,7 @@ class SecureCookiesStorageImpl(
     private val mutex = Mutex()
     private var cookies: MutableList<Cookie>? = null
 
-    private fun loadCookies(): MutableList<Cookie> {
+    private suspend fun loadCookies(): MutableList<Cookie> {
         val stored = secureStorage.getString(COOKIES_KEY) ?: return mutableListOf()
         return stored.split(SEPARATOR)
             .filter { it.isNotBlank() }
@@ -31,12 +31,12 @@ class SecureCookiesStorageImpl(
             .toMutableList()
     }
 
-    private fun saveCookies(list: List<Cookie>) {
+    private suspend fun saveCookies(list: List<Cookie>) {
         val serialized = list.joinToString(SEPARATOR) { renderSetCookieHeader(it) }
         secureStorage.putString(COOKIES_KEY, serialized)
     }
 
-    private fun ensureLoaded(): MutableList<Cookie> {
+    private suspend fun ensureLoaded(): MutableList<Cookie> {
         if (cookies == null) {
             cookies = loadCookies()
         }
@@ -76,7 +76,7 @@ class SecureCookiesStorageImpl(
     }
 
     /** Limpia todas las cookies almacenadas (usado en logout) */
-    fun clear() {
+    suspend fun clear() {
         cookies = mutableListOf()
         secureStorage.remove(COOKIES_KEY)
     }

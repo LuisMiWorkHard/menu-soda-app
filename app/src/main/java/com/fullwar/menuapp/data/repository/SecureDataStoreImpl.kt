@@ -1,6 +1,7 @@
 package com.fullwar.menuapp.data.repository
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -11,17 +12,21 @@ import com.google.crypto.tink.Aead
 import com.google.crypto.tink.KeyTemplates
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 /**
  * Implementación moderna de almacenamiento seguro usando DataStore + Tink.
  * Reemplaza la implementación deprecada de EncryptedSharedPreferences.
+ *
+ * Todas las operaciones son suspendibles y no bloquean el hilo principal.
  */
 class SecureDataStoreImpl(private val context: Context) : SecureStorageProvider {
 
     companion object {
+        private const val TAG = "SecureDataStoreImpl"
         private const val DATASTORE_NAME = "auth_secure_datastore"
         private const val KEYSET_NAME = "master_keyset"
         private const val PREFERENCE_FILE = "master_key_preference"
@@ -33,6 +38,8 @@ class SecureDataStoreImpl(private val context: Context) : SecureStorageProvider 
     }
 
     private val aead: Aead by lazy {
+        val startTime = System.currentTimeMillis()
+
         // Inicializar Tink
         AeadConfig.register()
 
@@ -45,27 +52,35 @@ class SecureDataStoreImpl(private val context: Context) : SecureStorageProvider 
             .keysetHandle
 
         // Obtener el primitivo AEAD para encriptar/desencriptar
-        keysetHandle.getPrimitive(Aead::class.java)
+        val aead = keysetHandle.getPrimitive(Aead::class.java)
+
+        val elapsed = System.currentTimeMillis() - startTime
+        Log.d(TAG, "AEAD initialized in ${elapsed}ms")
+
+        aead
     }
 
-    override fun getString(key: String): String? {
-        return runBlocking {
-            try {
-                val prefKey = stringPreferencesKey(key)
-                val encryptedValue = context.secureDataStore.data
-                    .map { preferences -> preferences[prefKey] }
-                    .first()
+    override suspend fun getString(key: String): String? = withContext(Dispatchers.IO) {
+        val startTime = System.currentTimeMillis()
+        try {
+            val prefKey = stringPreferencesKey(key)
+            val encryptedValue = context.secureDataStore.data
+                .map { preferences -> preferences[prefKey] }
+                .first()
 
-                encryptedValue?.let { decrypt(it) }
-            } catch (e: Exception) {
-                // Log error si es necesario
-                null
-            }
+            val result = encryptedValue?.let { decrypt(it) }
+            val elapsed = System.currentTimeMillis() - startTime
+            Log.d(TAG, "getString('$key') took ${elapsed}ms")
+            result
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting string for key '$key': ${e.message}", e)
+            null
         }
     }
 
-    override fun putString(key: String, value: String) {
-        runBlocking {
+    override suspend fun putString(key: String, value: String) {
+        withContext(Dispatchers.IO) {
+            val startTime = System.currentTimeMillis()
             try {
                 val prefKey = stringPreferencesKey(key)
                 val encryptedValue = encrypt(value)
@@ -73,35 +88,40 @@ class SecureDataStoreImpl(private val context: Context) : SecureStorageProvider 
                 context.secureDataStore.edit { preferences ->
                     preferences[prefKey] = encryptedValue
                 }
+
+                val elapsed = System.currentTimeMillis() - startTime
+                Log.d(TAG, "putString('$key') took ${elapsed}ms")
             } catch (e: Exception) {
-                // Log error si es necesario
+                Log.e(TAG, "Error putting string for key '$key': ${e.message}", e)
                 throw e
             }
         }
     }
 
-    override fun remove(key: String) {
-        runBlocking {
+    override suspend fun remove(key: String) {
+        withContext(Dispatchers.IO) {
             try {
                 val prefKey = stringPreferencesKey(key)
                 context.secureDataStore.edit { preferences ->
                     preferences.remove(prefKey)
                 }
+                Log.d(TAG, "remove('$key') completed")
             } catch (e: Exception) {
-                // Log error si es necesario
+                Log.e(TAG, "Error removing key '$key': ${e.message}", e)
                 throw e
             }
         }
     }
 
-    override fun clear() {
-        runBlocking {
+    override suspend fun clear() {
+        withContext(Dispatchers.IO) {
             try {
                 context.secureDataStore.edit { preferences ->
                     preferences.clear()
                 }
+                Log.d(TAG, "clear() completed")
             } catch (e: Exception) {
-                // Log error si es necesario
+                Log.e(TAG, "Error clearing storage: ${e.message}", e)
                 throw e
             }
         }
