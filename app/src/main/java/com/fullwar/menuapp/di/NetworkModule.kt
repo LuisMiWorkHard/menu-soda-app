@@ -2,7 +2,6 @@ package com.fullwar.menuapp.di
 
 import android.content.Context
 import android.provider.Settings
-import com.fullwar.menuapp.data.datasource.local.LocationProvider
 import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import com.fullwar.menuapp.data.model.ApiErrorResponseDto
 import com.fullwar.menuapp.data.model.ApiException
@@ -11,7 +10,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.HttpResponseValidator
+import com.fullwar.menuapp.data.repository.SecureCookiesStorageImpl
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -31,7 +32,6 @@ val networkModule = module {
     single(named("PublicClient")) {
         val context = get<Context>()
         val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-        val locationProvider = get<LocationProvider>()
 
         HttpClient(Android) {
             install(Logging) {
@@ -44,6 +44,9 @@ val networkModule = module {
                     isLenient = true
                     ignoreUnknownKeys = true
                 })
+            }
+            install(HttpCookies) {
+                storage = get<SecureCookiesStorageImpl>()
             }
             HttpResponseValidator {
                 validateResponse { response ->
@@ -77,8 +80,6 @@ val networkModule = module {
                 url("https://menu-soda-dev.up.railway.app/")
                 contentType(ContentType.Application.Json)
                 header("DeviceId", deviceId)
-                locationProvider.getLatitude()?.let { header("GeoLat", it) }
-                locationProvider.getLongitude()?.let { header("GeoLon", it) }
             }
         }
     }
@@ -88,7 +89,6 @@ val networkModule = module {
         val context = get<Context>()
         val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
         val tokenProvider = get<TokenProvider>()
-        val locationProvider = get<LocationProvider>()
 
         HttpClient(Android) {
             install(Logging) {
@@ -134,8 +134,6 @@ val networkModule = module {
                 url("https://menu-soda-dev.up.railway.app/")
                 contentType(ContentType.Application.Json)
                 header("DeviceId", deviceId)
-                locationProvider.getLatitude()?.let { header("GeoLat", it) }
-                locationProvider.getLongitude()?.let { header("GeoLon", it) }
                 tokenProvider.getToken()?.let { token ->
                     header("Authorization", "Bearer $token")
                 }

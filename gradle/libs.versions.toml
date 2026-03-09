@@ -5,16 +5,16 @@ junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.10.0"
-activityCompose = "1.12.3"
-kotlin = "2.3.0"
-composeBom = "2026.01.01"
-foundation = "1.10.2"
+activityCompose = "1.12.4"
+kotlin = "2.3.10"
+composeBom = "2026.02.01"
+foundation = "1.10.4"
 material = "1.7.8"
 navigationCompose = "2.9.7"
 koin = "4.1.1"
 lifecycleViewmodelKtx = "2.10.0"
-ktor = "2.3.12"
-kvault = "1.12.0"
+ktor = "3.4.1"
+securityCrypto = "1.1.0"
 playServicesLocation = "21.3.0"
 
 [libraries]
@@ -43,7 +43,7 @@ ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
-kvault = { group = "com.liftric", name = "kvault", version.ref = "kvault" }
+security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 

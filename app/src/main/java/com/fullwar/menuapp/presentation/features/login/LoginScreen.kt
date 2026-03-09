@@ -9,15 +9,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.material.icons.Icons
@@ -69,6 +76,8 @@ fun LoginScreen(
     sharedViewModel: SharedViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val passwordFocusRequester = remember { FocusRequester() }
 
     // Launcher para solicitar permisos de ubicación
     val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -134,7 +143,8 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SodaGrayLight),
+            .background(SodaGrayLight)
+            .systemBarsPadding(),
         contentAlignment = Alignment.TopCenter
     ) {
         Column(
@@ -190,6 +200,8 @@ fun LoginScreen(
                     onOptionSelected = {
                         documentType = it
                         viewModel.updateField("TipoDocumento", it)
+                        documentNumber = ""
+                        viewModel.updateField("numeroDocumento", TextFieldValue(""))
                     }
                 )
             }
@@ -200,12 +212,26 @@ fun LoginScreen(
             LoginTextField(
                 label = stringResource(id = R.string.login_document_number),
                 value = documentNumber,
-                onValueChange = {
-                    documentNumber = it
-                    viewModel.updateField("numeroDocumento", TextFieldValue(it))
+                onValueChange = { input ->
+                    val filtered = when (documentType.tipoDocumento) {
+                        1, 3 -> input.filter { it.isDigit() }  // DNI, RUC: solo dígitos
+                        else -> input.filter { it.isLetterOrDigit() }  // CE: alfanumérico
+                    }
+                    documentNumber = filtered
+                    viewModel.updateField("numeroDocumento", TextFieldValue(filtered))
                 },
                 placeholder = stringResource(id = R.string.login_document_number_placeholder),
                 leadingIcon = Icons.Filled.Badge,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = when (documentType.tipoDocumento) {
+                        1, 3 -> KeyboardType.Number  // DNI, RUC
+                        else -> KeyboardType.Text     // CE
+                    },
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { passwordFocusRequester.requestFocus() }
+                ),
                 error = errors["numeroDocumento"],
                 serverError = serverErrors["numeroDocumento"]
             )
@@ -222,9 +248,17 @@ fun LoginScreen(
                 },
                 placeholder = stringResource(id = R.string.login_password_placeholder),
                 leadingIcon = null,
+                modifier = Modifier.focusRequester(passwordFocusRequester),
                 trailingIcon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                 onTrailingIconClick = { passwordVisible = !passwordVisible },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                ),
                 isPasswordField = true,
                 error = errors["contrasena"],
                 serverError = serverErrors["contrasena"]
@@ -359,9 +393,12 @@ fun LoginTextField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     leadingIcon: ImageVector?,
+    modifier: Modifier = Modifier,
     trailingIcon: ImageVector? = null,
     onTrailingIconClick: (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     isPasswordField: Boolean = false,
     error: Int? = null,
     serverError: String? = null
@@ -393,7 +430,7 @@ fun LoginTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .background(
                     color = Color.White,
@@ -420,6 +457,8 @@ fun LoginTextField(
                 }
             },
             visualTransformation = visualTransformation,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
             singleLine = true,
             isError = hasError
         )
