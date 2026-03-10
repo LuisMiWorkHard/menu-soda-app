@@ -17,8 +17,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 data class MenuHistorialItem(
     val fecha: String,
@@ -33,7 +40,15 @@ fun HistorialTab(modifier: Modifier = Modifier) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("Hoy") }
 
+    // Estado del calendario
+    var showDatePicker by remember { mutableStateOf(false) }
+    var isRangeMode by remember { mutableStateOf(false) }
+    var selectedDateMillis by remember { mutableStateOf<Long?>(null) }
+    var selectedStartDateMillis by remember { mutableStateOf<Long?>(null) }
+    var selectedEndDateMillis by remember { mutableStateOf<Long?>(null) }
+
     val filters = listOf("Hoy", "Última Semana", "Platos Principales")
+    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale("es")) }
 
     // Datos de ejemplo
     val menuItems = listOf(
@@ -63,6 +78,49 @@ fun HistorialTab(modifier: Modifier = Modifier) {
         )
     )
 
+    // Texto del chip de fecha activa
+    val activeDateChipText = remember(selectedDateMillis, selectedStartDateMillis, selectedEndDateMillis, isRangeMode) {
+        if (!isRangeMode && selectedDateMillis != null) {
+            dateFormat.format(Date(selectedDateMillis!!))
+        } else if (isRangeMode && selectedStartDateMillis != null && selectedEndDateMillis != null) {
+            "${dateFormat.format(Date(selectedStartDateMillis!!))} - ${dateFormat.format(Date(selectedEndDateMillis!!))}"
+        } else {
+            null
+        }
+    }
+
+    val hasDateFilter = activeDateChipText != null
+
+    // Dialog del calendario
+    if (showDatePicker) {
+        DatePickerDialog(
+            isRangeMode = isRangeMode,
+            onRangeModeChange = { isRangeMode = it },
+            initialSelectedDateMillis = selectedDateMillis,
+            initialStartDateMillis = selectedStartDateMillis,
+            initialEndDateMillis = selectedEndDateMillis,
+            onApply = { singleDate, startDate, endDate ->
+                if (isRangeMode) {
+                    selectedStartDateMillis = startDate
+                    selectedEndDateMillis = endDate
+                    selectedDateMillis = null
+                } else {
+                    selectedDateMillis = singleDate
+                    selectedStartDateMillis = null
+                    selectedEndDateMillis = null
+                }
+                showDatePicker = false
+            },
+            onClear = {
+                selectedDateMillis = null
+                selectedStartDateMillis = null
+                selectedEndDateMillis = null
+                showDatePicker = false
+            },
+            onDismiss = { showDatePicker = false }
+        )
+    }
+
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -75,11 +133,11 @@ fun HistorialTab(modifier: Modifier = Modifier) {
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /* Calendario */ }) {
+                    IconButton(onClick = { showDatePicker = true }) {
                         Icon(
                             imageVector = Icons.Filled.CalendarMonth,
                             contentDescription = null,
-                            tint = SodaOrange
+                            tint = if (hasDateFilter) SodaOrange else SodaGray
                         )
                     }
                 },
@@ -169,6 +227,45 @@ fun HistorialTab(modifier: Modifier = Modifier) {
                 }
             }
 
+            // Chip de fecha activa
+            if (activeDateChipText != null) {
+                Spacer(modifier = Modifier.height(SpacingSmall))
+                FilterChip(
+                    selected = true,
+                    onClick = { showDatePicker = true },
+                    label = { Text(text = activeDateChipText) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.CalendarMonth,
+                            contentDescription = null,
+                            modifier = Modifier.size(IconSizeSmall)
+                        )
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                selectedDateMillis = null
+                                selectedStartDateMillis = null
+                                selectedEndDateMillis = null
+                            },
+                            modifier = Modifier.size(IconSizeSmall)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = null,
+                                modifier = Modifier.size(IconSizeSmall)
+                            )
+                        }
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = SodaOrange,
+                        selectedLabelColor = Color.White,
+                        selectedLeadingIconColor = Color.White,
+                        selectedTrailingIconColor = Color.White
+                    )
+                )
+            }
+
             Spacer(modifier = Modifier.height(SpacingLarge))
 
             // Título de sección
@@ -188,6 +285,189 @@ fun HistorialTab(modifier: Modifier = Modifier) {
                 }
                 // Espacio extra para que el FAB no tape el último elemento
                 item { Spacer(modifier = Modifier.height(80.dp)) }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerDialog(
+    isRangeMode: Boolean,
+    onRangeModeChange: (Boolean) -> Unit,
+    initialSelectedDateMillis: Long?,
+    initialStartDateMillis: Long?,
+    initialEndDateMillis: Long?,
+    onApply: (singleDate: Long?, startDate: Long?, endDate: Long?) -> Unit,
+    onClear: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val todayUtcMillis = remember {
+        // Obtener la fecha de hoy en zona horaria local
+        val localCalendar = Calendar.getInstance()
+        val year = localCalendar.get(Calendar.YEAR)
+        val month = localCalendar.get(Calendar.MONTH)
+        val day = localCalendar.get(Calendar.DAY_OF_MONTH)
+        // Convertir esa fecha a medianoche UTC (formato que usa DatePicker)
+        val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        utcCalendar.clear()
+        utcCalendar.set(year, month, day, 0, 0, 0)
+        utcCalendar.timeInMillis
+    }
+
+    val noFutureDates = remember(todayUtcMillis) {
+        object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis <= todayUtcMillis
+            }
+
+            override fun isSelectableYear(year: Int): Boolean {
+                val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+                return year <= currentYear
+            }
+        }
+    }
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialSelectedDateMillis,
+        selectableDates = noFutureDates
+    )
+
+    val dateRangePickerState = rememberDateRangePickerState(
+        initialSelectedStartDateMillis = initialStartDateMillis,
+        initialSelectedEndDateMillis = initialEndDateMillis,
+        selectableDates = noFutureDates
+    )
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .fillMaxHeight(0.85f),
+            shape = RoundedCornerShape(CornerRadiusLarge),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Título
+                Text(
+                    text = stringResource(id = R.string.calendar_title),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = TextSizeXLarge,
+                    modifier = Modifier.padding(
+                        start = SpacingLarge,
+                        top = SpacingLarge,
+                        bottom = SpacingMedium
+                    )
+                )
+
+                // Toggle Fecha / Rango
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = SpacingLarge)
+                ) {
+                    SegmentedButton(
+                        selected = !isRangeMode,
+                        onClick = { onRangeModeChange(false) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = SodaOrange,
+                            activeContentColor = Color.White
+                        )
+                    ) {
+                        Text(text = stringResource(id = R.string.calendar_single_date))
+                    }
+                    SegmentedButton(
+                        selected = isRangeMode,
+                        onClick = { onRangeModeChange(true) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = SodaOrange,
+                            activeContentColor = Color.White
+                        )
+                    ) {
+                        Text(text = stringResource(id = R.string.calendar_date_range))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(SpacingMedium))
+
+                // DatePicker o DateRangePicker
+                if (isRangeMode) {
+                    DateRangePicker(
+                        state = dateRangePickerState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        title = null,
+                        headline = null,
+                        showModeToggle = false,
+                        colors = DatePickerDefaults.colors(
+                            selectedDayContainerColor = SodaOrange,
+                            todayDateBorderColor = SodaOrange,
+                            dayInSelectionRangeContainerColor = SodaOrangeLight
+                        )
+                    )
+                } else {
+                    DatePicker(
+                        state = datePickerState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(horizontal = SpacingSmall),
+                        title = null,
+                        headline = null,
+                        showModeToggle = false,
+                        colors = DatePickerDefaults.colors(
+                            selectedDayContainerColor = SodaOrange,
+                            todayDateBorderColor = SodaOrange
+                        )
+                    )
+                }
+
+                // Botones
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(SpacingLarge),
+                    horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
+                ) {
+                    OutlinedButton(
+                        onClick = onClear,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(CornerRadiusMedium)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.calendar_clear),
+                            color = SodaOrange
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            if (isRangeMode) {
+                                onApply(null, dateRangePickerState.selectedStartDateMillis, dateRangePickerState.selectedEndDateMillis)
+                            } else {
+                                onApply(datePickerState.selectedDateMillis, null, null)
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
+                        shape = RoundedCornerShape(CornerRadiusMedium),
+                        enabled = if (isRangeMode) {
+                            dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null
+                        } else {
+                            datePickerState.selectedDateMillis != null
+                        }
+                    ) {
+                        Text(text = stringResource(id = R.string.calendar_apply))
+                    }
+                }
             }
         }
     }

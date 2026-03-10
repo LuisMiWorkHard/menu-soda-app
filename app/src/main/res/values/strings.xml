@@ -36,6 +36,11 @@
     <string name="historial_buscar">Buscar platos o palabras clave</string>
     <string name="historial_recientes">MENÚS RECIENTES</string>
     <string name="historial_nuevo_menu">Nuevo Menú</string>
+    <string name="calendar_single_date">Fecha</string>
+    <string name="calendar_date_range">Rango</string>
+    <string name="calendar_apply">Aplicar</string>
+    <string name="calendar_clear">Limpiar</string>
+    <string name="calendar_title">Seleccionar fecha</string>
 
     <!-- Login Error -->
     <string name="login_error_generic">Error al iniciar sesión</string>
