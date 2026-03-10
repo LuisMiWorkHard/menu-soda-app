@@ -213,10 +213,15 @@ fun LoginScreen(
                 label = stringResource(id = R.string.login_document_number),
                 value = documentNumber,
                 onValueChange = { input ->
+                    val maxLength = when (documentType.tipoDocumento) {
+                        1 -> 8   // DNI: 8 dígitos
+                        3 -> 11  // RUC: 11 dígitos
+                        else -> 20  // CE: hasta 20 caracteres
+                    }
                     val filtered = when (documentType.tipoDocumento) {
                         1, 3 -> input.filter { it.isDigit() }  // DNI, RUC: solo dígitos
                         else -> input.filter { it.isLetterOrDigit() }  // CE: alfanumérico
-                    }
+                    }.take(maxLength)
                     documentNumber = filtered
                     viewModel.updateField("numeroDocumento", TextFieldValue(filtered))
                 },
@@ -243,8 +248,9 @@ fun LoginScreen(
                 label = stringResource(id = R.string.login_password),
                 value = password,
                 onValueChange = {
-                    password = it
-                    viewModel.updateField("contrasena", TextFieldValue(it))
+                    val limited = it.take(255)
+                    password = limited
+                    viewModel.updateField("contrasena", TextFieldValue(limited))
                 },
                 placeholder = stringResource(id = R.string.login_password_placeholder),
                 leadingIcon = null,

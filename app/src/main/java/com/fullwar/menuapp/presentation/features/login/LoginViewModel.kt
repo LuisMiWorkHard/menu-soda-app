@@ -147,12 +147,12 @@ class LoginViewModel(
                     }
                 }
                 2 -> {
-                    if (!numDoc.matches(Regex("^[a-zA-Z0-9]{12}$"))) {
+                    if (!numDoc.matches(Regex("^[a-zA-Z0-9]{1,20}$"))) {
                         errors["numeroDocumento"] = R.string.error_ce_length
                     }
                 }
                 3 -> {
-                    if (!numDoc.matches(Regex("^\\d{12}$"))) {
+                    if (!numDoc.matches(Regex("^\\d{11}$"))) {
                         errors["numeroDocumento"] = R.string.error_ruc_length
                     }
                 }
