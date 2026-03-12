@@ -65,7 +65,19 @@ fun HomeScreen() {
             startDestination = HomeTab.HISTORIAL.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(HomeTab.HISTORIAL.route) { HistorialTab() }
+            composable(HomeTab.HISTORIAL.route) {
+                HistorialTab(
+                    onNuevoMenuClick = {
+                        navController.navigate(HomeTab.NUEVO.route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
             composable(HomeTab.NUEVO.route) { NuevoTab() }
             composable(HomeTab.PERFIL.route) { PerfilTab() }
         }
