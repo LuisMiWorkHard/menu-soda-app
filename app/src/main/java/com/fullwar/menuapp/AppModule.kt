@@ -4,10 +4,15 @@ import com.fullwar.menuapp.data.datasource.local.LocationProvider
 import com.fullwar.menuapp.data.datasource.local.SecureStorageProvider
 import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import com.fullwar.menuapp.data.datasource.remote.AuthService
+import com.fullwar.menuapp.data.datasource.remote.EntradaService
+import com.fullwar.menuapp.data.datasource.remote.ImagenService
+import com.fullwar.menuapp.data.datasource.remote.TipoEntradaService
 import com.fullwar.menuapp.data.repository.SecureDataStoreImpl
 import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
+import com.fullwar.menuapp.data.repository.EntradaRepositoryImpl
 import com.fullwar.menuapp.data.repository.LocationProviderImpl
 import com.fullwar.menuapp.data.repository.SecureCookiesStorageImpl
+import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.EntradaViewModel
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import org.koin.android.ext.koin.androidContext
@@ -20,6 +25,7 @@ import org.koin.dsl.module
 val appModule = module {
     viewModelOf(::SharedViewModel)
     viewModelOf(::LoginViewModel)
+    viewModelOf(::EntradaViewModel)
 
     // Almacenamiento seguro cifrado (DataStore + Tink + Android Keystore)
     single<SecureStorageProvider> { SecureDataStoreImpl(androidContext()) }
@@ -35,4 +41,10 @@ val appModule = module {
 
     // LocationProviderImpl implementa LocationProvider
     singleOf(::LocationProviderImpl) bind LocationProvider::class
+
+    // Entrada feature: services usan AuthClient (Bearer token)
+    single { EntradaService(get(named("AuthClient"))) }
+    single { TipoEntradaService(get(named("AuthClient"))) }
+    single { ImagenService(get(named("AuthClient"))) }
+    singleOf(::EntradaRepositoryImpl)
 }

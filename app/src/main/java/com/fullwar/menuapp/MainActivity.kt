@@ -20,7 +20,7 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
 
     override fun attachBaseContext(newBase: Context) {
-        val locale = Locale("es", "ES")
+        val locale = Locale.forLanguageTag("es-ES")
         Locale.setDefault(locale)
         val config = Configuration(newBase.resources.configuration)
         config.setLocale(locale)

@@ -58,6 +58,37 @@
     <string name="nuevo_siguiente_bebidas">Siguiente paso: Bebidas</string>
     <string name="nuevo_finalizar">Finalizar menú</string>
     <string name="nuevo_proximamente">Próximamente</string>
+    <string name="nuevo_anterior">Anterior</string>
+    <string name="nuevo_siguiente">Siguiente ❯</string>
+
+    <!-- Platos Fondo -->
+    <string name="platos_fondo_buscar">Buscar platos de fondo…</string>
+    <string name="platos_fondo_sugerencias">SUGERENCIAS INTELIGENTES</string>
+    <string name="platos_fondo_disponibles">Platos Disponibles</string>
+    <string name="platos_fondo_nuevo_plato">+ Nuevo Plato</string>
+    <string name="platos_fondo_seleccionados">%1$d seleccionados</string>
+    <string name="platos_fondo_anadir">+ AÑADIR</string>
+
+    <!-- Añadir Entrada Bottom Sheet -->
+    <string name="entrada_dialog_titulo">Añadir Nueva Entrada</string>
+    <string name="entrada_subir_foto">Subir foto de la entrada</string>
+    <string name="entrada_nombre_label">Nombre de la entrada</string>
+    <string name="entrada_nombre_placeholder">Ej. Sopa de Pollo</string>
+    <string name="entrada_descripcion_label">Descripción corta</string>
+    <string name="entrada_descripcion_placeholder">Ingredientes y detalles importantes…</string>
+    <string name="entrada_tipo_label">Tipo de entrada</string>
+    <string name="entrada_guardar">Guardar y Seleccionar</string>
+    <string name="entrada_cancelar">Cancelar</string>
+    <string name="entrada_foto_source_title">Seleccionar foto</string>
+    <string name="entrada_foto_camara">Cámara</string>
+    <string name="entrada_foto_galeria">Galería</string>
+
+    <!-- Entrada Validations -->
+    <string name="error_entrada_nombre_vacio">Ingrese el nombre de la entrada</string>
+    <string name="error_entrada_nombre_min">El nombre debe tener al menos 3 caracteres</string>
+    <string name="error_entrada_nombre_max">El nombre no puede exceder 200 caracteres</string>
+    <string name="error_entrada_descripcion_max">La descripción no puede exceder 1000 caracteres</string>
+    <string name="error_entrada_tipo_vacio">Seleccione un tipo de entrada</string>
 
     <!-- Login Error -->
     <string name="login_error_generic">Error al iniciar sesión</string>

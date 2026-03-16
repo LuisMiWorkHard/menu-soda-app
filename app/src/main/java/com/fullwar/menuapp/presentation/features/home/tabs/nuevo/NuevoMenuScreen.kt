@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -18,6 +19,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.ui.theme.*
+import org.koin.androidx.compose.koinViewModel
 
 sealed class NuevoMenuRoute(val route: String) {
     object Entradas : NuevoMenuRoute("paso_entradas")
@@ -30,6 +32,7 @@ sealed class NuevoMenuRoute(val route: String) {
 fun NuevoMenuScreen(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+    val entradaViewModel: EntradaViewModel = koinViewModel()
 
     // Estado compartido entre pasos
     var selectedEntradas by remember { mutableStateOf(setOf<String>()) }
@@ -57,7 +60,7 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
             TopAppBar(
                 title = {
                     Text(
-                        text = stepTitle,
+                        text = "Crear Menú Diario",
                         fontWeight = FontWeight.Bold,
                         fontSize = TextSizeLarge
                     )
@@ -80,41 +83,46 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
             )
         },
         bottomBar = {
-            val nextButtonText = when (currentStep) {
-                1 -> stringResource(id = R.string.nuevo_siguiente_platos)
-                2 -> stringResource(id = R.string.nuevo_siguiente_bebidas)
-                3 -> stringResource(id = R.string.nuevo_finalizar)
-                else -> ""
-            }
-
             Surface(
                 color = Color.White,
                 shadowElevation = 8.dp
             ) {
-                Button(
-                    onClick = {
-                        when (currentStep) {
-                            1 -> navController.navigate(NuevoMenuRoute.PlatosFondo.route)
-                            2 -> navController.navigate(NuevoMenuRoute.Estilo.route)
-                            3 -> { /* Finalizar menú */ }
-                        }
-                    },
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(SpacingLarge),
-                    colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(CornerRadiusMedium)
+                    horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
                 ) {
-                    Text(
-                        text = nextButtonText,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = TextSizeMedium
-                    )
-                    Spacer(modifier = Modifier.width(SpacingSmall))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null
-                    )
+                    if (currentStep > 1) {
+                        OutlinedButton(
+                            onClick = { navController.popBackStack() },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(CornerRadiusMedium),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.nuevo_anterior),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            when (currentStep) {
+                                1 -> navController.navigate(NuevoMenuRoute.PlatosFondo.route)
+                                2 -> navController.navigate(NuevoMenuRoute.Estilo.route)
+                                3 -> { /* Finalizar menú */ }
+                            }
+                        },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(CornerRadiusMedium)
+                    ) {
+                        Text(
+                            text = if (currentStep == 3) stringResource(id = R.string.nuevo_finalizar) else stringResource(id = R.string.nuevo_siguiente),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
@@ -126,7 +134,18 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
                 .background(Color.White)
         ) {
             // Barra de progreso
-            ProgressHeader(currentStep = currentStep, totalSteps = 3)
+            val currentSelectedSize = when (currentStep) {
+                1 -> selectedEntradas.size
+                2 -> selectedPlatosFuertes.size
+                3 -> selectedBebidas.size
+                else -> 0
+            }
+            ProgressHeader(
+                currentStep = currentStep,
+                totalSteps = 3,
+                stepTitle = stepTitle,
+                selectedCount = currentSelectedSize
+            )
 
             // NavHost con los 3 pasos
             NavHost(
@@ -137,11 +156,15 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
                 composable(NuevoMenuRoute.Entradas.route) {
                     PasoEntradasScreen(
                         selectedEntradas = selectedEntradas,
-                        onSelectionChange = { selectedEntradas = it }
+                        onSelectionChange = { selectedEntradas = it },
+                        entradaViewModel = entradaViewModel
                     )
                 }
                 composable(NuevoMenuRoute.PlatosFondo.route) {
-                    PasoPlatosFondoScreen()
+                    PasoPlatosFondoScreen(
+                        selectedPlatos = selectedPlatosFuertes,
+                        onSelectionChange = { selectedPlatosFuertes = it }
+                    )
                 }
                 composable(NuevoMenuRoute.Estilo.route) {
                     PasoEstiloScreen()
@@ -152,26 +175,35 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ProgressHeader(currentStep: Int, totalSteps: Int) {
+fun ProgressHeader(currentStep: Int, totalSteps: Int, stepTitle: String, selectedCount: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = SpacingLarge)
             .padding(top = SpacingSmall, bottom = SpacingMedium)
     ) {
+        Text(
+            text = stringResource(id = R.string.nuevo_progreso_de, currentStep, totalSteps),
+            fontSize = TextSizeSmall,
+            fontWeight = FontWeight.Bold,
+            color = SodaOrange
+        )
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = SpacingXSmall),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
         ) {
             Text(
-                text = stringResource(id = R.string.nuevo_progreso_label),
-                fontSize = TextSizeSmall,
-                color = SodaGray
+                text = stepTitle.replace("Paso $currentStep: ", ""),
+                fontSize = TextSizeXLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
             )
             Text(
-                text = stringResource(id = R.string.nuevo_progreso_de, currentStep, totalSteps),
-                fontSize = TextSizeSmall,
-                fontWeight = FontWeight.Bold,
+                text = stringResource(id = R.string.platos_fondo_seleccionados, selectedCount),
+                fontSize = TextSizeMedium,
                 color = SodaGray
             )
         }
@@ -180,7 +212,7 @@ fun ProgressHeader(currentStep: Int, totalSteps: Int) {
             progress = { currentStep.toFloat() / totalSteps.toFloat() },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(SpacingSmall),
+                .height(SpacingXSmall),
             color = SodaOrange,
             trackColor = SodaGrayLight,
             strokeCap = androidx.compose.ui.graphics.StrokeCap.Round

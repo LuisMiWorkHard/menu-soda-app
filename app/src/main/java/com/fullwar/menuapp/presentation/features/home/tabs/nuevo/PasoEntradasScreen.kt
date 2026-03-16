@@ -1,6 +1,5 @@
 package com.fullwar.menuapp.presentation.features.home.tabs.nuevo
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,8 +19,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
+import com.fullwar.menuapp.data.model.EntradaResponseDto
+import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.ui.theme.*
 
 data class SugerenciaItem(
@@ -33,9 +33,18 @@ data class SugerenciaItem(
 @Composable
 fun PasoEntradasScreen(
     selectedEntradas: Set<String>,
-    onSelectionChange: (Set<String>) -> Unit
+    onSelectionChange: (Set<String>) -> Unit,
+    entradaViewModel: EntradaViewModel
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var showBottomSheet by remember { mutableStateOf(false) }
+
+    // Cargar entradas al inicio
+    LaunchedEffect(Unit) {
+        entradaViewModel.loadEntradas()
+    }
+
+    val entradasState = entradaViewModel.entradasState
 
     val sugerencias = remember {
         listOf(
@@ -52,13 +61,31 @@ fun PasoEntradasScreen(
         )
     }
 
-    val entradas = remember {
-        listOf(
-            "Ensalada César con crutones",
-            "Sopa de tomate rostizado",
-            "Carpaccio de res con parmesano",
-            "Brochetas de champiñones al ajillo",
-            "Tostadas de atún marinado"
+    // Filtrar entradas por búsqueda
+    val entradasFiltradas = when (entradasState) {
+        is State.Success -> {
+            if (searchQuery.isBlank()) {
+                entradasState.data
+            } else {
+                entradasState.data.filter {
+                    it.entdes.contains(searchQuery, ignoreCase = true)
+                }
+            }
+        }
+        else -> emptyList()
+    }
+
+    // Bottom sheet para añadir nueva entrada
+    if (showBottomSheet) {
+        AnadirEntradaBottomSheet(
+            viewModel = entradaViewModel,
+            onDismiss = {
+                entradaViewModel.resetForm()
+                showBottomSheet = false
+            },
+            onSuccess = {
+                showBottomSheet = false
+            }
         )
     }
 
@@ -136,7 +163,10 @@ fun PasoEntradasScreen(
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { /* Añadir nueva entrada */ }
+                    modifier = Modifier.clickable {
+                        entradaViewModel.loadTiposEntrada()
+                        showBottomSheet = true
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Filled.AddCircleOutline,
@@ -155,50 +185,84 @@ fun PasoEntradasScreen(
             }
         }
 
-        // Lista de entradas con checkboxes
-        items(entradas) { entrada ->
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val newSelection = if (entrada in selectedEntradas) {
-                                selectedEntradas - entrada
+        // Estado de carga
+        when (entradasState) {
+            is State.Loading -> {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = SpacingXLarge),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = SodaOrange)
+                    }
+                }
+            }
+            is State.Error -> {
+                item {
+                    Text(
+                        text = entradasState.message,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = TextSizeSmall,
+                        modifier = Modifier.padding(vertical = SpacingMedium)
+                    )
+                }
+            }
+            is State.Success -> {
+                // Lista de entradas con checkboxes
+                items(entradasFiltradas) { entrada ->
+                    EntradaListItem(
+                        entrada = entrada,
+                        isSelected = entrada.entdes in selectedEntradas,
+                        onToggle = { checked ->
+                            val newSelection = if (checked) {
+                                selectedEntradas + entrada.entdes
                             } else {
-                                selectedEntradas + entrada
+                                selectedEntradas - entrada.entdes
                             }
                             onSelectionChange(newSelection)
                         }
-                        .padding(vertical = SpacingMedium),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = entrada in selectedEntradas,
-                        onCheckedChange = { checked ->
-                            val newSelection = if (checked) {
-                                selectedEntradas + entrada
-                            } else {
-                                selectedEntradas - entrada
-                            }
-                            onSelectionChange(newSelection)
-                        },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = SodaOrange,
-                            uncheckedColor = SodaGray
-                        )
-                    )
-                    Spacer(modifier = Modifier.width(SpacingSmall))
-                    Text(
-                        text = entrada,
-                        fontSize = TextSizeMedium
                     )
                 }
-                HorizontalDivider(color = SodaGrayLight)
             }
+            else -> {}
         }
 
         // Espacio extra para que el botón inferior no tape
         item { Spacer(modifier = Modifier.height(SpacingLarge)) }
+    }
+}
+
+@Composable
+private fun EntradaListItem(
+    entrada: EntradaResponseDto,
+    isSelected: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onToggle(!isSelected) }
+                .padding(vertical = SpacingMedium),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = onToggle,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = SodaOrange,
+                    uncheckedColor = SodaGray
+                )
+            )
+            Spacer(modifier = Modifier.width(SpacingSmall))
+            Text(
+                text = entrada.entdes,
+                fontSize = TextSizeMedium
+            )
+        }
+        HorizontalDivider(color = SodaGrayLight)
     }
 }
 
