@@ -68,7 +68,7 @@ fun PasoEntradasScreen(
                 entradasState.data
             } else {
                 entradasState.data.filter {
-                    it.entdes.contains(searchQuery, ignoreCase = true)
+                    it.descripcion.contains(searchQuery, ignoreCase = true)
                 }
             }
         }
@@ -214,12 +214,12 @@ fun PasoEntradasScreen(
                 items(entradasFiltradas) { entrada ->
                     EntradaListItem(
                         entrada = entrada,
-                        isSelected = entrada.entdes in selectedEntradas,
+                        isSelected = entrada.descripcion in selectedEntradas,
                         onToggle = { checked ->
                             val newSelection = if (checked) {
-                                selectedEntradas + entrada.entdes
+                                selectedEntradas + entrada.descripcion
                             } else {
-                                selectedEntradas - entrada.entdes
+                                selectedEntradas - entrada.descripcion
                             }
                             onSelectionChange(newSelection)
                         }
@@ -258,7 +258,7 @@ private fun EntradaListItem(
             )
             Spacer(modifier = Modifier.width(SpacingSmall))
             Text(
-                text = entrada.entdes,
+                text = entrada.descripcion,
                 fontSize = TextSizeMedium
             )
         }

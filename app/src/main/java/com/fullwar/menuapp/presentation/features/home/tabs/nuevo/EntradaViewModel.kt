@@ -65,8 +65,8 @@ class EntradaViewModel(
             try {
                 val dtos = entradaRepository.getTiposEntrada()
                 val tipos = dtos
-                    .filter { it.codest == 1 }
-                    .map { TipoEntrada(id = it.id, descripcion = it.tipentdes) }
+                    .filter { it.estadoId == 1 }
+                    .map { TipoEntrada(id = it.id, descripcion = it.descripcion) }
                 tiposEntradaState = State.Success(tipos)
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading tipos entrada", e)
@@ -114,10 +114,10 @@ class EntradaViewModel(
                 }
 
                 val request = EntradaCreateRequestDto(
-                    entdes = nombre,
-                    entdeslar = descripcion?.ifBlank { null },
-                    codtipent = tipo.id,
-                    codima = codima
+                    descripcion = nombre,
+                    descripcionLarga = descripcion?.ifBlank { null } ?: "",
+                    tipoEntradaId = tipo.id,
+                    imagenId = codima
                 )
 
                 val response = entradaRepository.createEntrada(request)

@@ -1,7 +1,7 @@
 package com.fullwar.menuapp.data.datasource.remote
 
 import android.util.Log
-import com.fullwar.menuapp.data.model.ImagenUploadResponseDto
+import com.fullwar.menuapp.data.model.ImagenResponseDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.formData
@@ -19,7 +19,7 @@ class ImagenService(private val httpClient: HttpClient) {
         imageBytes: ByteArray,
         fileName: String,
         extension: String
-    ): ImagenUploadResponseDto {
+    ): ImagenResponseDto {
         val response = httpClient.submitFormWithBinaryData(
             url = "api/imagen/upload",
             formData = formData {

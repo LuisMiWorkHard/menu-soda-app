@@ -5,7 +5,7 @@ import com.fullwar.menuapp.data.datasource.remote.ImagenService
 import com.fullwar.menuapp.data.datasource.remote.TipoEntradaService
 import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
-import com.fullwar.menuapp.data.model.ImagenUploadResponseDto
+import com.fullwar.menuapp.data.model.ImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,7 +38,7 @@ class EntradaRepositoryImpl(
         imageBytes: ByteArray,
         fileName: String,
         extension: String
-    ): ImagenUploadResponseDto {
+    ): ImagenResponseDto {
         return withContext(Dispatchers.IO) {
             imagenService.uploadImage(imageBytes, fileName, extension)
         }
