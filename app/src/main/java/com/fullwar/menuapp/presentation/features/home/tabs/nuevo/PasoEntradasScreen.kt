@@ -1,9 +1,13 @@
 package com.fullwar.menuapp.presentation.features.home.tabs.nuevo
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircleOutline
@@ -19,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.presentation.common.utils.State
@@ -124,7 +129,7 @@ fun PasoEntradasScreen(
             )
         }
 
-        // Sugerencias inteligentes - título
+        // Sugerencias inteligentes - carrusel
         item {
             Spacer(modifier = Modifier.height(SpacingSmall))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -141,11 +146,8 @@ fun PasoEntradasScreen(
                     fontSize = TextSizeMedium
                 )
             }
-        }
-
-        // Cards de sugerencias
-        items(sugerencias) { sugerencia ->
-            SugerenciaCard(sugerencia = sugerencia)
+            Spacer(modifier = Modifier.height(SpacingSmall))
+            SugerenciasCarrusel(sugerencias = sugerencias)
         }
 
         // Listado de entradas - header
@@ -263,6 +265,40 @@ private fun EntradaListItem(
             )
         }
         HorizontalDivider(color = SodaGrayLight)
+    }
+}
+
+@Composable
+private fun SugerenciasCarrusel(sugerencias: List<SugerenciaItem>) {
+    val pagerState = rememberPagerState(pageCount = { sugerencias.size })
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth()
+        ) { page ->
+            SugerenciaCard(sugerencia = sugerencias[page])
+        }
+
+        Spacer(modifier = Modifier.height(SpacingSmall))
+
+        // Indicadores de puntos
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            repeat(sugerencias.size) { index ->
+                val isSelected = pagerState.currentPage == index
+                Box(
+                    modifier = Modifier
+                        .size(if (isSelected) 8.dp else 6.dp)
+                        .background(
+                            color = if (isSelected) SodaOrange else SodaGrayLight,
+                            shape = CircleShape
+                        )
+                )
+            }
+        }
     }
 }
 
