@@ -12,7 +12,7 @@ import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
 import com.fullwar.menuapp.data.repository.EntradaRepositoryImpl
 import com.fullwar.menuapp.data.repository.LocationProviderImpl
 import com.fullwar.menuapp.data.repository.SecureCookiesStorageImpl
-import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.EntradaViewModel
+import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada.EntradaViewModel
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import org.koin.android.ext.koin.androidContext

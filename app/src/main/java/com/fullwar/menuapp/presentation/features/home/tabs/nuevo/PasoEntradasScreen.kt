@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.presentation.common.utils.State
+import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada.AnadirEntradaBottomSheet
+import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada.EntradaViewModel
 import com.fullwar.menuapp.ui.theme.*
 
 data class SugerenciaItem(

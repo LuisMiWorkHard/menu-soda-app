@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.home.tabs.nuevo
+package com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada
 
 import android.content.Context
 import android.net.Uri
@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.ApiException
 import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
+import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.data.repository.EntradaRepositoryImpl
 import com.fullwar.menuapp.data.util.ImageCompressor
@@ -48,7 +49,7 @@ class EntradaViewModel(
     )
 
     // --- Async states ---
-    var createState by mutableStateOf<State<EntradaResponseDto>>(State.Initial)
+    var createState by mutableStateOf<State<EntradaCreateResponseDto>>(State.Initial)
         private set
 
     var tiposEntradaState by mutableStateOf<State<List<TipoEntrada>>>(State.Initial)

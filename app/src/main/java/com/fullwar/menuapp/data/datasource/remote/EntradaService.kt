@@ -2,6 +2,7 @@ package com.fullwar.menuapp.data.datasource.remote
 
 import android.util.Log
 import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
+import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -21,7 +22,7 @@ class EntradaService(private val httpClient: HttpClient) {
         return response.body()
     }
 
-    suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaResponseDto {
+    suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto {
         val response = httpClient.post("api/entrada") {
             setBody(request)
         }

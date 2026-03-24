@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.home.tabs.nuevo
+package com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada
 
 import android.Manifest
 import android.net.Uri

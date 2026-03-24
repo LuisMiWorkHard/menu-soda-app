@@ -16,7 +16,7 @@ data class EntradaResponseDto(
     @SerialName("tipoEntradaId")
     val tipoEntradaId: Int,
     @SerialName("imagenId")
-    val imagenId: Int,
+    val imagenId: Int? = null,
     @SerialName("fechaRegistro")
     val fechaRegistro: String,
     @SerialName("usuarioRegistro")
