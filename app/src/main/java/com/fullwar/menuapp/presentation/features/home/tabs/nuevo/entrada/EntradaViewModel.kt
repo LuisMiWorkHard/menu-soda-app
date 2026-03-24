@@ -122,9 +122,8 @@ class EntradaViewModel(
                 )
 
                 val response = entradaRepository.createEntrada(request)
-                createState = State.Success(response)
                 loadEntradas()
-                resetForm()
+                createState = State.Success(response)
             } catch (e: ApiException) {
                 Log.e(TAG, "ApiException creating entrada: ${e.message}")
                 if (e.validationErrors != null) {

@@ -91,6 +91,7 @@ fun PasoEntradasScreen(
                 showBottomSheet = false
             },
             onSuccess = {
+                entradaViewModel.resetForm()
                 showBottomSheet = false
             }
         )
