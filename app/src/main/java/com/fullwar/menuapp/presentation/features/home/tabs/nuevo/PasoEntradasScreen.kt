@@ -1,10 +1,14 @@
 package com.fullwar.menuapp.presentation.features.home.tabs.nuevo
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,12 +21,15 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaResponseDto
@@ -68,19 +75,21 @@ fun PasoEntradasScreen(
         )
     }
 
-    // Filtrar entradas por búsqueda
-    val entradasFiltradas = when (entradasState) {
-        is State.Success -> {
-            if (searchQuery.isBlank()) {
-                entradasState.data
-            } else {
-                entradasState.data.filter {
-                    it.descripcion.contains(searchQuery, ignoreCase = true)
-                }
-            }
-        }
+    val todasLasEntradas = when (entradasState) {
+        is State.Success -> entradasState.data
         else -> emptyList()
     }
+
+    val entradasSeleccionadas = todasLasEntradas.filter { it.descripcion in selectedEntradas }
+    val entradasNoSeleccionadas = todasLasEntradas.filter { it.descripcion !in selectedEntradas }
+
+    // Seleccionados siempre visibles, sin filtrar por búsqueda
+    val seleccionadasFiltradas = entradasSeleccionadas
+
+    val noSeleccionadasFiltradas = if (searchQuery.isBlank()) entradasNoSeleccionadas
+        else entradasNoSeleccionadas.filter { it.descripcion.contains(searchQuery, ignoreCase = true) }
+
+    val sinResultados = searchQuery.isNotBlank() && noSeleccionadasFiltradas.isEmpty() && entradasSeleccionadas.isEmpty()
 
     // Bottom sheet para añadir nueva entrada
     if (showBottomSheet) {
@@ -97,12 +106,39 @@ fun PasoEntradasScreen(
         )
     }
 
+    val listState = rememberLazyListState()
+    val canScrollDown by remember { derivedStateOf { listState.canScrollForward } }
+
+    Box(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = SpacingLarge),
         verticalArrangement = Arrangement.spacedBy(SpacingMedium)
     ) {
+
+        // Sugerencias inteligentes - carrusel
+        item {
+            Spacer(modifier = Modifier.height(SpacingSmall))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.AutoAwesome,
+                    contentDescription = null,
+                    tint = SodaOrange,
+                    modifier = Modifier.size(IconSizeMedium)
+                )
+                Spacer(modifier = Modifier.width(SpacingSmall))
+                Text(
+                    text = stringResource(id = R.string.nuevo_sugerencias),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = TextSizeMedium
+                )
+            }
+            Spacer(modifier = Modifier.height(SpacingSmall))
+            SugerenciasCarrusel(sugerencias = sugerencias)
+        }
+
         // Campo de búsqueda
         item {
             Spacer(modifier = Modifier.height(SpacingSmall))
@@ -132,27 +168,6 @@ fun PasoEntradasScreen(
             )
         }
 
-        // Sugerencias inteligentes - carrusel
-        item {
-            Spacer(modifier = Modifier.height(SpacingSmall))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Filled.AutoAwesome,
-                    contentDescription = null,
-                    tint = SodaOrange,
-                    modifier = Modifier.size(IconSizeMedium)
-                )
-                Spacer(modifier = Modifier.width(SpacingSmall))
-                Text(
-                    text = stringResource(id = R.string.nuevo_sugerencias),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = TextSizeMedium
-                )
-            }
-            Spacer(modifier = Modifier.height(SpacingSmall))
-            SugerenciasCarrusel(sugerencias = sugerencias)
-        }
-
         // Listado de entradas - header
         item {
             Spacer(modifier = Modifier.height(SpacingSmall))
@@ -166,6 +181,7 @@ fun PasoEntradasScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = TextSizeMedium
                 )
+                /*
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable {
@@ -186,7 +202,7 @@ fun PasoEntradasScreen(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = TextSizeSmall
                     )
-                }
+                }*/
             }
         }
 
@@ -215,20 +231,51 @@ fun PasoEntradasScreen(
                 }
             }
             is State.Success -> {
-                // Lista de entradas con checkboxes
-                items(entradasFiltradas) { entrada ->
+                // Seleccionados al tope
+                items(seleccionadasFiltradas, key = { it.descripcion }) { entrada ->
                     EntradaListItem(
                         entrada = entrada,
-                        isSelected = entrada.descripcion in selectedEntradas,
+                        isSelected = true,
                         onToggle = { checked ->
-                            val newSelection = if (checked) {
-                                selectedEntradas + entrada.descripcion
-                            } else {
-                                selectedEntradas - entrada.descripcion
-                            }
-                            onSelectionChange(newSelection)
+                            onSelectionChange(
+                                if (checked) selectedEntradas + entrada.descripcion
+                                else selectedEntradas - entrada.descripcion
+                            )
                         }
                     )
+                }
+
+                // Separador entre seleccionados y no seleccionados
+                if (seleccionadasFiltradas.isNotEmpty()) {
+                    item {
+                        HorizontalDivider(thickness = 2.dp, color = SodaOrange.copy(alpha = 0.3f))
+                    }
+                }
+
+                // No seleccionados
+                items(noSeleccionadasFiltradas, key = { it.descripcion }) { entrada ->
+                    EntradaListItem(
+                        entrada = entrada,
+                        isSelected = false,
+                        onToggle = { checked ->
+                            onSelectionChange(
+                                if (checked) selectedEntradas + entrada.descripcion
+                                else selectedEntradas - entrada.descripcion
+                            )
+                        }
+                    )
+                }
+
+                // Añadir nueva solo si no hay resultados en ninguna de las dos listas
+                if (sinResultados) {
+                    item {
+                        AnadirNuevaListItem(
+                            onClick = {
+                                entradaViewModel.loadTiposEntrada()
+                                showBottomSheet = true
+                            }
+                        )
+                    }
                 }
             }
             else -> {}
@@ -237,6 +284,26 @@ fun PasoEntradasScreen(
         // Espacio extra para que el botón inferior no tape
         item { Spacer(modifier = Modifier.height(SpacingLarge)) }
     }
+
+    // Indicador de scroll
+    AnimatedVisibility(
+        visible = canScrollDown,
+        modifier = Modifier.align(Alignment.BottomCenter),
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+                    )
+                )
+        )
+    }
+    } // Box
 }
 
 @Composable
@@ -245,25 +312,61 @@ private fun EntradaListItem(
     isSelected: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
+    val bgColor = if (isSelected) SodaOrangeLight else Color.Transparent
+    Column {
+        Surface(
+            color = bgColor,
+            shape = RoundedCornerShape(CornerRadiusMedium),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onToggle(!isSelected) }
+                    .padding(vertical = SpacingMedium),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = onToggle,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = SodaOrange,
+                        uncheckedColor = SodaGray
+                    )
+                )
+                Spacer(modifier = Modifier.width(SpacingSmall))
+                Text(
+                    text = entrada.descripcion,
+                    fontSize = TextSizeMedium
+                )
+            }
+        }
+        HorizontalDivider(color = SodaGrayLight)
+    }
+}
+
+@Composable
+private fun AnadirNuevaListItem(onClick: () -> Unit) {
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onToggle(!isSelected) }
+                .clickable { onClick() }
                 .padding(vertical = SpacingMedium),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Checkbox(
-                checked = isSelected,
-                onCheckedChange = onToggle,
-                colors = CheckboxDefaults.colors(
-                    checkedColor = SodaOrange,
-                    uncheckedColor = SodaGray
-                )
+            Icon(
+                imageVector = Icons.Filled.AddCircleOutline,
+                contentDescription = null,
+                tint = SodaOrange,
+                modifier = Modifier.size(IconSizeSmall)
             )
             Spacer(modifier = Modifier.width(SpacingSmall))
             Text(
-                text = entrada.descripcion,
+                text = stringResource(R.string.anadir_nueva),
+                color = SodaOrange,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = TextSizeMedium
             )
         }
@@ -274,6 +377,14 @@ private fun EntradaListItem(
 @Composable
 private fun SugerenciasCarrusel(sugerencias: List<SugerenciaItem>) {
     val pagerState = rememberPagerState(pageCount = { sugerencias.size })
+
+    LaunchedEffect(sugerencias.size) {
+        while (true) {
+            delay(10000)
+            val nextPage = (pagerState.currentPage + 1) % sugerencias.size
+            pagerState.animateScrollToPage(nextPage)
+        }
+    }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         HorizontalPager(
