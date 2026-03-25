@@ -7,29 +7,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircleOutline
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaResponseDto
@@ -40,8 +35,7 @@ import com.fullwar.menuapp.ui.theme.*
 
 data class SugerenciaItem(
     val nombre: String,
-    val descripcion: String,
-    val icon: ImageVector
+    val descripcion: String
 )
 
 @Composable
@@ -62,16 +56,11 @@ fun PasoEntradasScreen(
 
     val sugerencias = remember {
         listOf(
-            SugerenciaItem(
-                "Carpaccio de Betabel",
-                "No se ha servido en 15 días. ¡Es hora de volver!",
-                Icons.Filled.CalendarMonth
-            ),
-            SugerenciaItem(
-                "Ceviche Clásico",
-                "Combina perfectamente con platos de pescado.",
-                Icons.Filled.Restaurant
-            )
+            SugerenciaItem("Carpaccio de Betabel", "No se ha servido en 15 días. ¡Es hora de volver!"),
+            SugerenciaItem("Ceviche Clásico", "Combina perfectamente con platos de pescado."),
+            SugerenciaItem("Sopa Azteca", "Perfecta para días fríos."),
+            SugerenciaItem("Bruschetta de Jitomate", "Opción ligera y fresca."),
+            SugerenciaItem("Tabla de Quesos", "Ideal para compartir en la mesa.")
         )
     }
 
@@ -118,25 +107,33 @@ fun PasoEntradasScreen(
         verticalArrangement = Arrangement.spacedBy(SpacingMedium)
     ) {
 
-        // Sugerencias inteligentes - carrusel
+        // Sugerencias inteligentes
         item {
             Spacer(modifier = Modifier.height(SpacingSmall))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Filled.AutoAwesome,
-                    contentDescription = null,
-                    tint = SodaOrange,
-                    modifier = Modifier.size(IconSizeMedium)
-                )
-                Spacer(modifier = Modifier.width(SpacingSmall))
-                Text(
-                    text = stringResource(id = R.string.nuevo_sugerencias),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = TextSizeMedium
-                )
+            Surface(
+                color = SodaOrangeLight,
+                shape = RoundedCornerShape(CornerRadiusMedium),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(SpacingMedium)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = SodaOrange, modifier = Modifier.size(IconSizeSmall))
+                        Spacer(modifier = Modifier.width(SpacingSmall))
+                        Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall)
+                    }
+                    LazyRow(
+                        modifier = Modifier.padding(top = SpacingMedium),
+                        horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
+                    ) {
+                        items(sugerencias) { sugerencia ->
+                            SugerenciaCard(
+                                sugerencia = sugerencia,
+                                onAdd = { onSelectionChange(selectedEntradas + sugerencia.nombre) }
+                            )
+                        }
+                    }
+                }
             }
-            Spacer(modifier = Modifier.height(SpacingSmall))
-            SugerenciasCarrusel(sugerencias = sugerencias)
         }
 
         // Campo de búsqueda
@@ -312,36 +309,37 @@ private fun EntradaListItem(
     isSelected: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
-    val bgColor = if (isSelected) SodaOrangeLight else Color.Transparent
-    Column {
-        Surface(
-            color = bgColor,
-            shape = RoundedCornerShape(CornerRadiusMedium),
-            modifier = Modifier.fillMaxWidth()
+    Surface(
+        shape = RoundedCornerShape(CornerRadiusMedium),
+        color = if (isSelected) SodaOrangeLight else SodaGrayLight.copy(alpha = 0.3f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle(!isSelected) }
+    ) {
+        Row(
+            modifier = Modifier.padding(SpacingMedium),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onToggle(!isSelected) }
-                    .padding(vertical = SpacingMedium),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = isSelected,
-                    onCheckedChange = onToggle,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = SodaOrange,
-                        uncheckedColor = SodaGray
-                    )
-                )
-                Spacer(modifier = Modifier.width(SpacingSmall))
-                Text(
-                    text = entrada.descripcion,
-                    fontSize = TextSizeMedium
-                )
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(CornerRadiusSmall))
+                    .background(Color.DarkGray)
+            )
+            Spacer(modifier = Modifier.width(SpacingMedium))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = entrada.descripcion, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
+                Text(text = entrada.descripcionLarga, fontSize = TextSizeSmall, color = SodaGray)
             }
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = null,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = SodaOrange,
+                    uncheckedColor = SodaGray
+                )
+            )
         }
-        HorizontalDivider(color = SodaGrayLight)
     }
 }
 
@@ -375,88 +373,41 @@ private fun AnadirNuevaListItem(onClick: () -> Unit) {
 }
 
 @Composable
-private fun SugerenciasCarrusel(sugerencias: List<SugerenciaItem>) {
-    val pagerState = rememberPagerState(pageCount = { sugerencias.size })
-
-    LaunchedEffect(sugerencias.size) {
-        while (true) {
-            delay(10000)
-            val nextPage = (pagerState.currentPage + 1) % sugerencias.size
-            pagerState.animateScrollToPage(nextPage)
-        }
-    }
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxWidth()
-        ) { page ->
-            SugerenciaCard(sugerencia = sugerencias[page])
-        }
-
-        Spacer(modifier = Modifier.height(SpacingSmall))
-
-        // Indicadores de puntos
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            repeat(sugerencias.size) { index ->
-                val isSelected = pagerState.currentPage == index
-                Box(
-                    modifier = Modifier
-                        .size(if (isSelected) 8.dp else 6.dp)
-                        .background(
-                            color = if (isSelected) SodaOrange else SodaGrayLight,
-                            shape = CircleShape
-                        )
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun SugerenciaCard(sugerencia: SugerenciaItem) {
+fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .width(280.dp)
+            .height(120.dp),
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = SodaOrangeLight
+        color = Color.White
     ) {
         Row(
             modifier = Modifier.padding(SpacingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icono con fondo blanco
-            Surface(
-                shape = RoundedCornerShape(CornerRadiusSmall),
-                color = Color.White,
-                modifier = Modifier.size(Spacing4XLarge)
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Icon(
-                        imageVector = sugerencia.icon,
-                        contentDescription = null,
-                        tint = SodaOrange,
-                        modifier = Modifier.size(IconSizeMedium)
-                    )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = sugerencia.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
+                Text(text = sugerencia.descripcion, fontSize = TextSizeSmall, color = SodaGray)
+                Spacer(modifier = Modifier.height(SpacingXSmall))
+                Button(
+                    onClick = onAdd,
+                    colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
+                    shape = RoundedCornerShape(CornerRadiusSmall),
+                    contentPadding = PaddingValues(horizontal = SpacingSmall, vertical = 0.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(IconSizeSmall))
+                    Spacer(modifier = Modifier.width(SpacingXSmall))
+                    Text(text = stringResource(id = R.string.platos_fondo_anadir), fontSize = TextSizeSmall, fontWeight = FontWeight.Bold)
                 }
             }
-
-            Spacer(modifier = Modifier.width(SpacingMedium))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = sugerencia.nombre,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = TextSizeMedium
-                )
-                Text(
-                    text = sugerencia.descripcion,
-                    fontSize = TextSizeSmall,
-                    color = SodaGray
-                )
-            }
+            Spacer(modifier = Modifier.width(SpacingSmall))
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(CornerRadiusSmall))
+                    .background(Color.DarkGray)
+            )
         }
     }
 }

@@ -65,9 +65,9 @@
     <string name="platos_fondo_buscar">Buscar platos de fondo…</string>
     <string name="platos_fondo_sugerencias">SUGERENCIAS INTELIGENTES</string>
     <string name="platos_fondo_disponibles">Platos Disponibles</string>
-    <string name="platos_fondo_nuevo_plato">+ Nuevo Plato</string>
+    <string name="platos_fondo_nuevo_plato">Nuevo Plato</string>
     <string name="platos_fondo_seleccionados">%1$d seleccionados</string>
-    <string name="platos_fondo_anadir">+ AÑADIR</string>
+    <string name="platos_fondo_anadir">Añadir</string>
 
     <!-- Añadir Entrada Bottom Sheet -->
     <string name="entrada_dialog_titulo">Añadir Nueva Entrada</string>
