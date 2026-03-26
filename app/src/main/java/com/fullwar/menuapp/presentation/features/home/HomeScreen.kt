@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.features.home
 
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -63,7 +64,9 @@ fun HomeScreen() {
         NavHost(
             navController = navController,
             startDestination = HomeTab.HISTORIAL.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
         ) {
             composable(HomeTab.HISTORIAL.route) {
                 HistorialTab(

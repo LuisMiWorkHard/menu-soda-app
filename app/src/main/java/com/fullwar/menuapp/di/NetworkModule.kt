@@ -77,7 +77,7 @@ val networkModule = module {
                 }
             }
             defaultRequest {
-                url("https://menu-soda-dev.up.railway.app/")
+                url(Constants.BASE_URL)
                 contentType(ContentType.Application.Json)
                 header("DeviceId", deviceId)
             }
@@ -131,7 +131,7 @@ val networkModule = module {
                 }
             }
             defaultRequest {
-                url("https://menu-soda-dev.up.railway.app/")
+                url(Constants.BASE_URL)
                 contentType(ContentType.Application.Json)
                 header("DeviceId", deviceId)
                 tokenProvider.getToken()?.let { token ->

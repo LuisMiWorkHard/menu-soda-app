@@ -14,8 +14,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import com.fullwar.menuapp.di.Constants
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,7 +47,9 @@ data class SugerenciaItem(
 fun PasoEntradasScreen(
     selectedEntradas: Set<String>,
     onSelectionChange: (Set<String>) -> Unit,
-    entradaViewModel: EntradaViewModel
+    entradaViewModel: EntradaViewModel,
+    showSugerencias: Boolean,
+    onHideSugerencias: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -78,7 +85,7 @@ fun PasoEntradasScreen(
     val noSeleccionadasFiltradas = if (searchQuery.isBlank()) entradasNoSeleccionadas
         else entradasNoSeleccionadas.filter { it.descripcion.contains(searchQuery, ignoreCase = true) }
 
-    val sinResultados = searchQuery.isNotBlank() && noSeleccionadasFiltradas.isEmpty() && entradasSeleccionadas.isEmpty()
+    val sinResultados = searchQuery.isNotBlank() && noSeleccionadasFiltradas.isEmpty()
 
     // Bottom sheet para añadir nueva entrada
     if (showBottomSheet) {
@@ -108,28 +115,46 @@ fun PasoEntradasScreen(
     ) {
 
         // Sugerencias inteligentes
-        item {
-            Spacer(modifier = Modifier.height(SpacingSmall))
-            Surface(
-                color = SodaOrangeLight,
-                shape = RoundedCornerShape(CornerRadiusMedium),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(SpacingMedium)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = SodaOrange, modifier = Modifier.size(IconSizeSmall))
-                        Spacer(modifier = Modifier.width(SpacingSmall))
-                        Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall)
-                    }
-                    LazyRow(
-                        modifier = Modifier.padding(top = SpacingMedium),
-                        horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
-                    ) {
-                        items(sugerencias) { sugerencia ->
-                            SugerenciaCard(
-                                sugerencia = sugerencia,
-                                onAdd = { onSelectionChange(selectedEntradas + sugerencia.nombre) }
-                            )
+        if (showSugerencias) {
+            item {
+                Spacer(modifier = Modifier.height(SpacingSmall))
+                Surface(
+                    color = SodaOrangeLight,
+                    shape = RoundedCornerShape(CornerRadiusMedium),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(SpacingMedium)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = SodaOrange, modifier = Modifier.size(IconSizeSmall))
+                                Spacer(modifier = Modifier.width(SpacingSmall))
+                                Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall)
+                            }
+                            IconButton(
+                                onClick = { onHideSugerencias() },
+                                modifier = Modifier.size(IconSizeSmall)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = null,
+                                    tint = SodaGray
+                                )
+                            }
+                        }
+                        LazyRow(
+                            modifier = Modifier.padding(top = SpacingMedium),
+                            horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
+                        ) {
+                            items(sugerencias) { sugerencia ->
+                                SugerenciaCard(
+                                    sugerencia = sugerencia,
+                                    onAdd = { onSelectionChange(selectedEntradas + sugerencia.nombre) }
+                                )
+                            }
                         }
                     }
                 }
@@ -320,12 +345,26 @@ private fun EntradaListItem(
             modifier = Modifier.padding(SpacingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(CornerRadiusSmall))
-                    .background(Color.DarkGray)
-            )
+            val imageUrl = entrada.imagenId?.let { "${Constants.BASE_URL}/api/imagen/$it/contenido" }
+            if (imageUrl != null) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(CornerRadiusSmall)),
+                    contentScale = ContentScale.Crop,
+                    placeholder = ColorPainter(SodaGrayLight),
+                    error = ColorPainter(SodaOrangeLight)
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(CornerRadiusSmall))
+                        .background(SodaGrayLight)
+                )
+            }
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = entrada.descripcion, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)

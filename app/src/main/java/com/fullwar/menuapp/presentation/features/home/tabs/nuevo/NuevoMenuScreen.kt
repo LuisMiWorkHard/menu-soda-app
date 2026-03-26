@@ -2,8 +2,6 @@ package com.fullwar.menuapp.presentation.features.home.tabs.nuevo
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,6 +36,7 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
     var selectedEntradas by remember { mutableStateOf(setOf<String>()) }
     var selectedPlatosFuertes by remember { mutableStateOf(setOf<String>()) }
     var selectedBebidas by remember { mutableStateOf(setOf<String>()) }
+    var showSugerencias by remember { mutableStateOf(true) }
 
     // Paso actual derivado de la ruta
     val currentStep = when (currentRoute) {
@@ -64,20 +63,6 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
                         fontWeight = FontWeight.Bold,
                         fontSize = TextSizeLarge
                     )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if (!navController.popBackStack()) {
-                                // Estamos en el paso 1, no hacer nada o se podría navegar fuera
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
@@ -157,7 +142,9 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
                     PasoEntradasScreen(
                         selectedEntradas = selectedEntradas,
                         onSelectionChange = { selectedEntradas = it },
-                        entradaViewModel = entradaViewModel
+                        entradaViewModel = entradaViewModel,
+                        showSugerencias = showSugerencias,
+                        onHideSugerencias = { showSugerencias = false }
                     )
                 }
                 composable(NuevoMenuRoute.PlatosFondo.route) {
@@ -193,7 +180,7 @@ fun ProgressHeader(currentStep: Int, totalSteps: Int, stepTitle: String, selecte
                 .fillMaxWidth()
                 .padding(top = SpacingXSmall),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom
+        verticalAlignment = Alignment.Bottom
         ) {
             Text(
                 text = stepTitle.replace("Paso $currentStep: ", ""),
