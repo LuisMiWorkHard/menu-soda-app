@@ -5,9 +5,13 @@ import android.provider.Settings
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
+import coil3.disk.DiskCache
+import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import okio.Path.Companion.toOkioPath
 import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
+import com.fullwar.menuapp.di.appModule
 import com.fullwar.menuapp.di.networkModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +47,17 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
         val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
 
         return ImageLoader.Builder(context)
+            .memoryCache {
+                MemoryCache.Builder()
+                    .maxSizePercent(context, 0.20)
+                    .build()
+            }
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(applicationContext.cacheDir.toOkioPath().resolve("image_cache"))
+                    .maxSizeBytes(50L * 1024 * 1024)
+                    .build()
+            }
             .components {
                 add(OkHttpNetworkFetcherFactory(
                     callFactory = {

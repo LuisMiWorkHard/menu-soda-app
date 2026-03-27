@@ -1,4 +1,4 @@
-package com.fullwar.menuapp
+package com.fullwar.menuapp.di
 
 import com.fullwar.menuapp.data.datasource.local.LocationProvider
 import com.fullwar.menuapp.data.datasource.local.SecureStorageProvider

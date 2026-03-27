@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs ls:*)",
+      "Bash(grep -r \"AsyncImage\\\\|ImageLoader\\\\|coil\" /d/LVALERIANO/Projects/MenuSoda/menu-soda-app/app/src/main/java/com/fullwar/menuapp/presentation/common --include=*.kt)",
+      "Bash(xargs grep:*)"
+    ]
+  }
+}

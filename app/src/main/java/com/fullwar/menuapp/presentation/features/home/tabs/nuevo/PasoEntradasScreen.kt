@@ -17,10 +17,12 @@ import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.ui.graphics.painter.ColorPainter
-import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import coil3.imageLoader
 import com.fullwar.menuapp.di.Constants
+import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -74,6 +76,24 @@ fun PasoEntradasScreen(
     val todasLasEntradas = when (entradasState) {
         is State.Success -> entradasState.data
         else -> emptyList()
+    }
+
+    // Precargar imágenes en disco/memoria para que estén listas al hacer scroll
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    LaunchedEffect(todasLasEntradas) {
+        if (todasLasEntradas.isEmpty()) return@LaunchedEffect
+        val imageLoader = context.imageLoader
+        val sizePx = with(density) { 60.dp.roundToPx() }
+        todasLasEntradas.forEach { entrada ->
+            entrada.imagenId?.let { id ->
+                val request = ImageRequest.Builder(context)
+                    .data("${Constants.BASE_URL}/api/imagen/$id/contenido")
+                    .size(sizePx, sizePx)
+                    .build()
+                imageLoader.enqueue(request)
+            }
+        }
     }
 
     val entradasSeleccionadas = todasLasEntradas.filter { it.descripcion in selectedEntradas }
@@ -345,26 +365,7 @@ private fun EntradaListItem(
             modifier = Modifier.padding(SpacingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val imageUrl = entrada.imagenId?.let { "${Constants.BASE_URL}/api/imagen/$it/contenido" }
-            if (imageUrl != null) {
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(RoundedCornerShape(CornerRadiusSmall)),
-                    contentScale = ContentScale.Crop,
-                    placeholder = ColorPainter(SodaGrayLight),
-                    error = ColorPainter(SodaOrangeLight)
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(RoundedCornerShape(CornerRadiusSmall))
-                        .background(SodaGrayLight)
-                )
-            }
+            CustomImageView(imagenId = entrada.imagenId)
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = entrada.descripcion, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
