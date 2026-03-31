@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.common.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +14,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.fullwar.menuapp.R
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -69,9 +72,13 @@ fun CustomImageView(
             }
         )
     } else {
-        Box(
+        Image(
+            painter = painterResource(id = R.drawable.default_image_meal),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
             modifier = modifier
                 .size(sizeDp.dp)
+                .clip(shape)
                 .background(SodaGrayMedium, shape)
         )
     }

@@ -3,7 +3,15 @@
     "allow": [
       "Bash(xargs ls:*)",
       "Bash(grep -r \"AsyncImage\\\\|ImageLoader\\\\|coil\" /d/LVALERIANO/Projects/MenuSoda/menu-soda-app/app/src/main/java/com/fullwar/menuapp/presentation/common --include=*.kt)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(find /Users/luisvaleriano/Documents/Projects/MenuSoda/menu-soda-app/app/src/main/res -name *ic_image_meal* -type f)",
+      "Bash(ls -lh /Users/luisvaleriano/Documents/Projects/MenuSoda/menu-soda-app/app/src/main/res/drawable*/)",
+      "Bash(identify /Users/luisvaleriano/Documents/Projects/MenuSoda/menu-soda-app/app/src/main/res/drawable-xxxhdpi/ic_image_meal.webp)",
+      "Bash(convert --version)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "postgres-railway"
+  ]
 }

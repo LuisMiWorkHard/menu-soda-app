@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MenuApp</string>
+    <string name="app_name">MenuSoda</string>
 
     <!-- Login Screen -->
     <string name="login_welcome_back">¡Bienvenido de nuevo!</string>

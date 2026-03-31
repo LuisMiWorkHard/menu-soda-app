@@ -39,3 +39,11 @@ val TextSizeLarge = 18.sp
 val TextSizeXLarge = 20.sp
 val TextSizeXXLarge = 24.sp
 val TextSize3XLarge = 32.sp
+
+// Image Sizes
+
+val ImageSizeXSmall = 24.dp
+val ImageSizeSmall = 32.dp
+val ImageSizeMedium = 48.dp
+val ImageSizeLarge = 64.dp
+val ImageSizeXLarge = 80.dp

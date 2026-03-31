@@ -42,8 +42,8 @@ class LoginViewModel(
         DynamicFormState(
             fields = mapOf(
                 "TipoDocumento" to tiposDocumento[0],
-                "numeroDocumento" to TextFieldValue(),
-                "contrasena" to TextFieldValue()
+                "numeroDocumento" to TextFieldValue("44776032"),
+                "contrasena" to TextFieldValue("12345678")
             )
         )
     )
