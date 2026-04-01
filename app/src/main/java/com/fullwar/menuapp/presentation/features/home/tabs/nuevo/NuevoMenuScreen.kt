@@ -100,7 +100,7 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
                             }
                         },
                         modifier = Modifier.weight(1f).height(48.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(CornerRadiusMedium)
                     ) {
                         Text(
@@ -173,7 +173,7 @@ fun ProgressHeader(currentStep: Int, totalSteps: Int, stepTitle: String, selecte
             text = stringResource(id = R.string.nuevo_progreso_de, currentStep, totalSteps),
             fontSize = TextSizeSmall,
             fontWeight = FontWeight.Bold,
-            color = SodaOrange
+            color = MaterialTheme.colorScheme.primary
         )
         Row(
             modifier = Modifier
@@ -191,7 +191,7 @@ fun ProgressHeader(currentStep: Int, totalSteps: Int, stepTitle: String, selecte
             Text(
                 text = stringResource(id = R.string.platos_fondo_seleccionados, selectedCount),
                 fontSize = TextSizeMedium,
-                color = SodaGray
+                color = LigthGray
             )
         }
         Spacer(modifier = Modifier.height(SpacingSmall))
@@ -200,7 +200,7 @@ fun ProgressHeader(currentStep: Int, totalSteps: Int, stepTitle: String, selecte
             modifier = Modifier
                 .fillMaxWidth()
                 .height(SpacingXSmall),
-            color = SodaOrange,
+            color = MaterialTheme.colorScheme.primary,
             trackColor = SodaGrayLight,
             strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
         )

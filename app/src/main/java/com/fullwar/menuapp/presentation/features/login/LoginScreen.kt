@@ -52,11 +52,9 @@ import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
 import com.fullwar.menuapp.ui.theme.IconSize3XLarge
 import com.fullwar.menuapp.ui.theme.IconSizeSmall
-import com.fullwar.menuapp.ui.theme.SodaGray
+import com.fullwar.menuapp.ui.theme.LigthGray
 import com.fullwar.menuapp.ui.theme.SodaGrayLight
-import com.fullwar.menuapp.ui.theme.SodaOrange
 import com.fullwar.menuapp.ui.theme.SodaOrangeLight
-import com.fullwar.menuapp.ui.theme.SpacingLarge
 import com.fullwar.menuapp.ui.theme.SpacingMedium
 import com.fullwar.menuapp.ui.theme.SpacingSmall
 import com.fullwar.menuapp.ui.theme.SpacingXLarge
@@ -163,7 +161,7 @@ fun LoginScreen(
                 shape = RoundedCornerShape(CornerRadiusLarge),
                 color = SodaOrangeLight
             ) {
-                Icon(imageVector = Icons.Filled.Dining, contentDescription = null, tint = SodaOrange)
+                Icon(imageVector = Icons.Filled.Dining, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             }
 
             Spacer(modifier = Modifier.height(SpacingXLarge))
@@ -179,7 +177,7 @@ fun LoginScreen(
             Text(
                 text = stringResource(id = R.string.login_subtitle),
                 fontSize = TextSizeMedium,
-                color = SodaGray,
+                color = LigthGray,
                 textAlign = TextAlign.Center
             )
 
@@ -279,7 +277,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(ButtonHeightLarge),
-                colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(CornerRadiusMedium)
             ) {
                 if (viewModel.loginState is State.Loading) {
@@ -325,7 +323,7 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.width(SpacingSmall))
                 Text(
                     text = stringResource(id = R.string.login_whatsapp_ready),
-                    color = SodaGray,
+                    color = LigthGray,
                     fontSize = TextSizeSmall
                 )
             }
@@ -336,12 +334,12 @@ fun LoginScreen(
             Row {
                 Text(
                     text = stringResource(id = R.string.login_footer_no_account),
-                    color = SodaGray,
+                    color = LigthGray,
                     modifier = Modifier.padding(end = SpacingSmall)
                 )
                 Text(
                     text = stringResource(id = R.string.login_footer_signup),
-                    color = SodaOrange,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -375,7 +373,7 @@ fun SegmentedControl(
                         .weight(1f)
                         .fillMaxHeight()
                         .background(
-                            if (isSelected) SodaOrange else Color.Transparent,
+                            if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                             shape = RoundedCornerShape(CornerRadiusSmall)
                         )
                         .clickable { onOptionSelected(option) },
@@ -383,7 +381,7 @@ fun SegmentedControl(
                 ) {
                     Text(
                         text = option.descripcionDocumento,
-                        color = if (isSelected) Color.White else SodaGray,
+                        color = if (isSelected) Color.White else LigthGray,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 }
@@ -426,7 +424,7 @@ fun LoginTextField(
             if (isPasswordField) {
                 Text(
                     text = stringResource(id = R.string.login_forgot_password),
-                    color = SodaOrange,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = TextSizeSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -442,12 +440,12 @@ fun LoginTextField(
                     color = Color.White,
                     shape = RoundedCornerShape(CornerRadiusMedium)
                 ),
-            placeholder = { Text(text = placeholder, color = SodaGray) },
+            placeholder = { Text(text = placeholder, color = LigthGray) },
             shape = RoundedCornerShape(CornerRadiusMedium),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = SodaOrange,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = SodaGrayLight.copy(alpha = 0.5f),
-                cursorColor = SodaOrange
+                cursorColor = MaterialTheme.colorScheme.primary
             ),
             trailingIcon = {
                 if (trailingIcon != null) {
@@ -455,11 +453,11 @@ fun LoginTextField(
                         Icon(
                             imageVector = trailingIcon,
                             contentDescription = null,
-                            tint = SodaGray
+                            tint = LigthGray
                         )
                     }
                 } else if (leadingIcon != null) {
-                    Icon(imageVector = leadingIcon, contentDescription = null, tint = SodaGray)
+                    Icon(imageVector = leadingIcon, contentDescription = null, tint = LigthGray)
                 }
             },
             visualTransformation = visualTransformation,

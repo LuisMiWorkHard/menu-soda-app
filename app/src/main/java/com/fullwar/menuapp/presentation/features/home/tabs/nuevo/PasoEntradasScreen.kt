@@ -153,7 +153,7 @@ fun PasoEntradasScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = SodaOrange, modifier = Modifier.size(IconSizeSmall))
+                                Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(IconSizeSmall))
                                 Spacer(modifier = Modifier.width(SpacingSmall))
                                 Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall)
                             }
@@ -164,7 +164,7 @@ fun PasoEntradasScreen(
                                 Icon(
                                     imageVector = Icons.Filled.Close,
                                     contentDescription = null,
-                                    tint = SodaGray
+                                    tint = LigthGray
                                 )
                             }
                         }
@@ -194,19 +194,19 @@ fun PasoEntradasScreen(
                 placeholder = {
                     Text(
                         text = stringResource(id = R.string.nuevo_buscar_entradas),
-                        color = SodaGray
+                        color = LigthGray
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Filled.Search,
                         contentDescription = null,
-                        tint = SodaGray
+                        tint = LigthGray
                     )
                 },
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = SodaOrange,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = SodaGrayLight
                 ),
                 singleLine = true
@@ -237,13 +237,13 @@ fun PasoEntradasScreen(
                     Icon(
                         imageVector = Icons.Filled.AddCircleOutline,
                         contentDescription = null,
-                        tint = SodaOrange,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(IconSizeSmall)
                     )
                     Spacer(modifier = Modifier.width(SpacingXSmall))
                     Text(
                         text = stringResource(id = R.string.nuevo_anadir_nueva),
-                        color = SodaOrange,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = TextSizeSmall
                     )
@@ -261,7 +261,7 @@ fun PasoEntradasScreen(
                             .padding(vertical = SpacingXLarge),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = SodaOrange)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -293,7 +293,7 @@ fun PasoEntradasScreen(
                 // Separador entre seleccionados y no seleccionados
                 if (seleccionadasFiltradas.isNotEmpty()) {
                     item {
-                        HorizontalDivider(thickness = 2.dp, color = SodaOrange.copy(alpha = 0.3f))
+                        HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                     }
                 }
 
@@ -372,14 +372,14 @@ private fun EntradaListItem(
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = entrada.descripcion, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = entrada.descripcionLarga, fontSize = TextSizeSmall, color = SodaGray)
+                Text(text = entrada.descripcionLarga, fontSize = TextSizeSmall, color = LigthGray)
             }
             Checkbox(
                 checked = isSelected,
                 onCheckedChange = null,
                 colors = CheckboxDefaults.colors(
-                    checkedColor = SodaOrange,
-                    uncheckedColor = SodaGray
+                    checkedColor = MaterialTheme.colorScheme.primary,
+                    uncheckedColor = LigthGray
                 )
             )
         }
@@ -400,13 +400,13 @@ private fun AnadirNuevaListItem(onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.Filled.AddCircleOutline,
                 contentDescription = null,
-                tint = SodaOrange,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(IconSizeSmall)
             )
             Spacer(modifier = Modifier.width(SpacingSmall))
             Text(
                 text = stringResource(R.string.anadir_nueva),
-                color = SodaOrange,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = TextSizeMedium
             )
@@ -432,11 +432,11 @@ fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = sugerencia.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = sugerencia.descripcion, fontSize = TextSizeSmall, color = SodaGray)
+                Text(text = sugerencia.descripcion, fontSize = TextSizeSmall, color = LigthGray)
                 Spacer(modifier = Modifier.height(SpacingXSmall))
                 Button(
                     onClick = onAdd,
-                    colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(CornerRadiusSmall),
                     contentPadding = PaddingValues(horizontal = SpacingSmall, vertical = 0.dp),
                     modifier = Modifier.height(32.dp)

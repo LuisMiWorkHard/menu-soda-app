@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,7 +24,6 @@ import coil3.request.crossfade
 import com.fullwar.menuapp.di.Constants
 import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
 import com.fullwar.menuapp.ui.theme.SodaGrayMedium
-import com.fullwar.menuapp.ui.theme.SodaOrange
 
 @Composable
 fun CustomImageView(
@@ -58,7 +58,7 @@ fun CustomImageView(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = SodaOrange,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp
                     )
                 }

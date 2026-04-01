@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.fullwar.menuapp.R
-import com.fullwar.menuapp.ui.theme.SodaGray
+import com.fullwar.menuapp.ui.theme.LigthGray
 import com.fullwar.menuapp.ui.theme.TextSizeLarge
 
 @Composable
@@ -22,7 +22,7 @@ fun PasoEstiloScreen(modifier: Modifier = Modifier) {
             text = stringResource(id = R.string.nuevo_proximamente),
             fontSize = TextSizeLarge,
             fontWeight = FontWeight.Medium,
-            color = SodaGray
+            color = LigthGray
         )
     }
 }

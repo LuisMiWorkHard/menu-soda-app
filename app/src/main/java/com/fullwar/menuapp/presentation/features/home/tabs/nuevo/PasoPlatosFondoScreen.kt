@@ -81,11 +81,11 @@ fun PasoPlatosFondoScreen(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = stringResource(id = R.string.platos_fondo_buscar), color = SodaGray) },
-                leadingIcon = { Icon(imageVector = Icons.Filled.Search, contentDescription = null, tint = SodaGray) },
+                placeholder = { Text(text = stringResource(id = R.string.platos_fondo_buscar), color = LigthGray) },
+                leadingIcon = { Icon(imageVector = Icons.Filled.Search, contentDescription = null, tint = LigthGray) },
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = SodaOrange,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = SodaGrayLight,
                     focusedContainerColor = SodaGrayLight.copy(alpha = 0.3f),
                     unfocusedContainerColor = SodaGrayLight.copy(alpha = 0.3f)
@@ -103,7 +103,7 @@ fun PasoPlatosFondoScreen(
             ) {
                 Column(modifier = Modifier.padding(SpacingMedium)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = SodaOrange, modifier = Modifier.size(IconSizeSmall))
+                        Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(IconSizeSmall))
                         Spacer(modifier = Modifier.width(SpacingSmall))
                         Text(text = stringResource(id = R.string.platos_fondo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall)
                     }
@@ -133,9 +133,9 @@ fun PasoPlatosFondoScreen(
             ) {
                 Text(text = stringResource(id = R.string.platos_fondo_disponibles), fontWeight = FontWeight.Bold, fontSize = TextSizeLarge)
                 Row(modifier = Modifier.clickable { /* Nuevo plato */ }, verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Filled.AddCircle, contentDescription = null, tint = SodaOrange, modifier = Modifier.size(IconSizeSmall))
+                    Icon(imageVector = Icons.Filled.AddCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(IconSizeSmall))
                     Spacer(modifier = Modifier.width(SpacingXSmall))
-                    Text(text = stringResource(id = R.string.platos_fondo_nuevo_plato), color = SodaOrange, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(id = R.string.platos_fondo_nuevo_plato), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -170,11 +170,11 @@ fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = item.descripcion, fontSize = TextSizeSmall, color = SodaGray)
+                Text(text = item.descripcion, fontSize = TextSizeSmall, color = LigthGray)
                 Spacer(modifier = Modifier.height(SpacingXSmall))
                 Button(
                     onClick = onAdd,
-                    colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(CornerRadiusSmall),
                     contentPadding = PaddingValues(horizontal = SpacingSmall, vertical = 0.dp),
                     modifier = Modifier.height(32.dp)
@@ -219,14 +219,14 @@ fun PlatoDisponibleCard(item: PlatoDisponibleItem, isSelected: Boolean, onToggle
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = item.descripcion, fontSize = TextSizeSmall, color = SodaGray)
+                Text(text = item.descripcion, fontSize = TextSizeSmall, color = LigthGray)
             }
             Checkbox(
                 checked = isSelected,
                 onCheckedChange = null, // Handled by Row click
                 colors = CheckboxDefaults.colors(
-                    checkedColor = SodaOrange,
-                    uncheckedColor = SodaGray
+                    checkedColor = MaterialTheme.colorScheme.primary,
+                    uncheckedColor = LigthGray
                 )
             )
         }

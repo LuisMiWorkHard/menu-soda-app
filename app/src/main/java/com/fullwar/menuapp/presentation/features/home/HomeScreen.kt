@@ -20,7 +20,6 @@ import com.fullwar.menuapp.R
 import com.fullwar.menuapp.presentation.features.home.tabs.HistorialTab
 import com.fullwar.menuapp.presentation.features.home.tabs.NuevoTab
 import com.fullwar.menuapp.presentation.features.home.tabs.PerfilTab
-import com.fullwar.menuapp.ui.theme.SodaOrange
 
 enum class HomeTab(val route: String, val labelRes: Int, val icon: ImageVector) {
     HISTORIAL("historial", R.string.tab_historial, Icons.Filled.History),
@@ -52,8 +51,8 @@ fun HomeScreen() {
                         icon = { Icon(imageVector = tab.icon, contentDescription = null) },
                         label = { Text(text = stringResource(id = tab.labelRes)) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = SodaOrange,
-                            selectedTextColor = SodaOrange,
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
                             indicatorColor = Color.White
                         )
                     )

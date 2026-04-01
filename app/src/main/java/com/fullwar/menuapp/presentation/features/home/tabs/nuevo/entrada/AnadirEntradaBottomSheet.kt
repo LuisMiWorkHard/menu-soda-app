@@ -107,7 +107,7 @@ fun AnadirEntradaBottomSheet(
                     showPhotoSourceDialog = false
                     cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }) {
-                    Text(stringResource(R.string.entrada_foto_camara), color = SodaOrange)
+                    Text(stringResource(R.string.entrada_foto_camara), color = MaterialTheme.colorScheme.primary)
                 }
             },
             dismissButton = {
@@ -117,7 +117,7 @@ fun AnadirEntradaBottomSheet(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 }) {
-                    Text(stringResource(R.string.entrada_foto_galeria), color = SodaOrange)
+                    Text(stringResource(R.string.entrada_foto_galeria), color = MaterialTheme.colorScheme.primary)
                 }
             }
         )
@@ -151,7 +151,7 @@ fun AnadirEntradaBottomSheet(
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = null,
-                        tint = SodaGray
+                        tint = LigthGray
                     )
                 }
             }
@@ -168,7 +168,7 @@ fun AnadirEntradaBottomSheet(
                     .then(
                         if (imageUri == null) {
                             Modifier.border(
-                                BorderStroke(2.dp, SodaOrange.copy(alpha = 0.4f)),
+                                BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
                                 RoundedCornerShape(CornerRadiusMedium)
                             )
                         } else Modifier
@@ -190,13 +190,13 @@ fun AnadirEntradaBottomSheet(
                         Icon(
                             imageVector = Icons.Filled.CameraAlt,
                             contentDescription = null,
-                            tint = SodaOrange,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(Spacing4XLarge)
                         )
                         Spacer(modifier = Modifier.height(SpacingSmall))
                         Text(
                             text = stringResource(R.string.entrada_subir_foto),
-                            color = SodaOrange,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = TextSizeSmall,
                             fontWeight = FontWeight.Medium
                         )
@@ -220,12 +220,12 @@ fun AnadirEntradaBottomSheet(
                 placeholder = {
                     Text(
                         text = stringResource(R.string.entrada_nombre_placeholder),
-                        color = SodaGray
+                        color = LigthGray
                     )
                 },
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = SodaOrange,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = SodaGrayLight,
                     errorBorderColor = MaterialTheme.colorScheme.error
                 ),
@@ -245,7 +245,7 @@ fun AnadirEntradaBottomSheet(
                         )
                         else -> Text(
                             "${nombre.text.length}/200",
-                            color = SodaGray,
+                            color = LigthGray,
                             fontSize = TextSizeXSmall
                         )
                     }
@@ -268,12 +268,12 @@ fun AnadirEntradaBottomSheet(
                 placeholder = {
                     Text(
                         text = stringResource(R.string.entrada_descripcion_placeholder),
-                        color = SodaGray
+                        color = LigthGray
                     )
                 },
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = SodaOrange,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = SodaGrayLight,
                     errorBorderColor = MaterialTheme.colorScheme.error
                 ),
@@ -294,7 +294,7 @@ fun AnadirEntradaBottomSheet(
                         )
                         else -> Text(
                             "${descripcion.text.length}/1000",
-                            color = SodaGray,
+                            color = LigthGray,
                             fontSize = TextSizeXSmall
                         )
                     }
@@ -314,7 +314,7 @@ fun AnadirEntradaBottomSheet(
             when (tiposState) {
                 is State.Loading -> {
                     CircularProgressIndicator(
-                        color = SodaOrange,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(IconSizeMedium)
                     )
                 }
@@ -337,13 +337,13 @@ fun AnadirEntradaBottomSheet(
                                 shape = RoundedCornerShape(CornerRadiusMedium),
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = Color.Transparent,
-                                    selectedLabelColor = SodaOrange
+                                    selectedLabelColor = MaterialTheme.colorScheme.primary
                                 ),
                                 border = FilterChipDefaults.filterChipBorder(
                                     enabled = true,
                                     selected = isSelected,
-                                    selectedBorderColor = SodaOrange,
-                                    borderColor = SodaGray.copy(alpha = 0.3f)
+                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
+                                    borderColor = LigthGray.copy(alpha = 0.3f)
                                 )
                             )
                         }
@@ -405,7 +405,7 @@ fun AnadirEntradaBottomSheet(
                     .fillMaxWidth()
                     .height(ButtonHeightLarge),
                 shape = RoundedCornerShape(CornerRadiusMedium),
-                colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 enabled = createState !is State.Loading
             ) {
                 if (createState is State.Loading) {
@@ -432,7 +432,7 @@ fun AnadirEntradaBottomSheet(
             ) {
                 Text(
                     text = stringResource(R.string.entrada_cancelar),
-                    color = SodaGray,
+                    color = LigthGray,
                     fontWeight = FontWeight.Medium,
                     fontSize = TextSizeMedium
                 )

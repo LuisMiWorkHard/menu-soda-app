@@ -59,7 +59,7 @@ fun HistorialTab(
             "Lunes, 24 Oct",
             "Principal: Pollo Rostizado, Ensalada…",
             "Entrada: Sopa de Calabaza",
-            SodaOrangeLight
+            MaterialTheme.colorScheme.background
         ),
         MenuHistorialItem(
             "Domingo, 23 Oct",
@@ -149,7 +149,7 @@ fun HistorialTab(
                         Icon(
                             imageVector = Icons.Filled.CalendarMonth,
                             contentDescription = null,
-                            tint = if (hasDateFilter) SodaOrange else SodaGray
+                            tint = if (hasDateFilter) MaterialTheme.colorScheme.primary else LigthGray
                         )
                     }
                 },
@@ -159,7 +159,7 @@ fun HistorialTab(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onNuevoMenuClick,
-                containerColor = SodaOrange,
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
                 shape = RoundedCornerShape(CornerRadiusLarge)
             ) {
@@ -188,26 +188,26 @@ fun HistorialTab(
                 placeholder = {
                     Text(
                         text = stringResource(id = R.string.historial_buscar),
-                        color = SodaGray
+                        color = LigthGray
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Filled.Search,
                         contentDescription = null,
-                        tint = SodaGray
+                        tint = LigthGray
                     )
                 },
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Filled.Tune,
                         contentDescription = null,
-                        tint = SodaGray
+                        tint = LigthGray
                     )
                 },
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = SodaOrange,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = SodaGrayLight
                 ),
                 singleLine = true
@@ -231,7 +231,7 @@ fun HistorialTab(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = SodaOrange,
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = Color.White,
                             selectedTrailingIconColor = Color.White
                         )
@@ -270,7 +270,7 @@ fun HistorialTab(
                         }
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = SodaOrange,
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = Color.White,
                         selectedLeadingIconColor = Color.White,
                         selectedTrailingIconColor = Color.White
@@ -285,7 +285,7 @@ fun HistorialTab(
                 text = stringResource(id = R.string.historial_recientes),
                 fontWeight = FontWeight.Bold,
                 fontSize = TextSizeSmall,
-                color = SodaGray
+                color = LigthGray
             )
 
             Spacer(modifier = Modifier.height(SpacingSmall))
@@ -411,7 +411,7 @@ fun DatePickerDialog(
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = null,
-                            tint = SodaGray
+                            tint = LigthGray
                         )
                     }
                 }
@@ -436,7 +436,7 @@ fun DatePickerDialog(
                                 onClick = { onRangeModeChange(false) },
                                 shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                                 colors = SegmentedButtonDefaults.colors(
-                                    activeContainerColor = SodaOrange,
+                                    activeContainerColor = MaterialTheme.colorScheme.primary,
                                     activeContentColor = Color.White
                                 )
                             ) {
@@ -447,7 +447,7 @@ fun DatePickerDialog(
                                 onClick = { onRangeModeChange(true) },
                                 shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                                 colors = SegmentedButtonDefaults.colors(
-                                    activeContainerColor = SodaOrange,
+                                    activeContainerColor = MaterialTheme.colorScheme.primary,
                                     activeContentColor = Color.White
                                 )
                             ) {
@@ -465,21 +465,21 @@ fun DatePickerDialog(
                             Icon(
                                 imageVector = Icons.Filled.CalendarMonth,
                                 contentDescription = null,
-                                tint = SodaOrange,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(IconSizeMedium)
                             )
                             Spacer(modifier = Modifier.width(SpacingSmall))
                             Text(
                                 text = stringResource(id = R.string.calendar_selection_label),
                                 fontSize = TextSizeSmall,
-                                color = SodaGray
+                                color = LigthGray
                             )
                             Spacer(modifier = Modifier.width(SpacingXSmall))
                             Text(
                                 text = selectionText,
                                 fontSize = TextSizeSmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = SodaOrange
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -503,8 +503,8 @@ fun DatePickerDialog(
                         headline = null,
                         showModeToggle = false,
                         colors = DatePickerDefaults.colors(
-                            selectedDayContainerColor = SodaOrange,
-                            todayDateBorderColor = SodaOrange,
+                            selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                            todayDateBorderColor = MaterialTheme.colorScheme.primary,
                             dayInSelectionRangeContainerColor = SodaOrangeLight
                         )
                     )
@@ -519,8 +519,8 @@ fun DatePickerDialog(
                         headline = null,
                         showModeToggle = false,
                         colors = DatePickerDefaults.colors(
-                            selectedDayContainerColor = SodaOrange,
-                            todayDateBorderColor = SodaOrange
+                            selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                            todayDateBorderColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -555,7 +555,7 @@ fun DatePickerDialog(
                             text = stringResource(
                                 id = if (hasSelection) R.string.calendar_clear else R.string.calendar_cancel
                             ),
-                            color = SodaOrange
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                     Button(
@@ -567,7 +567,7 @@ fun DatePickerDialog(
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = SodaOrange),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(CornerRadiusMedium),
                         enabled = if (isRangeMode) {
                             dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null
@@ -602,7 +602,7 @@ fun MenuHistorialCard(item: MenuHistorialItem) {
             Icon(
                 imageVector = Icons.Filled.MenuBook,
                 contentDescription = null,
-                tint = SodaOrange,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(IconSizeLarge)
             )
         }
@@ -619,13 +619,13 @@ fun MenuHistorialCard(item: MenuHistorialItem) {
             Text(
                 text = item.platoPrincipal,
                 fontSize = TextSizeSmall,
-                color = SodaGray,
+                color = LigthGray,
                 maxLines = 1
             )
             Text(
                 text = item.entrada,
                 fontSize = TextSizeSmall,
-                color = SodaGray,
+                color = LigthGray,
                 maxLines = 1
             )
         }
@@ -640,7 +640,7 @@ fun MenuHistorialCard(item: MenuHistorialItem) {
                 Icon(
                     imageVector = Icons.Filled.Share,
                     contentDescription = null,
-                    tint = SodaOrange,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(SpacingSmall)
                 )
             }
