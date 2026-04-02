@@ -46,6 +46,7 @@ import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import com.fullwar.menuapp.presentation.navigation.AppScreens
 import com.fullwar.menuapp.ui.theme.ButtonHeightLarge
+import com.fullwar.menuapp.ui.theme.SetNavigationBarColor
 import com.fullwar.menuapp.ui.theme.ButtonHeightMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusLarge
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
@@ -73,6 +74,8 @@ fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinViewModel(),
 ) {
+    SetNavigationBarColor(MaterialTheme.colorScheme.surface)
+
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val passwordFocusRequester = remember { FocusRequester() }
@@ -141,7 +144,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SodaGrayLight)
+            .background(MaterialTheme.colorScheme.surface)
             .systemBarsPadding(),
         contentAlignment = Alignment.TopCenter
     ) {

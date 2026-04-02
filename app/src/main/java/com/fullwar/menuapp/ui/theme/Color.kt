@@ -25,31 +25,49 @@ val SubtleDivider = Color(0x1FFFFFFF) // Divisores sutiles con opacidad
 */
 
 // Paleta Gris Carbón (#4b554f)
-val Shadow = Color(0xFF100E0E)
-val Charcoal = Color(0xFF4B554F)
-val AccentGrey = Color(0xFFA2A2A2)
-val SoftBone = Color(0xFFF5F5F5)
+
+
 val DeepCharcoal = Color(0xFF272727)
-val RichBlack = Color(0xFF1E1E1E)
-val ShadowGrey = Color(0xFF353535)
+val RichBlack = Color(0xFF202124)//Color(0xFF1E1E1E)
+val ShadowGrey = Color(0xFF202124) //Color(0xFF353535)
+val DarkShadow = Color(0xFF2D2E30)
+val Shadow = Color(0xFF474747)//Color(0xFF2C2C2C)
+val Charcoal = Color(0xFF4B554F)
+
+val Gray =Color(0xFF9AA0A6)
+val SkyGray =Color(0xFF7685AA)
+val AccentGrey = Color(0xFF1F2E38)//Color(0xFF375365)//Color(0xFF8F96AA)//Color(0xFFA2A2A2)
+val SoftBone = Color(0xFFF5F5F5)
+val SoftBoneLight = Color(0xFFE8EAED)
 val White = Color(0xFFFFFFFF)
+val Sucre = Color(0xFFE8EAED)
 
 // Light Mode Colors
 val LightPrimary = Shadow
-val LightBackground = SoftBone
-val LightSurface = White
+val LightSecondary = Shadow
+val LightBackground = White
+val LightSurface = SoftBone
+val LightVariantSurface = DarkShadow
 val LightOnPrimary = White
+val LightOnSecondary = White
 val LightOnBackground = Charcoal
 val LightOnSurface = DeepCharcoal
+val LightOnVariantSurface = Gray
 
 // Dark Mode Colors
 val DarkPrimary = AccentGrey
+val DarkSecondary = SkyGray
 val DarkBackground = RichBlack
 val DarkSurface = ShadowGrey
+val DarkVariantSurface = DarkShadow
 val DarkOnPrimary = White
-val DarkOnBackground = White
-val DarkOnSurface = SoftBone
+val DarkOnSecondary = AccentGrey
+val DarkOnBackground = Sucre
+val DarkOnSurface = SoftBoneLight
+val DarkOnVariantSurface = Gray
 
 //Both
 val WhatsAppGreen = Color(0xFF25D366)
 val LigthGray = Color(0xFF676767)
+
+val YellowIdea = Color(0xFFFFE607)

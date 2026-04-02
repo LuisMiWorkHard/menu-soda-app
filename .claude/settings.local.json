@@ -7,7 +7,8 @@
       "Bash(find /Users/luisvaleriano/Documents/Projects/MenuSoda/menu-soda-app/app/src/main/res -name *ic_image_meal* -type f)",
       "Bash(ls -lh /Users/luisvaleriano/Documents/Projects/MenuSoda/menu-soda-app/app/src/main/res/drawable*/)",
       "Bash(identify /Users/luisvaleriano/Documents/Projects/MenuSoda/menu-soda-app/app/src/main/res/drawable-xxxhdpi/ic_image_meal.webp)",
-      "Bash(convert --version)"
+      "Bash(convert --version)",
+      "Bash(head -20 grep -n \"background\\(\" /Users/luisvaleriano/Documents/Projects/MenuSoda/menu-soda-app/app/src/main/java/com/fullwar/menuapp/presentation/features/home/tabs/nuevo/NuevoMenuScreen.kt)"
     ]
   },
   "enableAllProjectMcpServers": true,

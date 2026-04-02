@@ -64,12 +64,12 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
                         fontSize = TextSizeLarge
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         bottomBar = {
             Surface(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp
             ) {
                 Row(
@@ -116,7 +116,7 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // Barra de progreso
             val currentSelectedSize = when (currentStep) {
@@ -173,7 +173,7 @@ fun ProgressHeader(currentStep: Int, totalSteps: Int, stepTitle: String, selecte
             text = stringResource(id = R.string.nuevo_progreso_de, currentStep, totalSteps),
             fontSize = TextSizeSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.onBackground
         )
         Row(
             modifier = Modifier
@@ -186,12 +186,12 @@ fun ProgressHeader(currentStep: Int, totalSteps: Int, stepTitle: String, selecte
                 text = stepTitle.replace("Paso $currentStep: ", ""),
                 fontSize = TextSizeXLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = stringResource(id = R.string.platos_fondo_seleccionados, selectedCount),
                 fontSize = TextSizeMedium,
-                color = LigthGray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Spacer(modifier = Modifier.height(SpacingSmall))

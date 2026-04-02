@@ -142,7 +142,7 @@ fun PasoEntradasScreen(
             item {
                 Spacer(modifier = Modifier.height(SpacingSmall))
                 Surface(
-                    color = SodaOrangeLight,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(CornerRadiusMedium),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -153,7 +153,7 @@ fun PasoEntradasScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(IconSizeSmall))
+                                Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = YellowIdea, modifier = Modifier.size(IconSizeSmall))
                                 Spacer(modifier = Modifier.width(SpacingSmall))
                                 Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall)
                             }
@@ -164,7 +164,7 @@ fun PasoEntradasScreen(
                                 Icon(
                                     imageVector = Icons.Filled.Close,
                                     contentDescription = null,
-                                    tint = LigthGray
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -359,7 +359,7 @@ private fun EntradaListItem(
 ) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = if (isSelected) SodaOrangeLight else SodaGrayLight.copy(alpha = 0.3f),
+        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onToggle(!isSelected) }
@@ -424,7 +424,7 @@ fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
             .width(280.dp)
             .height(120.dp),
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = Color.White
+        color = MaterialTheme.colorScheme.secondary
     ) {
         Row(
             modifier = Modifier.padding(SpacingMedium),
@@ -432,11 +432,11 @@ fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = sugerencia.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = sugerencia.descripcion, fontSize = TextSizeSmall, color = LigthGray)
+                Text(text = sugerencia.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSecondary)
                 Spacer(modifier = Modifier.height(SpacingXSmall))
                 Button(
                     onClick = onAdd,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(CornerRadiusSmall),
                     contentPadding = PaddingValues(horizontal = SpacingSmall, vertical = 0.dp),
                     modifier = Modifier.height(32.dp)

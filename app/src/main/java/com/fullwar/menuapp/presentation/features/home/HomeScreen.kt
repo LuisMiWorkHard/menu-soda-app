@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.features.home
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -9,7 +10,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
@@ -20,6 +21,7 @@ import com.fullwar.menuapp.R
 import com.fullwar.menuapp.presentation.features.home.tabs.HistorialTab
 import com.fullwar.menuapp.presentation.features.home.tabs.NuevoTab
 import com.fullwar.menuapp.presentation.features.home.tabs.PerfilTab
+import com.fullwar.menuapp.ui.theme.SetNavigationBarColor
 
 enum class HomeTab(val route: String, val labelRes: Int, val icon: ImageVector) {
     HISTORIAL("historial", R.string.tab_historial, Icons.Filled.History),
@@ -29,13 +31,16 @@ enum class HomeTab(val route: String, val labelRes: Int, val icon: ImageVector) 
 
 @Composable
 fun HomeScreen() {
+    SetNavigationBarColor(MaterialTheme.colorScheme.surface)
+
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState()
         .value?.destination?.route
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            NavigationBar(containerColor = Color.White) {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
                 HomeTab.entries.forEach { tab ->
                     NavigationBarItem(
                         selected = currentRoute == tab.route,
@@ -51,9 +56,9 @@ fun HomeScreen() {
                         icon = { Icon(imageVector = tab.icon, contentDescription = null) },
                         label = { Text(text = stringResource(id = tab.labelRes)) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = Color.White
+                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                            indicatorColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     )
                 }
@@ -66,6 +71,7 @@ fun HomeScreen() {
             modifier = Modifier
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             composable(HomeTab.HISTORIAL.route) {
                 HistorialTab(
