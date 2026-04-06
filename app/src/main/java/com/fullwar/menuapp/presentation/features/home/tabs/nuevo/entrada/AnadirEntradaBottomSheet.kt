@@ -143,7 +143,7 @@ fun AnadirEntradaBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.entrada_dialog_titulo),
+                    text = stringResource(R.string.entrada_nueva_titulo),
                     fontWeight = FontWeight.Bold,
                     fontSize = TextSizeXLarge
                 )
@@ -151,7 +151,7 @@ fun AnadirEntradaBottomSheet(
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = null,
-                        tint = LigthGray
+                        tint = HeavyGray
                     )
                 }
             }
@@ -164,7 +164,7 @@ fun AnadirEntradaBottomSheet(
                     .fillMaxWidth()
                     .height(160.dp)
                     .clip(RoundedCornerShape(CornerRadiusMedium))
-                    .background(SodaOrangeLight)
+                    .background(HeavyGray)
                     .then(
                         if (imageUri == null) {
                             Modifier.border(
@@ -220,13 +220,13 @@ fun AnadirEntradaBottomSheet(
                 placeholder = {
                     Text(
                         text = stringResource(R.string.entrada_nombre_placeholder),
-                        color = LigthGray
+                        color = HeavyGray
                     )
                 },
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = SodaGrayLight,
+                    unfocusedBorderColor = HeavyGray,
                     errorBorderColor = MaterialTheme.colorScheme.error
                 ),
                 singleLine = true,
@@ -245,7 +245,7 @@ fun AnadirEntradaBottomSheet(
                         )
                         else -> Text(
                             "${nombre.text.length}/200",
-                            color = LigthGray,
+                            color = HeavyGray,
                             fontSize = TextSizeXSmall
                         )
                     }
@@ -268,13 +268,13 @@ fun AnadirEntradaBottomSheet(
                 placeholder = {
                     Text(
                         text = stringResource(R.string.entrada_descripcion_placeholder),
-                        color = LigthGray
+                        color = HeavyGray
                     )
                 },
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = SodaGrayLight,
+                    unfocusedBorderColor = HeavyGray,
                     errorBorderColor = MaterialTheme.colorScheme.error
                 ),
                 minLines = 3,
@@ -294,7 +294,7 @@ fun AnadirEntradaBottomSheet(
                         )
                         else -> Text(
                             "${descripcion.text.length}/1000",
-                            color = LigthGray,
+                            color = HeavyGray,
                             fontSize = TextSizeXSmall
                         )
                     }
@@ -343,7 +343,7 @@ fun AnadirEntradaBottomSheet(
                                     enabled = true,
                                     selected = isSelected,
                                     selectedBorderColor = MaterialTheme.colorScheme.primary,
-                                    borderColor = LigthGray.copy(alpha = 0.3f)
+                                    borderColor = HeavyGray.copy(alpha = 0.3f)
                                 )
                             )
                         }
@@ -432,7 +432,7 @@ fun AnadirEntradaBottomSheet(
             ) {
                 Text(
                     text = stringResource(R.string.entrada_cancelar),
-                    color = LigthGray,
+                    color = HeavyGray,
                     fontWeight = FontWeight.Medium,
                     fontSize = TextSizeMedium
                 )

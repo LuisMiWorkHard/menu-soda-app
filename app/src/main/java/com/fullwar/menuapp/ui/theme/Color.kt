@@ -2,20 +2,6 @@ package com.fullwar.menuapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
-
-val SodaOrange = Color(0xFFF26522)
-val SodaOrangeLight = Color(0xFFFFEFE7)
-val SodaGrayLight = Color(0xFFF5F5F5)
-val SodaGrayMedium = Color(0xFFE0E0E0)
-val SodaBackground = Color(0xFFFFFFFF)
-
 // Paleta Dark Elegante
 /*val DarkGreyLogo = Color(0xFF1E1E1E) // Fondo principal inspirado en el logo
 val SurfaceDark = Color(0xFF2C2C2C)  // Superficies y tarjetas
@@ -33,41 +19,74 @@ val ShadowGrey = Color(0xFF202124) //Color(0xFF353535)
 val DarkShadow = Color(0xFF2D2E30)
 val Shadow = Color(0xFF474747)//Color(0xFF2C2C2C)
 val Charcoal = Color(0xFF4B554F)
+val Gray = Color(0xFF9AA0A6)
 
-val Gray =Color(0xFF9AA0A6)
-val SkyGray =Color(0xFF7685AA)
+val Steel = Color(0xFF90A4AE)
+
+//val SoftGray = Color(0xfff5f5f5) //Color(0xFFE5E8EF)
+val SkyGray = Color(0xFF7685AA)
 val AccentGrey = Color(0xFF1F2E38)//Color(0xFF375365)//Color(0xFF8F96AA)//Color(0xFFA2A2A2)
 val SoftBone = Color(0xFFF5F5F5)
 val SoftBoneLight = Color(0xFFE8EAED)
+val SoftGreen = Color(0xFFDBEFE9)
 val White = Color(0xFFFFFFFF)
 val Sucre = Color(0xFFE8EAED)
 
 // Light Mode Colors
 val LightPrimary = Shadow
-val LightSecondary = Shadow
-val LightBackground = White
-val LightSurface = SoftBone
-val LightVariantSurface = DarkShadow
 val LightOnPrimary = White
+val LightSecondary = Steel
 val LightOnSecondary = White
+val LightBackground = SoftBone
 val LightOnBackground = Charcoal
-val LightOnSurface = DeepCharcoal
-val LightOnVariantSurface = Gray
+val LightSurface = White
+val LightOnSurface = DarkShadow
+val LightSurfaceVariant = SoftGreen
+val LightOnSurfaceVariant = DeepCharcoal
+
 
 // Dark Mode Colors
 val DarkPrimary = AccentGrey
+val DarkOnPrimary = White
+val DarkSecondary = Steel
+val DarkOnSecondary = White
+val DarkBackground = RichBlack
+val DarkOnBackground = Sucre
+val DarkSurface = DarkShadow
+val DarkOnSurface = Gray
+val DarkSurfaceVariant = SkyGray
+val DarkOnSurfaceVariant = AccentGrey
+/*
+val LightPrimary = Shadow
+val LightSecondary = SoftBone
+val LightTertiary = SoftGreen
+val LightBackground = SoftBone
+val LightSurface = SoftGray
+val LightSurfaceVariant = White
+val LightOnPrimary = White
+val LightOnSecondary = DeepCharcoal
+val LightOnTertiary = DeepCharcoal
+val LightOnBackground = Charcoal
+val LightOnSurface = DeepCharcoal
+val LightOnSurfaceVariant = DarkShadow
+
+
+val DarkPrimary = AccentGrey
 val DarkSecondary = SkyGray
+val DarkTertiary = SkyGray
 val DarkBackground = RichBlack
 val DarkSurface = ShadowGrey
-val DarkVariantSurface = DarkShadow
+val DarkSurfaceVariant = DarkShadow
 val DarkOnPrimary = White
 val DarkOnSecondary = AccentGrey
+val DarkOnTertiary = AccentGrey
 val DarkOnBackground = Sucre
 val DarkOnSurface = SoftBoneLight
-val DarkOnVariantSurface = Gray
+val DarkOnSurfaceVariant = Gray
+ */
 
 //Both
 val WhatsAppGreen = Color(0xFF25D366)
-val LigthGray = Color(0xFF676767)
-
+val HeavyGray = Color(0xFF676767)
+val SoftGray = Color(0xFFF5F5F5)
 val YellowIdea = Color(0xFFFFE607)

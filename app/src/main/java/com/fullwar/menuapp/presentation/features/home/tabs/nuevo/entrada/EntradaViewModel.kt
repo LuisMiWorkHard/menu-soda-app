@@ -14,7 +14,7 @@ import com.fullwar.menuapp.data.model.ApiException
 import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
 import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
-import com.fullwar.menuapp.data.repository.EntradaRepositoryImpl
+import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.data.util.ImageCompressor
 import com.fullwar.menuapp.domain.model.TipoEntrada
 import com.fullwar.menuapp.presentation.common.components.dynamic.DynamicForm
@@ -23,7 +23,7 @@ import com.fullwar.menuapp.presentation.common.utils.State
 import kotlinx.coroutines.launch
 
 class EntradaViewModel(
-    private val entradaRepository: EntradaRepositoryImpl
+    private val entradaRepository: IEntradaRepository
 ) : ViewModel(), DynamicForm {
 
     companion object {

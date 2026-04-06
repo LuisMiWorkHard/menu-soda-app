@@ -149,7 +149,7 @@ fun HistorialTab(
                         Icon(
                             imageVector = Icons.Filled.CalendarMonth,
                             contentDescription = null,
-                            tint = if (hasDateFilter) MaterialTheme.colorScheme.primary else LigthGray
+                            tint = if (hasDateFilter) MaterialTheme.colorScheme.primary else HeavyGray
                         )
                     }
                 },
@@ -188,27 +188,27 @@ fun HistorialTab(
                 placeholder = {
                     Text(
                         text = stringResource(id = R.string.historial_buscar),
-                        color = LigthGray
+                        color = HeavyGray
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Filled.Search,
                         contentDescription = null,
-                        tint = LigthGray
+                        tint = HeavyGray
                     )
                 },
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Filled.Tune,
                         contentDescription = null,
-                        tint = LigthGray
+                        tint = HeavyGray
                     )
                 },
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = SodaGrayLight
+                    unfocusedBorderColor = HeavyGray
                 ),
                 singleLine = true
             )
@@ -285,7 +285,7 @@ fun HistorialTab(
                 text = stringResource(id = R.string.historial_recientes),
                 fontWeight = FontWeight.Bold,
                 fontSize = TextSizeSmall,
-                color = LigthGray
+                color = HeavyGray
             )
 
             Spacer(modifier = Modifier.height(SpacingSmall))
@@ -411,7 +411,7 @@ fun DatePickerDialog(
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = null,
-                            tint = LigthGray
+                            tint = HeavyGray
                         )
                     }
                 }
@@ -422,7 +422,7 @@ fun DatePickerDialog(
                         .fillMaxWidth()
                         .padding(horizontal = SpacingLarge),
                     shape = RoundedCornerShape(CornerRadiusMedium),
-                    color = SodaGrayLight
+                    color = HeavyGray
                 ) {
                     Column(
                         modifier = Modifier.padding(SpacingMedium)
@@ -472,7 +472,7 @@ fun DatePickerDialog(
                             Text(
                                 text = stringResource(id = R.string.calendar_selection_label),
                                 fontSize = TextSizeSmall,
-                                color = LigthGray
+                                color = HeavyGray
                             )
                             Spacer(modifier = Modifier.width(SpacingXSmall))
                             Text(
@@ -488,7 +488,7 @@ fun DatePickerDialog(
                 Spacer(modifier = Modifier.height(SpacingSmall))
 
                 HorizontalDivider(
-                    color = SodaGrayLight,
+                    color = HeavyGray,
                     modifier = Modifier.padding(horizontal = SpacingLarge)
                 )
 
@@ -505,7 +505,7 @@ fun DatePickerDialog(
                         colors = DatePickerDefaults.colors(
                             selectedDayContainerColor = MaterialTheme.colorScheme.primary,
                             todayDateBorderColor = MaterialTheme.colorScheme.primary,
-                            dayInSelectionRangeContainerColor = SodaOrangeLight
+                            dayInSelectionRangeContainerColor = HeavyGray
                         )
                     )
                 } else {
@@ -619,13 +619,13 @@ fun MenuHistorialCard(item: MenuHistorialItem) {
             Text(
                 text = item.platoPrincipal,
                 fontSize = TextSizeSmall,
-                color = LigthGray,
+                color = HeavyGray,
                 maxLines = 1
             )
             Text(
                 text = item.entrada,
                 fontSize = TextSizeSmall,
-                color = LigthGray,
+                color = HeavyGray,
                 maxLines = 1
             )
         }
@@ -634,7 +634,7 @@ fun MenuHistorialCard(item: MenuHistorialItem) {
         IconButton(onClick = { /* Compartir */ }) {
             Surface(
                 shape = CircleShape,
-                color = SodaOrangeLight,
+                color = HeavyGray,
                 modifier = Modifier.size(36.dp)
             ) {
                 Icon(
@@ -646,5 +646,5 @@ fun MenuHistorialCard(item: MenuHistorialItem) {
             }
         }
     }
-    HorizontalDivider(color = SodaGrayLight)
+    HorizontalDivider(color = HeavyGray)
 }

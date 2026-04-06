@@ -8,6 +8,7 @@ import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.data.model.ImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
+import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -15,27 +16,27 @@ class EntradaRepositoryImpl(
     private val entradaService: EntradaService,
     private val tipoEntradaService: TipoEntradaService,
     private val imagenService: ImagenService
-) {
+) : IEntradaRepository {
 
-    suspend fun getEntradas(): List<EntradaResponseDto> {
+    override suspend fun getEntradas(): List<EntradaResponseDto> {
         return withContext(Dispatchers.IO) {
             entradaService.getEntradas()
         }
     }
 
-    suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto {
+    override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto {
         return withContext(Dispatchers.IO) {
             entradaService.createEntrada(request)
         }
     }
 
-    suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> {
+    override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> {
         return withContext(Dispatchers.IO) {
             tipoEntradaService.getTiposEntrada()
         }
     }
 
-    suspend fun uploadImage(
+    override suspend fun uploadImage(
         imageBytes: ByteArray,
         fileName: String,
         extension: String

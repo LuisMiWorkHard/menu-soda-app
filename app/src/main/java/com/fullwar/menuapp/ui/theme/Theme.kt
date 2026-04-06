@@ -22,27 +22,31 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = Pink80*/
     primary = DarkPrimary,
     secondary = DarkSecondary,
+    //tertiary = DarkTertiary,
     background = DarkBackground,
     surface = DarkSurface,
-    surfaceVariant = DarkVariantSurface,
+    surfaceVariant = DarkSurfaceVariant,
     onPrimary = DarkOnPrimary,
     onSecondary = DarkOnSecondary,
+    //onTertiary = DarkOnTertiary,
     onBackground = DarkOnBackground,
     onSurface = DarkOnSurface,
-    onSurfaceVariant = DarkOnVariantSurface
+    onSurfaceVariant = DarkOnSurfaceVariant
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = LightPrimary,
     secondary = LightSecondary,
+    //tertiary = LightTertiary,
     background = LightBackground,
     surface = LightSurface,
-    surfaceVariant = LightVariantSurface,
+    surfaceVariant = LightSurfaceVariant,
     onPrimary = LightOnPrimary,
     onSecondary = LightOnSecondary,
+    //onTertiary = LightOnTertiary,
     onBackground = LightOnBackground,
     onSurface = LightOnSurface,
-    onSurfaceVariant = LightOnVariantSurface
+    onSurfaceVariant = LightOnSurfaceVariant
 )
 
 @Composable

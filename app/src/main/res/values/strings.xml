@@ -53,7 +53,6 @@
     <string name="nuevo_buscar_entradas">Buscar entradas…</string>
     <string name="nuevo_sugerencias">Sugerencias inteligentes</string>
     <string name="nuevo_listado_entradas">Listado de entradas</string>
-    <string name="nuevo_anadir_nueva">Añadir Nueva</string>
     <string name="nuevo_siguiente_platos">Siguiente paso: Platos Fuertes</string>
     <string name="nuevo_siguiente_bebidas">Siguiente paso: Bebidas</string>
     <string name="nuevo_finalizar">Finalizar menú</string>
@@ -70,7 +69,7 @@
     <string name="platos_fondo_anadir">Añadir</string>
 
     <!-- Añadir Entrada Bottom Sheet -->
-    <string name="entrada_dialog_titulo">Añadir Nueva Entrada</string>
+    <string name="entrada_nueva_titulo">Añadir Nueva Entrada</string>
     <string name="entrada_subir_foto">Subir foto de la entrada</string>
     <string name="entrada_nombre_label">Nombre de la entrada</string>
     <string name="entrada_nombre_placeholder">Ej. Sopa de Pollo</string>

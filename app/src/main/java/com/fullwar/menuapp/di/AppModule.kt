@@ -10,6 +10,7 @@ import com.fullwar.menuapp.data.datasource.remote.TipoEntradaService
 import com.fullwar.menuapp.data.repository.SecureDataStoreImpl
 import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
 import com.fullwar.menuapp.data.repository.EntradaRepositoryImpl
+import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.data.repository.LocationProviderImpl
 import com.fullwar.menuapp.data.repository.SecureCookiesStorageImpl
 import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada.EntradaViewModel
@@ -46,5 +47,5 @@ val appModule = module {
     single { EntradaService(get(named("AuthClient"))) }
     single { TipoEntradaService(get(named("AuthClient"))) }
     single { ImagenService(get(named("AuthClient"))) }
-    singleOf(::EntradaRepositoryImpl)
+    singleOf(::EntradaRepositoryImpl) bind IEntradaRepository::class
 }

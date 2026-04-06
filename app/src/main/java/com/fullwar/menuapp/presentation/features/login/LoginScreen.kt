@@ -2,6 +2,7 @@ package com.fullwar.menuapp.presentation.features.login
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -37,6 +38,8 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
@@ -46,16 +49,15 @@ import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import com.fullwar.menuapp.presentation.navigation.AppScreens
 import com.fullwar.menuapp.ui.theme.ButtonHeightLarge
+import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.ui.theme.SetNavigationBarColor
 import com.fullwar.menuapp.ui.theme.ButtonHeightMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusLarge
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
+import com.fullwar.menuapp.ui.theme.HeavyGray
 import com.fullwar.menuapp.ui.theme.IconSize3XLarge
 import com.fullwar.menuapp.ui.theme.IconSizeSmall
-import com.fullwar.menuapp.ui.theme.LigthGray
-import com.fullwar.menuapp.ui.theme.SodaGrayLight
-import com.fullwar.menuapp.ui.theme.SodaOrangeLight
 import com.fullwar.menuapp.ui.theme.SpacingMedium
 import com.fullwar.menuapp.ui.theme.SpacingSmall
 import com.fullwar.menuapp.ui.theme.SpacingXLarge
@@ -66,6 +68,7 @@ import com.fullwar.menuapp.ui.theme.TextSizeMedium
 import com.fullwar.menuapp.ui.theme.TextSizeSmall
 import com.fullwar.menuapp.ui.theme.TextSize3XLarge
 import com.fullwar.menuapp.ui.theme.WhatsAppGreen
+import com.fullwar.menuapp.ui.theme.White
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -74,13 +77,10 @@ fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinViewModel(),
 ) {
-    SetNavigationBarColor(MaterialTheme.colorScheme.surface)
+    SetNavigationBarColor(MaterialTheme.colorScheme.background)
 
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
-    val passwordFocusRequester = remember { FocusRequester() }
 
-    // Launcher para solicitar permisos de ubicación
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -88,7 +88,6 @@ fun LoginScreen(
         viewModel.onLocationPermisoResultado(allGranted)
     }
 
-    // Solicitar permisos al cargar la pantalla
     LaunchedEffect(Unit) {
         val fineLocationGranted = ContextCompat.checkSelfPermission(
             context, Manifest.permission.ACCESS_FINE_LOCATION
@@ -105,12 +104,10 @@ fun LoginScreen(
                 )
             )
         } else {
-            // Permisos ya concedidos, actualizar ubicación
             viewModel.onLocationPermisoResultado(true)
         }
     }
 
-    // Observar loginState para navegar al Home tras login exitoso
     LaunchedEffect(viewModel.loginState) {
         if (viewModel.loginState is State.Success) {
             navController.navigate(AppScreens.HomeScreen.route) {
@@ -135,16 +132,68 @@ fun LoginScreen(
             (viewModel.formFields.fields["contrasena"] as? TextFieldValue)?.text ?: ""
         )
     }
-    var passwordVisible by remember { mutableStateOf(false) }
 
-    val errors = viewModel.formFields.errors
-    val serverErrors = viewModel.formFields.serverErrors
+    LoginScreenContent(
+        tiposDocumento = viewModel.tiposDocumento,
+        documentType = documentType,
+        documentNumber = documentNumber,
+        password = password,
+        isLoading = viewModel.loginState is State.Loading,
+        loginError = (viewModel.loginState as? State.Error)?.message,
+        errors = viewModel.formFields.errors,
+        serverErrors = viewModel.formFields.serverErrors,
+        onDocumentTypeChange = { newType ->
+            documentType = newType
+            viewModel.updateField("TipoDocumento", newType)
+            documentNumber = ""
+            viewModel.updateField("numeroDocumento", TextFieldValue(""))
+        },
+        onDocumentNumberChange = { input ->
+            val maxLength = when (documentType.tipoDocumento) {
+                1 -> 8
+                3 -> 11
+                else -> 20
+            }
+            val filtered = when (documentType.tipoDocumento) {
+                1, 3 -> input.filter { it.isDigit() }
+                else -> input.filter { it.isLetterOrDigit() }
+            }.take(maxLength)
+            documentNumber = filtered
+            viewModel.updateField("numeroDocumento", TextFieldValue(filtered))
+        },
+        onPasswordChange = { input ->
+            val limited = input.take(255)
+            password = limited
+            viewModel.updateField("contrasena", TextFieldValue(limited))
+        },
+        onLogin = { viewModel.login() }
+    )
+}
+
+@Composable
+private fun LoginScreenContent(
+    tiposDocumento: List<TipoDocumento>,
+    documentType: TipoDocumento,
+    documentNumber: String,
+    password: String,
+    isLoading: Boolean,
+    loginError: String?,
+    errors: Map<String, Int?>,
+    serverErrors: Map<String, String?>,
+    onDocumentTypeChange: (TipoDocumento) -> Unit,
+    onDocumentNumberChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onLogin: () -> Unit
+) {
+    val focusManager = LocalFocusManager.current
+    val passwordFocusRequester = remember { FocusRequester() }
+    var passwordVisible by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .systemBarsPadding(),
         contentAlignment = Alignment.TopCenter
     ) {
@@ -162,9 +211,9 @@ fun LoginScreen(
             Surface(
                 modifier = Modifier.size(IconSize3XLarge),
                 shape = RoundedCornerShape(CornerRadiusLarge),
-                color = SodaOrangeLight
+                color = MaterialTheme.colorScheme.background
             ) {
-                Icon(imageVector = Icons.Filled.Dining, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(imageVector = Icons.Filled.Dining, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
             }
 
             Spacer(modifier = Modifier.height(SpacingXLarge))
@@ -174,13 +223,13 @@ fun LoginScreen(
                 text = stringResource(id = R.string.login_welcome_back),
                 fontSize = TextSize3XLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(SpacingSmall))
             Text(
                 text = stringResource(id = R.string.login_subtitle),
                 fontSize = TextSizeMedium,
-                color = LigthGray,
+                color = HeavyGray,
                 textAlign = TextAlign.Center
             )
 
@@ -192,18 +241,13 @@ fun LoginScreen(
                     text = stringResource(id = R.string.login_document_type),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = TextSizeMedium,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.height(SpacingMedium))
                 SegmentedControl(
-                    options = viewModel.tiposDocumento,
+                    options = tiposDocumento,
                     selectedOption = documentType,
-                    onOptionSelected = {
-                        documentType = it
-                        viewModel.updateField("TipoDocumento", it)
-                        documentNumber = ""
-                        viewModel.updateField("numeroDocumento", TextFieldValue(""))
-                    }
+                    onOptionSelected = onDocumentTypeChange
                 )
             }
 
@@ -213,25 +257,13 @@ fun LoginScreen(
             LoginTextField(
                 label = stringResource(id = R.string.login_document_number),
                 value = documentNumber,
-                onValueChange = { input ->
-                    val maxLength = when (documentType.tipoDocumento) {
-                        1 -> 8   // DNI: 8 dígitos
-                        3 -> 11  // RUC: 11 dígitos
-                        else -> 20  // CE: hasta 20 caracteres
-                    }
-                    val filtered = when (documentType.tipoDocumento) {
-                        1, 3 -> input.filter { it.isDigit() }  // DNI, RUC: solo dígitos
-                        else -> input.filter { it.isLetterOrDigit() }  // CE: alfanumérico
-                    }.take(maxLength)
-                    documentNumber = filtered
-                    viewModel.updateField("numeroDocumento", TextFieldValue(filtered))
-                },
+                onValueChange = onDocumentNumberChange,
                 placeholder = stringResource(id = R.string.login_document_number_placeholder),
                 leadingIcon = Icons.Filled.Badge,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = when (documentType.tipoDocumento) {
-                        1, 3 -> KeyboardType.Number  // DNI, RUC
-                        else -> KeyboardType.Text     // CE
+                        1, 3 -> KeyboardType.Number
+                        else -> KeyboardType.Text
                     },
                     imeAction = ImeAction.Next
                 ),
@@ -248,11 +280,7 @@ fun LoginScreen(
             LoginTextField(
                 label = stringResource(id = R.string.login_password),
                 value = password,
-                onValueChange = {
-                    val limited = it.take(255)
-                    password = limited
-                    viewModel.updateField("contrasena", TextFieldValue(limited))
-                },
+                onValueChange = onPasswordChange,
                 placeholder = stringResource(id = R.string.login_password_placeholder),
                 leadingIcon = null,
                 modifier = Modifier.focusRequester(passwordFocusRequester),
@@ -275,15 +303,15 @@ fun LoginScreen(
 
             // Login Button
             Button(
-                onClick = { viewModel.login() },
-                enabled = viewModel.loginState !is State.Loading,
+                onClick = onLogin,
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(ButtonHeightLarge),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(CornerRadiusMedium)
             ) {
-                if (viewModel.loginState is State.Loading) {
+                if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         color = Color.White,
@@ -303,10 +331,9 @@ fun LoginScreen(
             }
 
             // Error de login
-            val currentState = viewModel.loginState
-            if (currentState is State.Error) {
+            if (loginError != null) {
                 Text(
-                    text = currentState.message,
+                    text = loginError,
                     color = MaterialTheme.colorScheme.error,
                     fontSize = TextSizeSmall,
                     modifier = Modifier.padding(top = SpacingSmall)
@@ -326,7 +353,7 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.width(SpacingSmall))
                 Text(
                     text = stringResource(id = R.string.login_whatsapp_ready),
-                    color = LigthGray,
+                    color = HeavyGray,
                     fontSize = TextSizeSmall
                 )
             }
@@ -337,12 +364,12 @@ fun LoginScreen(
             Row {
                 Text(
                     text = stringResource(id = R.string.login_footer_no_account),
-                    color = LigthGray,
+                    color = HeavyGray,
                     modifier = Modifier.padding(end = SpacingSmall)
                 )
                 Text(
                     text = stringResource(id = R.string.login_footer_signup),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -358,7 +385,7 @@ fun SegmentedControl(
 ) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = SodaGrayLight,
+        color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .fillMaxWidth()
             .height(ButtonHeightMedium)
@@ -384,7 +411,7 @@ fun SegmentedControl(
                 ) {
                     Text(
                         text = option.descripcionDocumento,
-                        color = if (isSelected) Color.White else LigthGray,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 }
@@ -422,12 +449,12 @@ fun LoginTextField(
                 text = label,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = TextSizeMedium,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             if (isPasswordField) {
                 Text(
                     text = stringResource(id = R.string.login_forgot_password),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = TextSizeSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -440,15 +467,18 @@ fun LoginTextField(
             modifier = modifier
                 .fillMaxWidth()
                 .background(
-                    color = Color.White,
+                    color = White,
                     shape = RoundedCornerShape(CornerRadiusMedium)
                 ),
-            placeholder = { Text(text = placeholder, color = LigthGray) },
+            placeholder = { Text(text = placeholder, color = HeavyGray) },
             shape = RoundedCornerShape(CornerRadiusMedium),
+            textStyle = TextStyle(
+                color = MaterialTheme.colorScheme.primary
+            ),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = SodaGrayLight.copy(alpha = 0.5f),
-                cursorColor = MaterialTheme.colorScheme.primary
+                focusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                cursorColor = MaterialTheme.colorScheme.surfaceVariant
             ),
             trailingIcon = {
                 if (trailingIcon != null) {
@@ -456,11 +486,11 @@ fun LoginTextField(
                         Icon(
                             imageVector = trailingIcon,
                             contentDescription = null,
-                            tint = LigthGray
+                            tint = HeavyGray
                         )
                     }
                 } else if (leadingIcon != null) {
-                    Icon(imageVector = leadingIcon, contentDescription = null, tint = LigthGray)
+                    Icon(imageVector = leadingIcon, contentDescription = null, tint = HeavyGray)
                 }
             },
             visualTransformation = visualTransformation,
@@ -482,6 +512,120 @@ fun LoginTextField(
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(start = SpacingSmall, top = SpacingXSmall)
+            )
+        }
+    }
+}
+
+// --- Datos fake para previews ---
+
+private val fakeDocumentTypes = listOf(
+    TipoDocumento(1, "DNI"),
+    TipoDocumento(2, "CE"),
+    TipoDocumento(3, "RUC")
+)
+
+// --- Previews: LoginScreen ---
+
+@Preview(showBackground = true, name = "LoginScreen - Claro")
+@Composable
+private fun LoginScreenPreview() {
+    MenuAppTheme(darkTheme = false) {
+        LoginScreenContent(
+            tiposDocumento = fakeDocumentTypes,
+            documentType = fakeDocumentTypes[0],
+            documentNumber = "12345678",
+            password = "contraseña",
+            isLoading = false,
+            loginError = null,
+            errors = emptyMap(),
+            serverErrors = emptyMap(),
+            onDocumentTypeChange = {},
+            onDocumentNumberChange = {},
+            onPasswordChange = {},
+            onLogin = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "LoginScreen - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun LoginScreenDarkPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            LoginScreenContent(
+                tiposDocumento = fakeDocumentTypes,
+                documentType = fakeDocumentTypes[0],
+                documentNumber = "12345678",
+                password = "contraseña",
+                isLoading = false,
+                loginError = null,
+                errors = emptyMap(),
+                serverErrors = emptyMap(),
+                onDocumentTypeChange = {},
+                onDocumentNumberChange = {},
+                onPasswordChange = {},
+                onLogin = {}
+            )
+        }
+    }
+}
+
+// --- Previews: SegmentedControl ---
+
+@Preview(showBackground = true, name = "SegmentedControl - Claro")
+@Composable
+private fun SegmentedControlPreview() {
+    MenuAppTheme(darkTheme = false) {
+        SegmentedControl(
+            options = fakeDocumentTypes,
+            selectedOption = fakeDocumentTypes[0],
+            onOptionSelected = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "SegmentedControl - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun SegmentedControlDarkPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            SegmentedControl(
+                options = fakeDocumentTypes,
+                selectedOption = fakeDocumentTypes[0],
+                onOptionSelected = {}
+            )
+        }
+    }
+}
+
+// --- Previews: LoginTextField ---
+
+@Preview(showBackground = true, name = "LoginTextField - Claro")
+@Composable
+private fun LoginTextFieldPreview() {
+    MenuAppTheme(darkTheme = false) {
+        LoginTextField(
+            label = "Número de documento",
+            value = "12345678",
+            onValueChange = {},
+            placeholder = "Ingresa tu número",
+            leadingIcon = Icons.Filled.Badge
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "LoginTextField - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun LoginTextFieldDarkPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            LoginTextField(
+                label = "Número de documento",
+                value = "12345678",
+                onValueChange = {},
+                placeholder = "Ingresa tu número",
+                leadingIcon = Icons.Filled.Badge
             )
         }
     }

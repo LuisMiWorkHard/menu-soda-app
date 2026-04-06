@@ -17,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -81,14 +80,12 @@ fun PasoPlatosFondoScreen(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = stringResource(id = R.string.platos_fondo_buscar), color = LigthGray) },
-                leadingIcon = { Icon(imageVector = Icons.Filled.Search, contentDescription = null, tint = LigthGray) },
+                placeholder = { Text(text = stringResource(id = R.string.platos_fondo_buscar), color = HeavyGray) },
+                leadingIcon = { Icon(imageVector = Icons.Filled.Search, contentDescription = null, tint = HeavyGray) },
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = SodaGrayLight,
-                    focusedContainerColor = SodaGrayLight.copy(alpha = 0.3f),
-                    unfocusedContainerColor = SodaGrayLight.copy(alpha = 0.3f)
+                    unfocusedBorderColor = HeavyGray
                 ),
                 singleLine = true
             )
@@ -97,13 +94,13 @@ fun PasoPlatosFondoScreen(
         // Sugerencias Inteligentes
         item {
             Surface(
-                color = SodaOrangeLight,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(SpacingMedium)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(IconSizeSmall))
+                        Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = YellowIdea, modifier = Modifier.size(IconSizeSmall))
                         Spacer(modifier = Modifier.width(SpacingSmall))
                         Text(text = stringResource(id = R.string.platos_fondo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall)
                     }
@@ -159,7 +156,7 @@ fun PasoPlatosFondoScreen(
 fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.secondary,
         modifier = Modifier
             .width(280.dp)
             .height(120.dp)
@@ -170,7 +167,7 @@ fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = item.descripcion, fontSize = TextSizeSmall, color = LigthGray)
+                Text(text = item.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSecondary)
                 Spacer(modifier = Modifier.height(SpacingXSmall))
                 Button(
                     onClick = onAdd,
@@ -190,7 +187,7 @@ fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(CornerRadiusSmall))
-                    .background(Color.DarkGray)
+                    .background(HeavyGray)
             )
         }
     }
@@ -200,7 +197,7 @@ fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
 fun PlatoDisponibleCard(item: PlatoDisponibleItem, isSelected: Boolean, onToggle: (Boolean) -> Unit) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = SodaGrayLight.copy(alpha = 0.3f), // O un gris clarito si no hay seleccionado
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onToggle(!isSelected) }
@@ -214,19 +211,19 @@ fun PlatoDisponibleCard(item: PlatoDisponibleItem, isSelected: Boolean, onToggle
                 modifier = Modifier
                     .size(60.dp)
                     .clip(RoundedCornerShape(CornerRadiusSmall))
-                    .background(Color.DarkGray)
+                    .background(HeavyGray)
             )
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = item.descripcion, fontSize = TextSizeSmall, color = LigthGray)
+                Text(text = item.descripcion, fontSize = TextSizeSmall, color = HeavyGray)
             }
             Checkbox(
                 checked = isSelected,
                 onCheckedChange = null, // Handled by Row click
                 colors = CheckboxDefaults.colors(
                     checkedColor = MaterialTheme.colorScheme.primary,
-                    uncheckedColor = LigthGray
+                    uncheckedColor = HeavyGray
                 )
             )
         }

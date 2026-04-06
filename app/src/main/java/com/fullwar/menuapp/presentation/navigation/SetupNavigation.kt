@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.presentation.features.home.HomeScreen
+import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.NuevoMenuScreen
 import com.fullwar.menuapp.presentation.features.login.LoginScreen
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -22,7 +23,14 @@ fun SetupNavigation() {
             LoginScreen(navController = navController, sharedViewModel = sharedViewModel)
         }
         composable(route = AppScreens.HomeScreen.route) {
-            HomeScreen()
+            HomeScreen(
+                onNuevoMenuClick = {
+                    navController.navigate(AppScreens.NuevoMenu.route)
+                }
+            )
+        }
+        composable(route = AppScreens.NuevoMenu.route) {
+            NuevoMenuScreen()
         }
     }
 }

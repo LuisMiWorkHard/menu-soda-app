@@ -75,6 +75,7 @@ fun NuevoMenuScreen(modifier: Modifier = Modifier) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(SpacingLarge),
                     horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
                 ) {
@@ -201,7 +202,7 @@ fun ProgressHeader(currentStep: Int, totalSteps: Int, stepTitle: String, selecte
                 .fillMaxWidth()
                 .height(SpacingXSmall),
             color = MaterialTheme.colorScheme.primary,
-            trackColor = SodaGrayLight,
+            trackColor = HeavyGray,
             strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
         )
     }

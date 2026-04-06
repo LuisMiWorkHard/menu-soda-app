@@ -23,7 +23,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.fullwar.menuapp.di.Constants
 import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
-import com.fullwar.menuapp.ui.theme.SodaGrayMedium
+import com.fullwar.menuapp.ui.theme.HeavyGray
 
 @Composable
 fun CustomImageView(
@@ -53,7 +53,7 @@ fun CustomImageView(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(SodaGrayMedium),
+                        .background(HeavyGray),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
@@ -67,7 +67,7 @@ fun CustomImageView(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(SodaGrayMedium)
+                        .background(HeavyGray)
                 )
             }
         )
@@ -79,7 +79,7 @@ fun CustomImageView(
             modifier = modifier
                 .size(sizeDp.dp)
                 .clip(shape)
-                .background(SodaGrayMedium, shape)
+                .background(HeavyGray, shape)
         )
     }
 }

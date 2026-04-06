@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.features.home.tabs.nuevo
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -27,6 +28,7 @@ import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -37,7 +39,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
+import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
+import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
+import com.fullwar.menuapp.data.model.ImagenResponseDto
+import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
+import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada.AnadirEntradaBottomSheet
 import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada.EntradaViewModel
@@ -194,20 +201,20 @@ fun PasoEntradasScreen(
                 placeholder = {
                     Text(
                         text = stringResource(id = R.string.nuevo_buscar_entradas),
-                        color = LigthGray
+                        color = HeavyGray
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Filled.Search,
                         contentDescription = null,
-                        tint = LigthGray
+                        tint = HeavyGray
                     )
                 },
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = SodaGrayLight
+                    unfocusedBorderColor = HeavyGray
                 ),
                 singleLine = true
             )
@@ -226,28 +233,6 @@ fun PasoEntradasScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = TextSizeMedium
                 )
-                /*
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        entradaViewModel.loadTiposEntrada()
-                        showBottomSheet = true
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.AddCircleOutline,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(IconSizeSmall)
-                    )
-                    Spacer(modifier = Modifier.width(SpacingXSmall))
-                    Text(
-                        text = stringResource(id = R.string.nuevo_anadir_nueva),
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = TextSizeSmall
-                    )
-                }*/
             }
         }
 
@@ -276,6 +261,18 @@ fun PasoEntradasScreen(
                 }
             }
             is State.Success -> {
+                // Añadir nueva solo si no hay resultados en ninguna de las dos listas
+                if (sinResultados) {
+                    item {
+                        AnadirNuevaListItem(
+                            onClick = {
+                                entradaViewModel.loadTiposEntrada()
+                                showBottomSheet = true
+                            }
+                        )
+                    }
+                }
+
                 // Seleccionados al tope
                 items(seleccionadasFiltradas, key = { it.descripcion }) { entrada ->
                     EntradaListItem(
@@ -309,18 +306,6 @@ fun PasoEntradasScreen(
                             )
                         }
                     )
-                }
-
-                // Añadir nueva solo si no hay resultados en ninguna de las dos listas
-                if (sinResultados) {
-                    item {
-                        AnadirNuevaListItem(
-                            onClick = {
-                                entradaViewModel.loadTiposEntrada()
-                                showBottomSheet = true
-                            }
-                        )
-                    }
                 }
             }
             else -> {}
@@ -372,14 +357,14 @@ private fun EntradaListItem(
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = entrada.descripcion, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = entrada.descripcionLarga, fontSize = TextSizeSmall, color = LigthGray)
+                Text(text = entrada.descripcionLarga, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Checkbox(
                 checked = isSelected,
                 onCheckedChange = null,
                 colors = CheckboxDefaults.colors(
                     checkedColor = MaterialTheme.colorScheme.primary,
-                    uncheckedColor = LigthGray
+                    uncheckedColor = HeavyGray
                 )
             )
         }
@@ -393,6 +378,7 @@ private fun AnadirNuevaListItem(onClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onClick() }
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
                 .padding(vertical = SpacingMedium),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -400,19 +386,128 @@ private fun AnadirNuevaListItem(onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.Filled.AddCircleOutline,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(IconSizeSmall)
             )
             Spacer(modifier = Modifier.width(SpacingSmall))
             Text(
                 text = stringResource(R.string.anadir_nueva),
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = TextSizeMedium
             )
         }
-        HorizontalDivider(color = SodaGrayLight)
+        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
     }
+}
+
+// --- Previews ---
+
+private class FakeEntradaRepository : IEntradaRepository {
+    override suspend fun getEntradas() = listOf(
+        EntradaResponseDto(id = 1, descripcion = "Ceviche Clásico", descripcionLarga = "Fresco y ligero", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
+        EntradaResponseDto(id = 2, descripcion = "Carpaccio de Betabel", descripcionLarga = "Con parmesano y limón", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
+        EntradaResponseDto(id = 3, descripcion = "Sopa Azteca", descripcionLarga = "Perfecta para días fríos", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin")
+    )
+    override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto = throw NotImplementedError()
+    override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> = emptyList()
+    override suspend fun uploadImage(imageBytes: ByteArray, fileName: String, extension: String): ImagenResponseDto = throw NotImplementedError()
+}
+
+private val fakeEntrada = EntradaResponseDto(
+    id = 1, descripcion = "Ceviche Clásico", descripcionLarga = "Fresco, ligero y sabroso",
+    estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"
+)
+
+private val fakeSugerencia = SugerenciaItem(
+    nombre = "Carpaccio de Betabel",
+    descripcion = "No se ha servido en 15 días. ¡Es hora de volver!"
+)
+
+@Preview(showBackground = true, name = "PasoEntradas - Claro")
+@Composable
+private fun PasoEntradasScreenPreview() {
+    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
+    MenuAppTheme(darkTheme = false) {
+        PasoEntradasScreen(
+            selectedEntradas = setOf("Ceviche Clásico"),
+            onSelectionChange = {},
+            entradaViewModel = vm,
+            showSugerencias = true,
+            onHideSugerencias = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "PasoEntradas - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun PasoEntradasScreenDarkPreview() {
+    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            PasoEntradasScreen(
+                selectedEntradas = setOf("Ceviche Clásico"),
+                onSelectionChange = {},
+                entradaViewModel = vm,
+                showSugerencias = true,
+                onHideSugerencias = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "EntradaListItem - Seleccionado")
+@Composable
+private fun EntradaListItemSelectedPreview() {
+    MenuAppTheme(darkTheme = false) {
+        EntradaListItem(entrada = fakeEntrada, isSelected = true, onToggle = {})
+    }
+}
+
+@Preview(showBackground = true, name = "EntradaListItem - No seleccionado")
+@Composable
+private fun EntradaListItemUnselectedPreview() {
+    MenuAppTheme(darkTheme = false) {
+        EntradaListItem(entrada = fakeEntrada, isSelected = false, onToggle = {})
+    }
+}
+
+@Preview(showBackground = true, name = "EntradaListItem - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun EntradaListItemDarkPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            EntradaListItem(entrada = fakeEntrada, isSelected = false, onToggle = {})
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "AnadirNuevaListItem - Claro")
+@Composable
+private fun AnadirNuevaListItemPreview() {
+    MenuAppTheme(darkTheme = false) { AnadirNuevaListItem(onClick = {}) }
+}
+
+@Preview(showBackground = true, name = "AnadirNuevaListItem - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun AnadirNuevaListItemDarkPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            AnadirNuevaListItem(onClick = {})
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "SugerenciaCard - Claro")
+@Composable
+private fun SugerenciaCardPreview() {
+    MenuAppTheme(darkTheme = false) { SugerenciaCard(sugerencia = fakeSugerencia, onAdd = {}) }
+}
+
+@Preview(showBackground = true, name = "SugerenciaCard - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun SugerenciaCardDarkPreview() {
+    MenuAppTheme(darkTheme = true) { SugerenciaCard(sugerencia = fakeSugerencia, onAdd = {}) }
 }
 
 @Composable
@@ -424,7 +519,7 @@ fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
             .width(280.dp)
             .height(120.dp),
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = MaterialTheme.colorScheme.secondary
+        color = MaterialTheme.colorScheme.tertiary
     ) {
         Row(
             modifier = Modifier.padding(SpacingMedium),
@@ -432,7 +527,7 @@ fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = sugerencia.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = sugerencia.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSecondary)
+                Text(text = sugerencia.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onTertiary)
                 Spacer(modifier = Modifier.height(SpacingXSmall))
                 Button(
                     onClick = onAdd,
@@ -454,7 +549,7 @@ fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
                 modifier = Modifier
                     .size(ImageSizeXLarge)
                     .clip(shape)
-                    .background(SodaGrayMedium, shape)
+                    .background(HeavyGray, shape)
             )
         }
     }
