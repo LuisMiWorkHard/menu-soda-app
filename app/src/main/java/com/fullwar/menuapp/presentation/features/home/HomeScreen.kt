@@ -55,9 +55,11 @@ fun HomeScreen(onNuevoMenuClick: () -> Unit = {}) {
                         icon = { Icon(imageVector = tab.icon, contentDescription = null) },
                         label = { Text(text = stringResource(id = tab.labelRes)) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                            selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                            indicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                            selectedIconColor = MaterialTheme.colorScheme.onBackground,
+                            selectedTextColor = MaterialTheme.colorScheme.onBackground,
+                            indicatorColor = MaterialTheme.colorScheme.background,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 }

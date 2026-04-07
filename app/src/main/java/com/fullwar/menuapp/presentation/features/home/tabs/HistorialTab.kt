@@ -141,7 +141,8 @@ fun HistorialTab(
                     Text(
                         text = stringResource(id = R.string.historial_titulo),
                         fontWeight = FontWeight.Bold,
-                        fontSize = TextSizeXLarge
+                        fontSize = TextSizeXLarge,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 actions = {
@@ -149,11 +150,11 @@ fun HistorialTab(
                         Icon(
                             imageVector = Icons.Filled.CalendarMonth,
                             contentDescription = null,
-                            tint = if (hasDateFilter) MaterialTheme.colorScheme.primary else HeavyGray
+                            tint = if (hasDateFilter) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         floatingActionButton = {

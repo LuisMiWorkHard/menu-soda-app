@@ -28,7 +28,7 @@ val SkyGray = Color(0xFF7685AA)
 val AccentGrey = Color(0xFF1F2E38)//Color(0xFF375365)//Color(0xFF8F96AA)//Color(0xFFA2A2A2)
 val SoftBone = Color(0xFFF5F5F5)
 val SoftBoneLight = Color(0xFFE8EAED)
-val SoftGreen = Color(0xFFDBEFE9)
+val SoftGreen = Color(0xFFA9C688)
 val White = Color(0xFFFFFFFF)
 val Sucre = Color(0xFFE8EAED)
 

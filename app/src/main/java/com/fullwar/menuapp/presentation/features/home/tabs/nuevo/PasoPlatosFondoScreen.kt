@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
+import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
 import com.fullwar.menuapp.ui.theme.*
 
 data class SugerenciaPlatoItem(
@@ -34,10 +35,8 @@ data class PlatoDisponibleItem(
 )
 
 @Composable
-fun PasoPlatosFondoScreen(
-    selectedPlatos: Set<String>,
-    onSelectionChange: (Set<String>) -> Unit
-) {
+fun PasoPlatosFondoScreen(menuViewModel: MenuViewModel) {
+    val selectedPlatos = menuViewModel.selectedPlatosFuertes
     var searchQuery by remember { mutableStateOf("") }
 
     val sugerenciasMock = listOf(
@@ -110,8 +109,7 @@ fun PasoPlatosFondoScreen(
                     ) {
                         items(sugerencias) { item ->
                             SugerenciaPlatoCard(item) {
-                                val newSet = selectedPlatos + item.nombre
-                                onSelectionChange(newSet)
+                                menuViewModel.updatePlatosFuertes(selectedPlatos + item.nombre)
                             }
                         }
                     }
@@ -143,8 +141,9 @@ fun PasoPlatosFondoScreen(
                 item = plato,
                 isSelected = plato.nombre in selectedPlatos,
                 onToggle = { isChecked ->
-                    val newSet = if (isChecked) selectedPlatos + plato.nombre else selectedPlatos - plato.nombre
-                    onSelectionChange(newSet)
+                    menuViewModel.updatePlatosFuertes(
+                        if (isChecked) selectedPlatos + plato.nombre else selectedPlatos - plato.nombre
+                    )
                 }
             )
         }

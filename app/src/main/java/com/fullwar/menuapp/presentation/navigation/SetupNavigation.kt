@@ -5,7 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.presentation.features.home.HomeScreen
-import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.NuevoMenuScreen
+import com.fullwar.menuapp.presentation.features.menu.NuevoMenuScreen
 import com.fullwar.menuapp.presentation.features.login.LoginScreen
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import org.koin.compose.viewmodel.koinViewModel

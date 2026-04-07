@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.home.tabs.nuevo
+package com.fullwar.menuapp.presentation.features.menu.entrada.seleccion
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
@@ -46,8 +46,9 @@ import com.fullwar.menuapp.data.model.ImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.presentation.common.utils.State
-import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada.AnadirEntradaBottomSheet
-import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada.EntradaViewModel
+import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
+import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo.AnadirEntradaBottomSheet
+import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import com.fullwar.menuapp.ui.theme.*
 
 data class SugerenciaItem(
@@ -57,12 +58,11 @@ data class SugerenciaItem(
 
 @Composable
 fun PasoEntradasScreen(
-    selectedEntradas: Set<String>,
-    onSelectionChange: (Set<String>) -> Unit,
-    entradaViewModel: EntradaViewModel,
-    showSugerencias: Boolean,
-    onHideSugerencias: () -> Unit
+    menuViewModel: MenuViewModel,
+    entradaViewModel: EntradaViewModel
 ) {
+    val selectedEntradas = menuViewModel.selectedEntradas
+    val showSugerencias = menuViewModel.showSugerencias
     var searchQuery by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
 
@@ -165,7 +165,7 @@ fun PasoEntradasScreen(
                                 Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall)
                             }
                             IconButton(
-                                onClick = { onHideSugerencias() },
+                                onClick = { menuViewModel.hideSugerencias() },
                                 modifier = Modifier.size(IconSizeSmall)
                             ) {
                                 Icon(
@@ -182,7 +182,7 @@ fun PasoEntradasScreen(
                             items(sugerencias) { sugerencia ->
                                 SugerenciaCard(
                                     sugerencia = sugerencia,
-                                    onAdd = { onSelectionChange(selectedEntradas + sugerencia.nombre) }
+                                    onAdd = { menuViewModel.updateEntradas(selectedEntradas + sugerencia.nombre) }
                                 )
                             }
                         }
@@ -279,7 +279,7 @@ fun PasoEntradasScreen(
                         entrada = entrada,
                         isSelected = true,
                         onToggle = { checked ->
-                            onSelectionChange(
+                            menuViewModel.updateEntradas(
                                 if (checked) selectedEntradas + entrada.descripcion
                                 else selectedEntradas - entrada.descripcion
                             )
@@ -300,7 +300,7 @@ fun PasoEntradasScreen(
                         entrada = entrada,
                         isSelected = false,
                         onToggle = { checked ->
-                            onSelectionChange(
+                            menuViewModel.updateEntradas(
                                 if (checked) selectedEntradas + entrada.descripcion
                                 else selectedEntradas - entrada.descripcion
                             )
@@ -427,31 +427,21 @@ private val fakeSugerencia = SugerenciaItem(
 @Preview(showBackground = true, name = "PasoEntradas - Claro")
 @Composable
 private fun PasoEntradasScreenPreview() {
-    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
+    val menuVm = remember { MenuViewModel() }
+    val entradaVm = remember { EntradaViewModel(FakeEntradaRepository()) }
     MenuAppTheme(darkTheme = false) {
-        PasoEntradasScreen(
-            selectedEntradas = setOf("Ceviche Clásico"),
-            onSelectionChange = {},
-            entradaViewModel = vm,
-            showSugerencias = true,
-            onHideSugerencias = {}
-        )
+        PasoEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm)
     }
 }
 
 @Preview(showBackground = true, name = "PasoEntradas - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun PasoEntradasScreenDarkPreview() {
-    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
+    val menuVm = remember { MenuViewModel() }
+    val entradaVm = remember { EntradaViewModel(FakeEntradaRepository()) }
     MenuAppTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            PasoEntradasScreen(
-                selectedEntradas = setOf("Ceviche Clásico"),
-                onSelectionChange = {},
-                entradaViewModel = vm,
-                showSugerencias = true,
-                onHideSugerencias = {}
-            )
+            PasoEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm)
         }
     }
 }

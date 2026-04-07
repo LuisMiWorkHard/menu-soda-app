@@ -13,7 +13,8 @@ import com.fullwar.menuapp.data.repository.EntradaRepositoryImpl
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.data.repository.LocationProviderImpl
 import com.fullwar.menuapp.data.repository.SecureCookiesStorageImpl
-import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada.EntradaViewModel
+import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
+import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import org.koin.android.ext.koin.androidContext
@@ -26,6 +27,7 @@ import org.koin.dsl.module
 val appModule = module {
     viewModelOf(::SharedViewModel)
     viewModelOf(::LoginViewModel)
+    viewModelOf(::MenuViewModel)
     viewModelOf(::EntradaViewModel)
 
     // Almacenamiento seguro cifrado (DataStore + Tink + Android Keystore)

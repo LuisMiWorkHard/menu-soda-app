@@ -11,7 +11,10 @@
       "Bash(head -20 grep -n \"background\\(\" /Users/luisvaleriano/Documents/Projects/MenuSoda/menu-soda-app/app/src/main/java/com/fullwar/menuapp/presentation/features/home/tabs/nuevo/NuevoMenuScreen.kt)",
       "Bash(grep:*)",
       "Bash(xargs cat:*)",
-      "Bash(./gradlew :app:compileDebugKotlin)"
+      "Bash(./gradlew :app:compileDebugKotlin)",
+      "Bash(ls -la /Users/luisvaleriano/Documents/Projects/MenuSoda/menu-soda-app/app/src/main/java/com/fullwar/menuapp/data/model/*.kt)",
+      "Bash(xargs basename:*)",
+      "mcp__ide__getDiagnostics"
     ]
   },
   "enableAllProjectMcpServers": true,

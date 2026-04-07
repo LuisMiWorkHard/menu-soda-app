@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada
+package com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo
 
 import android.Manifest
 import android.net.Uri
@@ -31,8 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import coil3.compose.AsyncImage
 import com.fullwar.menuapp.R
+import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.domain.model.TipoEntrada
 import com.fullwar.menuapp.presentation.common.utils.State
+import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import com.fullwar.menuapp.ui.theme.*
 import java.io.File
 
@@ -53,8 +55,8 @@ fun AnadirEntradaBottomSheet(
     val tipoSeleccionado = viewModel.formFields.fields["codtipent"] as? TipoEntrada
     val imageUri = viewModel.formFields.fields["imageUri"] as? Uri
 
-    val errors = viewModel.formFields.errors
-    val serverErrors = viewModel.formFields.serverErrors
+    val errors: Map<String, Int?> = viewModel.formFields.errors
+    val serverErrors: Map<String, String?> = viewModel.formFields.serverErrors
 
     // URI para la foto de cámara
     var cameraUri by remember { mutableStateOf<Uri?>(null) }
@@ -93,7 +95,7 @@ fun AnadirEntradaBottomSheet(
 
     // Observar éxito para cerrar el bottom sheet
     LaunchedEffect(createState) {
-        if (createState is State.Success) {
+        if (createState is State.Success<EntradaCreateResponseDto>) {
             onSuccess()
         }
     }
@@ -318,7 +320,7 @@ fun AnadirEntradaBottomSheet(
                         modifier = Modifier.size(IconSizeMedium)
                     )
                 }
-                is State.Success -> {
+                is State.Success<List<TipoEntrada>> -> {
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(SpacingSmall),
                         verticalArrangement = Arrangement.spacedBy(SpacingSmall)

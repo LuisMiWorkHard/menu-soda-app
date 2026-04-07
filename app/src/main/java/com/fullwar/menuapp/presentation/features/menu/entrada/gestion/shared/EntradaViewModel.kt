@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.home.tabs.nuevo.entrada
+package com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared
 
 import android.content.Context
 import android.net.Uri
@@ -14,9 +14,9 @@ import com.fullwar.menuapp.data.model.ApiException
 import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
 import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
-import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.data.util.ImageCompressor
 import com.fullwar.menuapp.domain.model.TipoEntrada
+import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.presentation.common.components.dynamic.DynamicForm
 import com.fullwar.menuapp.presentation.common.components.dynamic.DynamicFormState
 import com.fullwar.menuapp.presentation.common.utils.State
@@ -60,7 +60,7 @@ class EntradaViewModel(
 
     // --- Load tipos de entrada para los chips ---
     fun loadTiposEntrada() {
-        if (tiposEntradaState is State.Success) return
+        if (tiposEntradaState is State.Success<List<TipoEntrada>>) return
         viewModelScope.launch {
             tiposEntradaState = State.Loading
             try {
