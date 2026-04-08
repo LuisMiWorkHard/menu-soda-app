@@ -57,7 +57,7 @@ data class SugerenciaItem(
 )
 
 @Composable
-fun PasoEntradasScreen(
+fun SeleccionEntradasScreen(
     menuViewModel: MenuViewModel,
     entradaViewModel: EntradaViewModel
 ) {
@@ -426,22 +426,22 @@ private val fakeSugerencia = SugerenciaItem(
 
 @Preview(showBackground = true, name = "PasoEntradas - Claro")
 @Composable
-private fun PasoEntradasScreenPreview() {
+private fun SeleccionEntradasScreenPreview() {
     val menuVm = remember { MenuViewModel() }
     val entradaVm = remember { EntradaViewModel(FakeEntradaRepository()) }
     MenuAppTheme(darkTheme = false) {
-        PasoEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm)
+        SeleccionEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm)
     }
 }
 
 @Preview(showBackground = true, name = "PasoEntradas - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
-private fun PasoEntradasScreenDarkPreview() {
+private fun SeleccionEntradasScreenDarkPreview() {
     val menuVm = remember { MenuViewModel() }
     val entradaVm = remember { EntradaViewModel(FakeEntradaRepository()) }
     MenuAppTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            PasoEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm)
+            SeleccionEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm)
         }
     }
 }
