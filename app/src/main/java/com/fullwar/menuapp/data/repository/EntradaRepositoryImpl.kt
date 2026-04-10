@@ -6,6 +6,7 @@ import com.fullwar.menuapp.data.datasource.remote.TipoEntradaService
 import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
 import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
+import com.fullwar.menuapp.data.model.EntradaUpdateRequestDto
 import com.fullwar.menuapp.data.model.ImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
@@ -27,6 +28,12 @@ class EntradaRepositoryImpl(
     override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto {
         return withContext(Dispatchers.IO) {
             entradaService.createEntrada(request)
+        }
+    }
+
+    override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto {
+        return withContext(Dispatchers.IO) {
+            entradaService.updateEntrada(id, request)
         }
     }
 

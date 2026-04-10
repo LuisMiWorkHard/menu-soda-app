@@ -36,18 +36,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
 import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
+import com.fullwar.menuapp.data.model.EntradaUpdateRequestDto
 import com.fullwar.menuapp.data.model.ImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
-import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo.AnadirEntradaBottomSheet
+import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo.NuevaEntradaBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import com.fullwar.menuapp.ui.theme.*
 
@@ -119,7 +121,7 @@ fun SeleccionEntradasScreen(
 
     // Bottom sheet para añadir nueva entrada
     if (showBottomSheet) {
-        AnadirEntradaBottomSheet(
+        NuevaEntradaBottomSheet(
             viewModel = entradaViewModel,
             onDismiss = {
                 entradaViewModel.resetForm()
@@ -162,7 +164,7 @@ fun SeleccionEntradasScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = YellowIdea, modifier = Modifier.size(IconSizeSmall))
                                 Spacer(modifier = Modifier.width(SpacingSmall))
-                                Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall)
+                                Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             IconButton(
                                 onClick = { menuViewModel.hideSugerencias() },
@@ -197,7 +199,12 @@ fun SeleccionEntradasScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = White,
+                        shape = RoundedCornerShape(CornerRadiusMedium)
+                    ),
                 placeholder = {
                     Text(
                         text = stringResource(id = R.string.nuevo_buscar_entradas),
@@ -212,9 +219,13 @@ fun SeleccionEntradasScreen(
                     )
                 },
                 shape = RoundedCornerShape(CornerRadiusMedium),
+                textStyle = TextStyle(
+                    color = MaterialTheme.colorScheme.primary
+                ),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = HeavyGray
+                    focusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    cursorColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
                 singleLine = true
             )
@@ -290,7 +301,7 @@ fun SeleccionEntradasScreen(
                 // Separador entre seleccionados y no seleccionados
                 if (seleccionadasFiltradas.isNotEmpty()) {
                     item {
-                        HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                        HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.surface)
                     }
                 }
 
@@ -344,7 +355,7 @@ private fun EntradaListItem(
 ) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+        color = if (isSelected) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onToggle(!isSelected) }
@@ -410,6 +421,7 @@ private class FakeEntradaRepository : IEntradaRepository {
         EntradaResponseDto(id = 3, descripcion = "Sopa Azteca", descripcionLarga = "Perfecta para días fríos", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin")
     )
     override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto = throw NotImplementedError()
+    override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto = throw NotImplementedError()
     override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> = emptyList()
     override suspend fun uploadImage(imageBytes: ByteArray, fileName: String, extension: String): ImagenResponseDto = throw NotImplementedError()
 }
@@ -509,15 +521,15 @@ fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
             .width(280.dp)
             .height(120.dp),
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = MaterialTheme.colorScheme.tertiary
+        color = MaterialTheme.colorScheme.surface
     ) {
         Row(
             modifier = Modifier.padding(SpacingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = sugerencia.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = sugerencia.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onTertiary)
+                Text(text = sugerencia.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = sugerencia.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.height(SpacingXSmall))
                 Button(
                     onClick = onAdd,

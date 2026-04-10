@@ -14,6 +14,7 @@ import com.fullwar.menuapp.data.model.ApiException
 import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
 import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
+import com.fullwar.menuapp.data.model.EntradaUpdateRequestDto
 import com.fullwar.menuapp.data.util.ImageCompressor
 import com.fullwar.menuapp.domain.model.TipoEntrada
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
@@ -36,14 +37,21 @@ class EntradaViewModel(
         )
     }
 
+    // --- Modo editar ---
+    private var editingId: Int? = null
+    private var originalImagenId: Int? = null
+
+    var currentImagenId: Int? by mutableStateOf(null)
+        private set
+
     // --- Form state (DynamicForm) ---
     override var formFields by mutableStateOf(
         DynamicFormState(
             fields = mapOf(
                 "entdes" to TextFieldValue(),
                 "entdeslar" to TextFieldValue(),
-                "codtipent" to null, // TipoEntrada seleccionado
-                "imageUri" to null   // Uri de imagen seleccionada (local)
+                "codtipent" to null,
+                "imageUri" to null
             )
         )
     )
@@ -52,11 +60,45 @@ class EntradaViewModel(
     var createState by mutableStateOf<State<EntradaCreateResponseDto>>(State.Initial)
         private set
 
+    var editState by mutableStateOf<State<EntradaResponseDto>>(State.Initial)
+        private set
+
     var tiposEntradaState by mutableStateOf<State<List<TipoEntrada>>>(State.Initial)
         private set
 
     var entradasState by mutableStateOf<State<List<EntradaResponseDto>>>(State.Initial)
         private set
+
+    // --- Inicializar modo ---
+
+    fun initForCreate() {
+        editingId = null
+        originalImagenId = null
+        currentImagenId = null
+        createState = State.Initial
+        resetForm()
+    }
+
+    fun initForEdit(entrada: EntradaResponseDto) {
+        editingId = entrada.id
+        originalImagenId = entrada.imagenId
+        currentImagenId = entrada.imagenId
+        editState = State.Initial
+        formFields = DynamicFormState(
+            fields = mapOf(
+                "entdes" to TextFieldValue(entrada.descripcion),
+                "entdeslar" to TextFieldValue(entrada.descripcionLarga),
+                "codtipent" to TipoEntrada(id = entrada.tipoEntradaId, descripcion = ""),
+                "imageUri" to null
+            )
+        )
+    }
+
+    // --- Guardar (delega según el modo) ---
+    fun save(context: Context) {
+        if (editingId != null) updateEntrada(context)
+        else createEntrada(context)
+    }
 
     // --- Load tipos de entrada para los chips ---
     fun loadTiposEntrada() {
@@ -91,7 +133,7 @@ class EntradaViewModel(
     }
 
     // --- Crear nueva entrada ---
-    fun createEntrada(context: Context) {
+    private fun createEntrada(context: Context) {
         if (!validate()) return
 
         val nombre = (formFields.fields["entdes"] as TextFieldValue).text.trim()
@@ -102,7 +144,6 @@ class EntradaViewModel(
         viewModelScope.launch {
             createState = State.Loading
             try {
-                // Si hay foto, subir primero
                 var codima: Int? = null
                 if (imageUri != null) {
                     val compressedBytes = ImageCompressor.compress(context, imageUri)
@@ -139,7 +180,56 @@ class EntradaViewModel(
         }
     }
 
-    // --- Validación cliente (replica FluentValidation del backend) ---
+    // --- Actualizar entrada existente ---
+    private fun updateEntrada(context: Context) {
+        if (!validate()) return
+
+        val id = editingId ?: return
+        val nombre = (formFields.fields["entdes"] as TextFieldValue).text.trim()
+        val descripcion = (formFields.fields["entdeslar"] as? TextFieldValue)?.text?.trim()
+        val tipo = formFields.fields["codtipent"] as TipoEntrada
+        val imageUri = formFields.fields["imageUri"] as? Uri
+
+        viewModelScope.launch {
+            editState = State.Loading
+            try {
+                var codima: Int? = originalImagenId
+                if (imageUri != null) {
+                    val compressedBytes = ImageCompressor.compress(context, imageUri)
+                    val uploadResponse = entradaRepository.uploadImage(
+                        imageBytes = compressedBytes,
+                        fileName = "entrada_${System.currentTimeMillis()}",
+                        extension = ".jpg"
+                    )
+                    codima = uploadResponse.id
+                }
+
+                val request = EntradaUpdateRequestDto(
+                    descripcion = nombre,
+                    descripcionLarga = descripcion?.ifBlank { null } ?: "",
+                    tipoEntradaId = tipo.id,
+                    imagenId = codima
+                )
+
+                val response = entradaRepository.updateEntrada(id, request)
+                loadEntradas()
+                editState = State.Success(response)
+            } catch (e: ApiException) {
+                Log.e(TAG, "ApiException updating entrada: ${e.message}")
+                if (e.validationErrors != null) {
+                    handleValidationErrors(e.validationErrors, FIELD_MAPPING)
+                    editState = State.Initial
+                } else {
+                    editState = State.Error(e.message ?: "Error al actualizar entrada")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating entrada", e)
+                editState = State.Error(e.message ?: "Error al actualizar entrada")
+            }
+        }
+    }
+
+    // --- Validación cliente ---
     override fun validate(): Boolean {
         formFields = formFields.copy(serverErrors = emptyMap())
         val errors = mutableMapOf<String, Int?>()
@@ -148,19 +238,16 @@ class EntradaViewModel(
         val descripcion = (formFields.fields["entdeslar"] as? TextFieldValue)?.text ?: ""
         val tipo = formFields.fields["codtipent"] as? TipoEntrada
 
-        // entdes: NotEmpty, MinLength(3), MaxLength(200)
         when {
             nombre.isBlank() -> errors["entdes"] = R.string.error_entrada_nombre_vacio
             nombre.trim().length < 3 -> errors["entdes"] = R.string.error_entrada_nombre_min
             nombre.trim().length > 200 -> errors["entdes"] = R.string.error_entrada_nombre_max
         }
 
-        // entdeslar: MaxLength(1000) - optional
         if (descripcion.isNotBlank() && descripcion.trim().length > 1000) {
             errors["entdeslar"] = R.string.error_entrada_descripcion_max
         }
 
-        // codtipent: NotEmpty, GreaterThan(0)
         if (tipo == null) {
             errors["codtipent"] = R.string.error_entrada_tipo_vacio
         }
@@ -179,5 +266,7 @@ class EntradaViewModel(
             )
         )
         createState = State.Initial
+        editState = State.Initial
+        currentImagenId = null
     }
 }

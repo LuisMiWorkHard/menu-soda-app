@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo
+package com.fullwar.menuapp.presentation.features.menu.entrada.gestion.editar
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
-import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
+import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaFormContent
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
@@ -24,21 +24,22 @@ import com.fullwar.menuapp.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NuevaEntradaBottomSheet(
+fun EditarEntradaBottomSheet(
     viewModel: EntradaViewModel,
+    entrada: EntradaResponseDto,
     onDismiss: () -> Unit,
     onSuccess: () -> Unit
 ) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val createState = viewModel.createState
+    val editState = viewModel.editState
 
-    LaunchedEffect(Unit) {
-        viewModel.initForCreate()
+    LaunchedEffect(entrada.id) {
+        viewModel.initForEdit(entrada)
     }
 
-    LaunchedEffect(createState) {
-        if (createState is State.Success<EntradaCreateResponseDto>) {
+    LaunchedEffect(editState) {
+        if (editState is State.Success<EntradaResponseDto>) {
             onSuccess()
         }
     }
@@ -63,7 +64,7 @@ fun NuevaEntradaBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.entrada_nueva_titulo),
+                    text = stringResource(R.string.entrada_editar_titulo),
                     fontWeight = FontWeight.Bold,
                     fontSize = TextSizeXLarge
                 )
@@ -83,7 +84,7 @@ fun NuevaEntradaBottomSheet(
             Spacer(modifier = Modifier.height(SpacingXXLarge))
 
             // Error general del servidor
-            if (createState is State.Error) {
+            if (editState is State.Error) {
                 Surface(
                     color = Color(0xFFFCE4EC),
                     shape = RoundedCornerShape(CornerRadiusSmall),
@@ -92,7 +93,7 @@ fun NuevaEntradaBottomSheet(
                         .padding(bottom = SpacingLarge)
                 ) {
                     Text(
-                        text = createState.message,
+                        text = editState.message,
                         color = MaterialTheme.colorScheme.error,
                         fontSize = TextSizeSmall,
                         modifier = Modifier.padding(SpacingMedium)
@@ -100,7 +101,7 @@ fun NuevaEntradaBottomSheet(
                 }
             }
 
-            // Botón: Guardar y Seleccionar
+            // Botón: Guardar Cambios
             Button(
                 onClick = { viewModel.save(context) },
                 modifier = Modifier
@@ -108,9 +109,9 @@ fun NuevaEntradaBottomSheet(
                     .height(ButtonHeightLarge),
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                enabled = createState !is State.Loading
+                enabled = editState !is State.Loading
             ) {
-                if (createState is State.Loading) {
+                if (editState is State.Loading) {
                     CircularProgressIndicator(
                         color = Color.White,
                         modifier = Modifier.size(IconSizeMedium),
@@ -118,7 +119,7 @@ fun NuevaEntradaBottomSheet(
                     )
                 } else {
                     Text(
-                        text = stringResource(R.string.entrada_guardar),
+                        text = stringResource(R.string.entrada_guardar_cambios),
                         fontWeight = FontWeight.Bold,
                         fontSize = TextSizeMedium
                     )
