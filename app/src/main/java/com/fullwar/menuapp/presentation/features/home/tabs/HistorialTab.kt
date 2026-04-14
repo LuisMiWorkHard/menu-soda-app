@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.features.home.tabs
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,8 +18,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.ui.theme.*
 import java.text.SimpleDateFormat
@@ -648,4 +651,124 @@ fun MenuHistorialCard(item: MenuHistorialItem) {
         }
     }
     HorizontalDivider(color = HeavyGray)
+}
+
+// --- Previews ---
+
+@Composable
+private fun PreviewWrapper(darkTheme: Boolean, content: @Composable () -> Unit) {
+    MenuAppTheme(darkTheme = darkTheme) {
+        if (darkTheme) {
+            Surface(color = MaterialTheme.colorScheme.background) { content() }
+        } else {
+            content()
+        }
+    }
+}
+
+private val previewItem = MenuHistorialItem(
+    fecha = "Lunes, 24 Oct",
+    platoPrincipal = "Principal: Pollo Rostizado, Ensalada…",
+    entrada = "Entrada: Sopa de Calabaza",
+    colorFondo = Color(0xFFE8F5E9)
+)
+
+// MenuHistorialCard
+
+@Preview(showBackground = true, name = "MenuHistorialCard - Claro")
+@Composable
+private fun MenuHistorialCardClaroPreview() {
+    PreviewWrapper(darkTheme = false) { MenuHistorialCard(previewItem) }
+}
+
+@Preview(showBackground = true, name = "MenuHistorialCard - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun MenuHistorialCardOscuroPreview() {
+    PreviewWrapper(darkTheme = true) { MenuHistorialCard(previewItem) }
+}
+
+// HistorialTab — sin filtro de fecha
+
+@Preview(showSystemUi = true, name = "HistorialTab - Claro")
+@Composable
+private fun HistorialTabClaroPreview() {
+    PreviewWrapper(darkTheme = false) { HistorialTab() }
+}
+
+@Preview(showSystemUi = true, name = "HistorialTab - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun HistorialTabOscuroPreview() {
+    PreviewWrapper(darkTheme = true) { HistorialTab() }
+}
+
+// DatePickerDialog — modo fecha simple
+
+@Preview(showBackground = true, name = "DatePickerDialog - Fecha Simple - Claro")
+@Composable
+private fun DatePickerDialogSimpleClaroPreview() {
+    PreviewWrapper(darkTheme = false) {
+        DatePickerDialog(
+            isRangeMode = false,
+            onRangeModeChange = {},
+            initialSelectedDateMillis = null,
+            initialStartDateMillis = null,
+            initialEndDateMillis = null,
+            onApply = { _, _, _ -> },
+            onClear = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "DatePickerDialog - Fecha Simple - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun DatePickerDialogSimpleOscuroPreview() {
+    PreviewWrapper(darkTheme = true) {
+        DatePickerDialog(
+            isRangeMode = false,
+            onRangeModeChange = {},
+            initialSelectedDateMillis = null,
+            initialStartDateMillis = null,
+            initialEndDateMillis = null,
+            onApply = { _, _, _ -> },
+            onClear = {},
+            onDismiss = {}
+        )
+    }
+}
+
+// DatePickerDialog — modo rango de fechas
+
+@Preview(showBackground = true, name = "DatePickerDialog - Rango - Claro")
+@Composable
+private fun DatePickerDialogRangoClaroPreview() {
+    PreviewWrapper(darkTheme = false) {
+        DatePickerDialog(
+            isRangeMode = true,
+            onRangeModeChange = {},
+            initialSelectedDateMillis = null,
+            initialStartDateMillis = null,
+            initialEndDateMillis = null,
+            onApply = { _, _, _ -> },
+            onClear = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "DatePickerDialog - Rango - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun DatePickerDialogRangoOscuroPreview() {
+    PreviewWrapper(darkTheme = true) {
+        DatePickerDialog(
+            isRangeMode = true,
+            onRangeModeChange = {},
+            initialSelectedDateMillis = null,
+            initialStartDateMillis = null,
+            initialEndDateMillis = null,
+            onApply = { _, _, _ -> },
+            onClear = {},
+            onDismiss = {}
+        )
+    }
 }

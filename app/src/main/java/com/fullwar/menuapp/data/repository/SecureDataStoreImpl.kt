@@ -10,6 +10,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.fullwar.menuapp.data.datasource.local.SecureStorageProvider
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.KeyTemplates
+import com.google.crypto.tink.RegistryConfiguration
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +53,7 @@ class SecureDataStoreImpl(private val context: Context) : SecureStorageProvider 
             .keysetHandle
 
         // Obtener el primitivo AEAD para encriptar/desencriptar
-        val aead = keysetHandle.getPrimitive(Aead::class.java)
+        val aead = keysetHandle.getPrimitive(RegistryConfiguration.get(), Aead::class.java)
 
         val elapsed = System.currentTimeMillis() - startTime
         Log.d(TAG, "AEAD initialized in ${elapsed}ms")

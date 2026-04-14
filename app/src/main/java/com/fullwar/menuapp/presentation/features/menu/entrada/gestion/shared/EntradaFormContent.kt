@@ -21,6 +21,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -58,6 +64,9 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
     val errors: Map<String, Int?> = viewModel.formFields.errors
     val serverErrors: Map<String, String?> = viewModel.formFields.serverErrors
     val currentImagenId = viewModel.currentImagenId
+
+    val descripcionFocusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
 
     var cameraUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -198,6 +207,10 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
             cursorColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(
+            onNext = { descripcionFocusRequester.requestFocus() }
+        ),
         isError = errors["entdes"] != null || serverErrors["entdes"] != null,
         supportingText = {
             val errorRes = errors["entdes"]
@@ -222,7 +235,7 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
     OutlinedTextField(
         value = descripcion,
         onValueChange = { viewModel.updateField("entdeslar", it) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().focusRequester(descripcionFocusRequester),
         placeholder = {
             Text(
                 text = stringResource(R.string.entrada_descripcion_placeholder),
@@ -242,6 +255,10 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
         ),
         minLines = 3,
         maxLines = 5,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(
+            onDone = { focusManager.clearFocus() }
+        ),
         isError = errors["entdeslar"] != null || serverErrors["entdeslar"] != null,
         supportingText = {
             val errorRes = errors["entdeslar"]
@@ -284,8 +301,10 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
                         label = { Text(text = tipo.descripcion, fontSize = TextSizeSmall) },
                         shape = RoundedCornerShape(CornerRadiusMedium),
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color.Transparent,
-                            selectedLabelColor = MaterialTheme.colorScheme.primary
+                            selectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            selectedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            labelColor = MaterialTheme.colorScheme.onSurface
                         ),
                         border = FilterChipDefaults.filterChipBorder(
                             enabled = true,

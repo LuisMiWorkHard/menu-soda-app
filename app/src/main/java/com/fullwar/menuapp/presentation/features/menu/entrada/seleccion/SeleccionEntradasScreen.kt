@@ -389,7 +389,7 @@ private fun AnadirNuevaListItem(onClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onClick() }
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
+                .background(MaterialTheme.colorScheme.primary)
                 .padding(vertical = SpacingMedium),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center

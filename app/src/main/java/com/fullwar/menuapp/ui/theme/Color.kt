@@ -23,12 +23,12 @@ val Gray = Color(0xFF9AA0A6)
 
 val Steel = Color(0xFF90A4AE)
 
-//val SoftGray = Color(0xfff5f5f5) //Color(0xFFE5E8EF)
 val SkyGray = Color(0xFF7685AA)
-val AccentGrey = Color(0xFF1F2E38)//Color(0xFF375365)//Color(0xFF8F96AA)//Color(0xFFA2A2A2)
+val AccentGrey = Color(0xFF1F2E38)
 val SoftBone = Color(0xFFF5F5F5)
 val SoftBoneLight = Color(0xFFE8EAED)
 val SoftGreen = Color(0xFFA9C688)
+val SoftGrayGreen = Color(0xFFD7D9CA)
 val White = Color(0xFFFFFFFF)
 val Sucre = Color(0xFFE8EAED)
 
@@ -41,7 +41,7 @@ val LightBackground = SoftBone
 val LightOnBackground = Charcoal
 val LightSurface = White
 val LightOnSurface = DarkShadow
-val LightSurfaceVariant = SoftGreen
+val LightSurfaceVariant = SoftGrayGreen
 val LightOnSurfaceVariant = DeepCharcoal
 
 

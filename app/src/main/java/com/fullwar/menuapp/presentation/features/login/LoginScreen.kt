@@ -33,6 +33,7 @@ import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Dining
+import androidx.compose.material.icons.filled.RoomService
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.TextFieldValue
@@ -213,7 +214,7 @@ private fun LoginScreenContent(
                 shape = RoundedCornerShape(CornerRadiusLarge),
                 color = MaterialTheme.colorScheme.background
             ) {
-                Icon(imageVector = Icons.Filled.Dining, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
+                Icon(imageVector = Icons.Filled.RoomService, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
             }
 
             Spacer(modifier = Modifier.height(SpacingXLarge))
