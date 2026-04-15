@@ -40,6 +40,7 @@ import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.PasoEstiloScree
 import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.PasoPlatosFondoScreen
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasScreen
+import com.fullwar.menuapp.presentation.features.menu.plato.PlatoViewModel
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.HeavyGray
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
@@ -65,6 +66,7 @@ fun MenuScreen() {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val menuViewModel: MenuViewModel = koinViewModel()
     val entradaViewModel: EntradaViewModel = koinViewModel()
+    val platoViewModel: PlatoViewModel = koinViewModel()
 
     val currentStep = when (currentRoute) {
         MenuRoute.Entradas.route -> 1
@@ -112,7 +114,7 @@ fun MenuScreen() {
                 )
             }
             composable(MenuRoute.PlatosFondo.route) {
-                PasoPlatosFondoScreen(menuViewModel = menuViewModel)
+                PasoPlatosFondoScreen(menuViewModel = menuViewModel, platoViewModel = platoViewModel)
             }
             composable(MenuRoute.Estilo.route) {
                 PasoEstiloScreen()

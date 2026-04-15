@@ -6,15 +6,20 @@ import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import com.fullwar.menuapp.data.datasource.remote.AuthService
 import com.fullwar.menuapp.data.datasource.remote.EntradaService
 import com.fullwar.menuapp.data.datasource.remote.ImagenService
+import com.fullwar.menuapp.data.datasource.remote.PlatoService
 import com.fullwar.menuapp.data.datasource.remote.TipoEntradaService
+import com.fullwar.menuapp.data.datasource.remote.TipoPlatoService
 import com.fullwar.menuapp.data.repository.SecureDataStoreImpl
 import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
 import com.fullwar.menuapp.data.repository.EntradaRepositoryImpl
+import com.fullwar.menuapp.data.repository.PlatoRepositoryImpl
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
+import com.fullwar.menuapp.domain.repository.IPlatoRepository
 import com.fullwar.menuapp.data.repository.LocationProviderImpl
 import com.fullwar.menuapp.data.repository.SecureCookiesStorageImpl
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
+import com.fullwar.menuapp.presentation.features.menu.plato.PlatoViewModel
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import org.koin.android.ext.koin.androidContext
@@ -29,6 +34,7 @@ val appModule = module {
     viewModelOf(::LoginViewModel)
     viewModelOf(::MenuViewModel)
     viewModelOf(::EntradaViewModel)
+    viewModelOf(::PlatoViewModel)
 
     // Almacenamiento seguro cifrado (DataStore + Tink + Android Keystore)
     single<SecureStorageProvider> { SecureDataStoreImpl(androidContext()) }
@@ -50,4 +56,9 @@ val appModule = module {
     single { TipoEntradaService(get(named("AuthClient"))) }
     single { ImagenService(get(named("AuthClient"))) }
     singleOf(::EntradaRepositoryImpl) bind IEntradaRepository::class
+
+    // Plato feature: services usan AuthClient (Bearer token)
+    single { PlatoService(get(named("AuthClient"))) }
+    single { TipoPlatoService(get(named("AuthClient"))) }
+    singleOf(::PlatoRepositoryImpl) bind IPlatoRepository::class
 }
