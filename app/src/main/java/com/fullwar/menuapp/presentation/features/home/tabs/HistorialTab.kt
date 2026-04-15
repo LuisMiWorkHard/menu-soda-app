@@ -2,6 +2,7 @@ package com.fullwar.menuapp.presentation.features.home.tabs
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -236,8 +237,10 @@ fun HistorialTab(
                         },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = Color.White,
-                            selectedTrailingIconColor = Color.White
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimary,
+                            labelColor = MaterialTheme.colorScheme.onBackground,
+                            iconColor = MaterialTheme.colorScheme.onBackground
                         )
                     )
                 }
@@ -426,7 +429,7 @@ fun DatePickerDialog(
                         .fillMaxWidth()
                         .padding(horizontal = SpacingLarge),
                     shape = RoundedCornerShape(CornerRadiusMedium),
-                    color = HeavyGray
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Column(
                         modifier = Modifier.padding(SpacingMedium)
@@ -441,7 +444,11 @@ fun DatePickerDialog(
                                 shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                                 colors = SegmentedButtonDefaults.colors(
                                     activeContainerColor = MaterialTheme.colorScheme.primary,
-                                    activeContentColor = Color.White
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                                    activeBorderColor = MaterialTheme.colorScheme.primary,
+                                    inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    inactiveBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             ) {
                                 Text(text = stringResource(id = R.string.calendar_single_date))
@@ -452,7 +459,11 @@ fun DatePickerDialog(
                                 shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                                 colors = SegmentedButtonDefaults.colors(
                                     activeContainerColor = MaterialTheme.colorScheme.primary,
-                                    activeContentColor = Color.White
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                                    activeBorderColor = MaterialTheme.colorScheme.primary,
+                                    inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    inactiveBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             ) {
                                 Text(text = stringResource(id = R.string.calendar_date_range))
@@ -469,21 +480,22 @@ fun DatePickerDialog(
                             Icon(
                                 imageVector = Icons.Filled.CalendarMonth,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(IconSizeMedium)
                             )
                             Spacer(modifier = Modifier.width(SpacingSmall))
                             Text(
                                 text = stringResource(id = R.string.calendar_selection_label),
                                 fontSize = TextSizeSmall,
-                                color = HeavyGray
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.width(SpacingXSmall))
                             Text(
                                 text = selectionText,
                                 fontSize = TextSizeSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -507,9 +519,12 @@ fun DatePickerDialog(
                         headline = null,
                         showModeToggle = false,
                         colors = DatePickerDefaults.colors(
-                            selectedDayContainerColor = MaterialTheme.colorScheme.primary,
-                            todayDateBorderColor = MaterialTheme.colorScheme.primary,
-                            dayInSelectionRangeContainerColor = HeavyGray
+                            navigationContentColor = MaterialTheme.colorScheme.onSurface,
+                            todayContentColor = MaterialTheme.colorScheme.onBackground,
+                            todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
+                            selectedDayContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            selectedDayContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            dayInSelectionRangeContainerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     )
                 } else {
@@ -523,8 +538,11 @@ fun DatePickerDialog(
                         headline = null,
                         showModeToggle = false,
                         colors = DatePickerDefaults.colors(
-                            selectedDayContainerColor = MaterialTheme.colorScheme.primary,
-                            todayDateBorderColor = MaterialTheme.colorScheme.primary
+                            navigationContentColor = MaterialTheme.colorScheme.onSurface,
+                            todayContentColor = MaterialTheme.colorScheme.onBackground,
+                            todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
+                            selectedDayContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            selectedDayContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                 }
@@ -559,7 +577,7 @@ fun DatePickerDialog(
                             text = stringResource(
                                 id = if (hasSelection) R.string.calendar_clear else R.string.calendar_cancel
                             ),
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Button(
@@ -579,7 +597,7 @@ fun DatePickerDialog(
                             datePickerState.selectedDateMillis != null
                         }
                     ) {
-                        Text(text = stringResource(id = R.string.calendar_apply))
+                        Text(text = stringResource(id = R.string.calendar_apply), color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
             }
@@ -588,7 +606,14 @@ fun DatePickerDialog(
 }
 
 @Composable
-fun MenuHistorialCard(item: MenuHistorialItem) {
+fun MenuHistorialCard(
+    item: MenuHistorialItem,
+    onVerDetalle: (MenuHistorialItem) -> Unit = {},
+    onCompartir: (MenuHistorialItem) -> Unit = {},
+    onEliminar: (MenuHistorialItem) -> Unit = {}
+) {
+    var showOpcionesSheet by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -634,23 +659,112 @@ fun MenuHistorialCard(item: MenuHistorialItem) {
             )
         }
 
-        // Botón compartir
-        IconButton(onClick = { /* Compartir */ }) {
+        // Botón opciones
+        IconButton(onClick = { showOpcionesSheet = true }) {
             Surface(
-                shape = CircleShape,
-                color = HeavyGray,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(IconSize3XLarge),
+                color = MaterialTheme.colorScheme.background,
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Share,
+                    imageVector = Icons.Filled.MoreVert,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(SpacingSmall)
                 )
             }
         }
     }
     HorizontalDivider(color = HeavyGray)
+
+    if (showOpcionesSheet) {
+        MenuHistorialOpcionesSheet(
+            item = item,
+            onDismiss = { showOpcionesSheet = false },
+            onVerDetalle = { onVerDetalle(item) },
+            onCompartir = { onCompartir(item) },
+            onEliminar = { onEliminar(item) }
+        )
+    }
+}
+
+@Composable
+private fun OpcionItem(
+    icono: androidx.compose.ui.graphics.vector.ImageVector,
+    texto: String,
+    onClick: () -> Unit,
+    tintColor: Color = MaterialTheme.colorScheme.onBackground
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = SpacingLarge, vertical = SpacingMedium),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(SpacingLarge)
+    ) {
+        Icon(
+            imageVector = icono,
+            contentDescription = null,
+            tint = tintColor,
+            modifier = Modifier.size(IconSizeMedium)
+        )
+        Text(
+            text = texto,
+            fontSize = TextSizeMedium,
+            color = tintColor
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MenuHistorialOpcionesSheet(
+    item: MenuHistorialItem,
+    onDismiss: () -> Unit,
+    onVerDetalle: () -> Unit,
+    onCompartir: () -> Unit,
+    onEliminar: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = MaterialTheme.colorScheme.background,
+        shape = RoundedCornerShape(topStart = CornerRadiusLarge, topEnd = CornerRadiusLarge)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = SpacingXLarge)
+        ) {
+            Text(
+                text = item.fecha,
+                fontWeight = FontWeight.Bold,
+                fontSize = TextSizeMedium,
+                color = HeavyGray,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = SpacingLarge)
+                    .padding(bottom = SpacingMedium)
+            )
+            HorizontalDivider(color = HeavyGray)
+            OpcionItem(
+                icono = Icons.Filled.Visibility,
+                texto = "Ver detalle",
+                onClick = { onVerDetalle(); onDismiss() }
+            )
+            OpcionItem(
+                icono = Icons.Filled.Share,
+                texto = "Compartir",
+                onClick = { onCompartir(); onDismiss() }
+            )
+            OpcionItem(
+                icono = Icons.Filled.Delete,
+                texto = "Eliminar",
+                onClick = { onEliminar(); onDismiss() },
+                tintColor = MaterialTheme.colorScheme.error
+            )
+        }
+    }
 }
 
 // --- Previews ---
@@ -769,6 +883,64 @@ private fun DatePickerDialogRangoOscuroPreview() {
             onApply = { _, _, _ -> },
             onClear = {},
             onDismiss = {}
+        )
+    }
+}
+
+// OpcionItem
+
+@Preview(showBackground = true, name = "OpcionItem - Claro")
+@Composable
+private fun OpcionItemClaroPreview() {
+    PreviewWrapper(darkTheme = false) {
+        OpcionItem(
+            icono = Icons.Filled.Share,
+            texto = "Compartir",
+            onClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "OpcionItem - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun OpcionItemOscuroPreview() {
+    PreviewWrapper(darkTheme = true) {
+        OpcionItem(
+            icono = Icons.Filled.Share,
+            texto = "Compartir",
+            onClick = {}
+        )
+    }
+}
+
+// MenuHistorialOpcionesSheet
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, name = "MenuHistorialOpcionesSheet - Claro")
+@Composable
+private fun MenuHistorialOpcionesSheetClaroPreview() {
+    PreviewWrapper(darkTheme = false) {
+        MenuHistorialOpcionesSheet(
+            item = previewItem,
+            onDismiss = {},
+            onVerDetalle = {},
+            onCompartir = {},
+            onEliminar = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, name = "MenuHistorialOpcionesSheet - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun MenuHistorialOpcionesSheetOscuroPreview() {
+    PreviewWrapper(darkTheme = true) {
+        MenuHistorialOpcionesSheet(
+            item = previewItem,
+            onDismiss = {},
+            onVerDetalle = {},
+            onCompartir = {},
+            onEliminar = {}
         )
     }
 }
