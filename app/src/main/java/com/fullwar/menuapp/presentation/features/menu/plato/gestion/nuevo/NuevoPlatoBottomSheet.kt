@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.menu.plato
+package com.fullwar.menuapp.presentation.features.menu.plato.gestion.nuevo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,12 +11,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.PlatoCreateResponseDto
 import com.fullwar.menuapp.presentation.common.utils.State
+import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoFormContent
+import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
 import com.fullwar.menuapp.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +29,7 @@ fun NuevoPlatoBottomSheet(
     onDismiss: () -> Unit,
     onSuccess: () -> Unit
 ) {
+    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val createState = viewModel.createState
 
@@ -98,7 +102,7 @@ fun NuevoPlatoBottomSheet(
 
             // Botón: Guardar y Seleccionar
             Button(
-                onClick = { viewModel.save() },
+                onClick = { viewModel.save(context) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(ButtonHeightLarge),

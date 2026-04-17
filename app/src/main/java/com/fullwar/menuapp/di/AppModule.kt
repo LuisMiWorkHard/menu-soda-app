@@ -19,7 +19,7 @@ import com.fullwar.menuapp.data.repository.LocationProviderImpl
 import com.fullwar.menuapp.data.repository.SecureCookiesStorageImpl
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
-import com.fullwar.menuapp.presentation.features.menu.plato.PlatoViewModel
+import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import org.koin.android.ext.koin.androidContext

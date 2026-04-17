@@ -98,7 +98,13 @@
     <string name="plato_descripcion_label">Descripción</string>
     <string name="plato_descripcion_placeholder">Ingredientes y detalles importantes…</string>
     <string name="plato_tipo_label">Tipo de plato</string>
+    <string name="plato_subir_foto">Subir foto del plato</string>
+    <string name="plato_foto_source_title">Seleccionar foto</string>
+    <string name="plato_foto_camara">Cámara</string>
+    <string name="plato_foto_galeria">Galería</string>
     <string name="plato_guardar">Guardar y Seleccionar</string>
+    <string name="plato_guardar_cambios">Guardar Cambios</string>
+    <string name="plato_editar_titulo">Editar Plato</string>
     <string name="plato_cancelar">Cancelar</string>
 
     <!-- Plato Validations -->

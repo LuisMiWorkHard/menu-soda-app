@@ -56,8 +56,8 @@ import java.io.File
 fun EntradaFormContent(viewModel: EntradaViewModel) {
     val context = LocalContext.current
 
-    val nombre = viewModel.formFields.fields["entdes"] as? TextFieldValue ?: TextFieldValue()
-    val descripcion = viewModel.formFields.fields["entdeslar"] as? TextFieldValue ?: TextFieldValue()
+    val nombre = viewModel.formFields.fields["entnom"] as? TextFieldValue ?: TextFieldValue()
+    val descripcion = viewModel.formFields.fields["entdes"] as? TextFieldValue ?: TextFieldValue()
     val tipoSeleccionado = viewModel.formFields.fields["codtipent"] as? TipoEntrada
     val imageUri = viewModel.formFields.fields["imageUri"] as? Uri
     val tiposState = viewModel.tiposEntradaState
@@ -187,7 +187,7 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
     Spacer(modifier = Modifier.height(SpacingSmall))
     OutlinedTextField(
         value = nombre,
-        onValueChange = { viewModel.updateField("entdes", it) },
+        onValueChange = { viewModel.updateField("entnom", it) },
         modifier = Modifier.fillMaxWidth(),
         placeholder = {
             Text(
@@ -211,10 +211,10 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
         keyboardActions = KeyboardActions(
             onNext = { descripcionFocusRequester.requestFocus() }
         ),
-        isError = errors["entdes"] != null || serverErrors["entdes"] != null,
+        isError = errors["entnom"] != null || serverErrors["entnom"] != null,
         supportingText = {
-            val errorRes = errors["entdes"]
-            val serverError = serverErrors["entdes"]
+            val errorRes = errors["entnom"]
+            val serverError = serverErrors["entnom"]
             when {
                 errorRes != null -> Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error)
                 serverError != null -> Text(serverError, color = MaterialTheme.colorScheme.error)
@@ -234,7 +234,7 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
     Spacer(modifier = Modifier.height(SpacingSmall))
     OutlinedTextField(
         value = descripcion,
-        onValueChange = { viewModel.updateField("entdeslar", it) },
+        onValueChange = { viewModel.updateField("entdes", it) },
         modifier = Modifier.fillMaxWidth().focusRequester(descripcionFocusRequester),
         placeholder = {
             Text(
@@ -259,10 +259,10 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
         keyboardActions = KeyboardActions(
             onDone = { focusManager.clearFocus() }
         ),
-        isError = errors["entdeslar"] != null || serverErrors["entdeslar"] != null,
+        isError = errors["entdes"] != null || serverErrors["entdes"] != null,
         supportingText = {
-            val errorRes = errors["entdeslar"]
-            val serverError = serverErrors["entdeslar"]
+            val errorRes = errors["entdes"]
+            val serverError = serverErrors["entdes"]
             when {
                 errorRes != null -> Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error)
                 serverError != null -> Text(serverError, color = MaterialTheme.colorScheme.error)
@@ -361,8 +361,8 @@ private class FakeEntradaRepository : IEntradaRepository {
 
 private val fakeEntrada = EntradaResponseDto(
     id = 1,
-    descripcion = "Ceviche Clásico",
-    descripcionLarga = "Fresco, ligero y con toque de limón",
+    nombre = "Ceviche Clásico",
+    descripcion = "Fresco, ligero y con toque de limón",
     estadoId = 1,
     tipoEntradaId = 2,
     imagenId = null,

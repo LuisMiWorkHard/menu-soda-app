@@ -1,5 +1,7 @@
-package com.fullwar.menuapp.presentation.features.menu.plato
+package com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,6 +14,8 @@ import com.fullwar.menuapp.data.model.ApiException
 import com.fullwar.menuapp.data.model.PlatoCreateRequestDto
 import com.fullwar.menuapp.data.model.PlatoCreateResponseDto
 import com.fullwar.menuapp.data.model.PlatoResponseDto
+import com.fullwar.menuapp.data.model.PlatoUpdateRequestDto
+import com.fullwar.menuapp.data.util.ImageCompressor
 import com.fullwar.menuapp.domain.model.TipoPlato
 import com.fullwar.menuapp.domain.repository.IPlatoRepository
 import com.fullwar.menuapp.presentation.common.components.dynamic.DynamicForm
@@ -26,9 +30,18 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
         private val FIELD_MAPPING = mapOf(
             "nombre" to "platnom",
             "descripcion" to "platdes",
-            "tipoplatoid" to "codtippla"
+            "tipoplatoid" to "codtippla",
+            "imagenid" to "codima"
         )
     }
+
+    // --- Modo editar ---
+    private var editingId: Int? = null
+    private var originalImagenId: Int? = null
+    private var originalEstadoId: Int = 1
+
+    var currentImagenId: Int? by mutableStateOf(null)
+        private set
 
     // --- Form state (DynamicForm) ---
     override var formFields by mutableStateOf(
@@ -36,7 +49,8 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
             fields = mapOf(
                 "platnom" to TextFieldValue(),
                 "platdes" to TextFieldValue(),
-                "codtippla" to null
+                "codtippla" to null,
+                "imageUri" to null
             )
         )
     )
@@ -48,19 +62,43 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
     var createState by mutableStateOf<State<PlatoCreateResponseDto>>(State.Initial)
         private set
 
+    var editState by mutableStateOf<State<Unit>>(State.Initial)
+        private set
+
     var tiposPlatoState by mutableStateOf<State<List<TipoPlato>>>(State.Initial)
         private set
 
     // --- Inicializar modo crear ---
     fun initForCreate() {
+        editingId = null
+        originalImagenId = null
+        originalEstadoId = 1
+        currentImagenId = null
         createState = State.Initial
+        resetForm()
+    }
+
+    // --- Inicializar modo editar ---
+    fun initForEdit(plato: PlatoResponseDto) {
+        editingId = plato.id
+        originalImagenId = plato.imagenId
+        originalEstadoId = plato.estadoId
+        currentImagenId = plato.imagenId
+        editState = State.Initial
         formFields = DynamicFormState(
             fields = mapOf(
-                "platnom" to TextFieldValue(),
-                "platdes" to TextFieldValue(),
-                "codtippla" to null
+                "platnom" to TextFieldValue(plato.nombre),
+                "platdes" to TextFieldValue(plato.descripcion),
+                "codtippla" to TipoPlato(id = plato.tipoPlatoId, descripcion = ""),
+                "imageUri" to null
             )
         )
+    }
+
+    // --- Guardar (delega según el modo) ---
+    fun save(context: Context) {
+        if (editingId != null) updatePlato(context)
+        else createPlato(context)
     }
 
     // --- Cargar lista de platos ---
@@ -94,21 +132,34 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
         }
     }
 
-    // --- Guardar nuevo plato ---
-    fun save() {
+    // --- Crear nuevo plato ---
+    private fun createPlato(context: Context) {
         if (!validate()) return
 
         val nombre = (formFields.fields["platnom"] as TextFieldValue).text.trim()
         val descripcion = (formFields.fields["platdes"] as TextFieldValue).text.trim()
         val tipo = formFields.fields["codtippla"] as TipoPlato
+        val imageUri = formFields.fields["imageUri"] as? Uri
 
         viewModelScope.launch {
             createState = State.Loading
             try {
+                var codima: Int? = null
+                if (imageUri != null) {
+                    val compressedBytes = ImageCompressor.compress(context, imageUri)
+                    val uploadResponse = repository.uploadImage(
+                        imageBytes = compressedBytes,
+                        fileName = "plato_${System.currentTimeMillis()}",
+                        extension = ".jpg"
+                    )
+                    codima = uploadResponse.id
+                }
+
                 val request = PlatoCreateRequestDto(
                     nombre = nombre,
                     descripcion = descripcion,
-                    tipoPlatoId = tipo.id
+                    tipoPlatoId = tipo.id,
+                    imagenId = codima
                 )
                 val response = repository.createPlato(request)
                 loadPlatos()
@@ -124,6 +175,56 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
             } catch (e: Exception) {
                 Log.e(TAG, "Error creating plato", e)
                 createState = State.Error(e.message ?: "Error al crear plato")
+            }
+        }
+    }
+
+    // --- Actualizar plato existente ---
+    private fun updatePlato(context: Context) {
+        if (!validate()) return
+
+        val id = editingId ?: return
+        val nombre = (formFields.fields["platnom"] as TextFieldValue).text.trim()
+        val descripcion = (formFields.fields["platdes"] as TextFieldValue).text.trim()
+        val tipo = formFields.fields["codtippla"] as TipoPlato
+        val imageUri = formFields.fields["imageUri"] as? Uri
+
+        viewModelScope.launch {
+            editState = State.Loading
+            try {
+                var codima: Int? = originalImagenId
+                if (imageUri != null) {
+                    val compressedBytes = ImageCompressor.compress(context, imageUri)
+                    val uploadResponse = repository.uploadImage(
+                        imageBytes = compressedBytes,
+                        fileName = "plato_${System.currentTimeMillis()}",
+                        extension = ".jpg"
+                    )
+                    codima = uploadResponse.id
+                }
+
+                val request = PlatoUpdateRequestDto(
+                    id = id,
+                    nombre = nombre,
+                    descripcion = descripcion,
+                    tipoPlatoId = tipo.id,
+                    estadoId = originalEstadoId,
+                    imagenId = codima
+                )
+                repository.updatePlato(id, request)
+                loadPlatos()
+                editState = State.Success(Unit)
+            } catch (e: ApiException) {
+                Log.e(TAG, "ApiException updating plato: ${e.message}")
+                if (e.validationErrors != null) {
+                    handleValidationErrors(e.validationErrors, FIELD_MAPPING)
+                    editState = State.Initial
+                } else {
+                    editState = State.Error(e.message ?: "Error al actualizar plato")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating plato", e)
+                editState = State.Error(e.message ?: "Error al actualizar plato")
             }
         }
     }
@@ -153,5 +254,19 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
 
         formFields = formFields.copy(errors = errors)
         return errors.isEmpty()
+    }
+
+    fun resetForm() {
+        formFields = DynamicFormState(
+            fields = mapOf(
+                "platnom" to TextFieldValue(),
+                "platdes" to TextFieldValue(),
+                "codtippla" to null,
+                "imageUri" to null
+            )
+        )
+        createState = State.Initial
+        editState = State.Initial
+        currentImagenId = null
     }
 }

@@ -14,5 +14,7 @@ data class PlatoUpdateRequestDto(
     @SerialName("tipoPlatoId")
     val tipoPlatoId: Int,
     @SerialName("estadoId")
-    val estadoId: Int
+    val estadoId: Int,
+    @SerialName("imagenId")
+    val imagenId: Int? = null
 )

@@ -30,8 +30,8 @@ class EntradaViewModel(
     companion object {
         private const val TAG = "EntradaViewModel"
         private val FIELD_MAPPING = mapOf(
+            "entnom" to "entnom",
             "entdes" to "entdes",
-            "entdeslar" to "entdeslar",
             "codtipent" to "codtipent",
             "codima" to "codima"
         )
@@ -48,8 +48,8 @@ class EntradaViewModel(
     override var formFields by mutableStateOf(
         DynamicFormState(
             fields = mapOf(
+                "entnom" to TextFieldValue(),
                 "entdes" to TextFieldValue(),
-                "entdeslar" to TextFieldValue(),
                 "codtipent" to null,
                 "imageUri" to null
             )
@@ -86,8 +86,8 @@ class EntradaViewModel(
         editState = State.Initial
         formFields = DynamicFormState(
             fields = mapOf(
+                "entnom" to TextFieldValue(entrada.nombre),
                 "entdes" to TextFieldValue(entrada.descripcion),
-                "entdeslar" to TextFieldValue(entrada.descripcionLarga),
                 "codtipent" to TipoEntrada(id = entrada.tipoEntradaId, descripcion = ""),
                 "imageUri" to null
             )
@@ -136,8 +136,8 @@ class EntradaViewModel(
     private fun createEntrada(context: Context) {
         if (!validate()) return
 
-        val nombre = (formFields.fields["entdes"] as TextFieldValue).text.trim()
-        val descripcion = (formFields.fields["entdeslar"] as? TextFieldValue)?.text?.trim()
+        val nombre = (formFields.fields["entnom"] as TextFieldValue).text.trim()
+        val descripcion = (formFields.fields["entdes"] as? TextFieldValue)?.text?.trim()
         val tipo = formFields.fields["codtipent"] as TipoEntrada
         val imageUri = formFields.fields["imageUri"] as? Uri
 
@@ -156,8 +156,8 @@ class EntradaViewModel(
                 }
 
                 val request = EntradaCreateRequestDto(
-                    descripcion = nombre,
-                    descripcionLarga = descripcion?.ifBlank { null } ?: "",
+                    nombre = nombre,
+                    descripcion = descripcion?.ifBlank { null } ?: "",
                     tipoEntradaId = tipo.id,
                     imagenId = codima
                 )
@@ -185,8 +185,8 @@ class EntradaViewModel(
         if (!validate()) return
 
         val id = editingId ?: return
-        val nombre = (formFields.fields["entdes"] as TextFieldValue).text.trim()
-        val descripcion = (formFields.fields["entdeslar"] as? TextFieldValue)?.text?.trim()
+        val nombre = (formFields.fields["entnom"] as TextFieldValue).text.trim()
+        val descripcion = (formFields.fields["entdes"] as? TextFieldValue)?.text?.trim()
         val tipo = formFields.fields["codtipent"] as TipoEntrada
         val imageUri = formFields.fields["imageUri"] as? Uri
 
@@ -205,8 +205,8 @@ class EntradaViewModel(
                 }
 
                 val request = EntradaUpdateRequestDto(
-                    descripcion = nombre,
-                    descripcionLarga = descripcion?.ifBlank { null } ?: "",
+                    nombre = nombre,
+                    descripcion = descripcion?.ifBlank { null } ?: "",
                     tipoEntradaId = tipo.id,
                     imagenId = codima
                 )
@@ -234,18 +234,18 @@ class EntradaViewModel(
         formFields = formFields.copy(serverErrors = emptyMap())
         val errors = mutableMapOf<String, Int?>()
 
-        val nombre = (formFields.fields["entdes"] as? TextFieldValue)?.text ?: ""
-        val descripcion = (formFields.fields["entdeslar"] as? TextFieldValue)?.text ?: ""
+        val nombre = (formFields.fields["entnom"] as? TextFieldValue)?.text ?: ""
+        val descripcion = (formFields.fields["entdes"] as? TextFieldValue)?.text ?: ""
         val tipo = formFields.fields["codtipent"] as? TipoEntrada
 
         when {
-            nombre.isBlank() -> errors["entdes"] = R.string.error_entrada_nombre_vacio
-            nombre.trim().length < 3 -> errors["entdes"] = R.string.error_entrada_nombre_min
-            nombre.trim().length > 200 -> errors["entdes"] = R.string.error_entrada_nombre_max
+            nombre.isBlank() -> errors["entnom"] = R.string.error_entrada_nombre_vacio
+            nombre.trim().length < 3 -> errors["entnom"] = R.string.error_entrada_nombre_min
+            nombre.trim().length > 200 -> errors["entnom"] = R.string.error_entrada_nombre_max
         }
 
         if (descripcion.isNotBlank() && descripcion.trim().length > 1000) {
-            errors["entdeslar"] = R.string.error_entrada_descripcion_max
+            errors["entdes"] = R.string.error_entrada_descripcion_max
         }
 
         if (tipo == null) {
@@ -259,8 +259,8 @@ class EntradaViewModel(
     fun resetForm() {
         formFields = DynamicFormState(
             fields = mapOf(
+                "entnom" to TextFieldValue(),
                 "entdes" to TextFieldValue(),
-                "entdeslar" to TextFieldValue(),
                 "codtipent" to null,
                 "imageUri" to null
             )

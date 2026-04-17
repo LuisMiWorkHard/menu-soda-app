@@ -22,5 +22,7 @@ data class PlatoResponseDto(
     @SerialName("fechaModificacion")
     val fechaModificacion: String? = null,
     @SerialName("usuarioModificacion")
-    val usuarioModificacion: String? = null
+    val usuarioModificacion: String? = null,
+    @SerialName("imagenId")
+    val imagenId: Int? = null
 )

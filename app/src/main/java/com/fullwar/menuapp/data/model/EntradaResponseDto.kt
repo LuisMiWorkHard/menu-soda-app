@@ -7,10 +7,10 @@ import kotlinx.serialization.Serializable
 data class EntradaResponseDto(
     @SerialName("id")
     val id: Int,
+    @SerialName("nombre")
+    val nombre: String,
     @SerialName("descripcion")
-    val descripcion: String,
-    @SerialName("descripcionLarga")
-    val descripcionLarga: String,
+    val descripcion: String = "",
     @SerialName("estadoId")
     val estadoId: Int,
     @SerialName("tipoEntradaId")

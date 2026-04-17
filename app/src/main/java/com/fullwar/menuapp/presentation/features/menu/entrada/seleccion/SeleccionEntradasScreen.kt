@@ -108,14 +108,14 @@ fun SeleccionEntradasScreen(
         }
     }
 
-    val entradasSeleccionadas = todasLasEntradas.filter { it.descripcion in selectedEntradas }
-    val entradasNoSeleccionadas = todasLasEntradas.filter { it.descripcion !in selectedEntradas }
+    val entradasSeleccionadas = todasLasEntradas.filter { it.nombre in selectedEntradas }
+    val entradasNoSeleccionadas = todasLasEntradas.filter { it.nombre !in selectedEntradas }
 
     // Seleccionados siempre visibles, sin filtrar por búsqueda
     val seleccionadasFiltradas = entradasSeleccionadas
 
     val noSeleccionadasFiltradas = if (searchQuery.isBlank()) entradasNoSeleccionadas
-        else entradasNoSeleccionadas.filter { it.descripcion.contains(searchQuery, ignoreCase = true) }
+        else entradasNoSeleccionadas.filter { it.nombre.contains(searchQuery, ignoreCase = true) }
 
     val sinResultados = searchQuery.isNotBlank() && noSeleccionadasFiltradas.isEmpty()
 
@@ -285,14 +285,14 @@ fun SeleccionEntradasScreen(
                 }
 
                 // Seleccionados al tope
-                items(seleccionadasFiltradas, key = { it.descripcion }) { entrada ->
+                items(seleccionadasFiltradas, key = { it.nombre }) { entrada ->
                     EntradaListItem(
                         entrada = entrada,
                         isSelected = true,
                         onToggle = { checked ->
                             menuViewModel.updateEntradas(
-                                if (checked) selectedEntradas + entrada.descripcion
-                                else selectedEntradas - entrada.descripcion
+                                if (checked) selectedEntradas + entrada.nombre
+                                else selectedEntradas - entrada.nombre
                             )
                         }
                     )
@@ -306,14 +306,14 @@ fun SeleccionEntradasScreen(
                 }
 
                 // No seleccionados
-                items(noSeleccionadasFiltradas, key = { it.descripcion }) { entrada ->
+                items(noSeleccionadasFiltradas, key = { it.nombre }) { entrada ->
                     EntradaListItem(
                         entrada = entrada,
                         isSelected = false,
                         onToggle = { checked ->
                             menuViewModel.updateEntradas(
-                                if (checked) selectedEntradas + entrada.descripcion
-                                else selectedEntradas - entrada.descripcion
+                                if (checked) selectedEntradas + entrada.nombre
+                                else selectedEntradas - entrada.nombre
                             )
                         }
                     )
@@ -367,8 +367,8 @@ private fun EntradaListItem(
             CustomImageView(imagenId = entrada.imagenId)
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = entrada.descripcion, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = entrada.descripcionLarga, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = entrada.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
+                Text(text = entrada.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Checkbox(
                 checked = isSelected,
@@ -416,9 +416,9 @@ private fun AnadirNuevaListItem(onClick: () -> Unit) {
 
 private class FakeEntradaRepository : IEntradaRepository {
     override suspend fun getEntradas() = listOf(
-        EntradaResponseDto(id = 1, descripcion = "Ceviche Clásico", descripcionLarga = "Fresco y ligero", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
-        EntradaResponseDto(id = 2, descripcion = "Carpaccio de Betabel", descripcionLarga = "Con parmesano y limón", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
-        EntradaResponseDto(id = 3, descripcion = "Sopa Azteca", descripcionLarga = "Perfecta para días fríos", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin")
+        EntradaResponseDto(id = 1, nombre = "Ceviche Clásico", descripcion = "Fresco y ligero", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
+        EntradaResponseDto(id = 2, nombre = "Carpaccio de Betabel", descripcion = "Con parmesano y limón", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
+        EntradaResponseDto(id = 3, nombre = "Sopa Azteca", descripcion = "Perfecta para días fríos", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin")
     )
     override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto = throw NotImplementedError()
     override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto = throw NotImplementedError()
@@ -427,7 +427,7 @@ private class FakeEntradaRepository : IEntradaRepository {
 }
 
 private val fakeEntrada = EntradaResponseDto(
-    id = 1, descripcion = "Ceviche Clásico", descripcionLarga = "Fresco, ligero y sabroso",
+    id = 1, nombre = "Ceviche Clásico", descripcion = "Fresco, ligero y sabroso",
     estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"
 )
 

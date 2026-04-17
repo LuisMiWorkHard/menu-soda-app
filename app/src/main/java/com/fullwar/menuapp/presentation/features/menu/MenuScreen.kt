@@ -40,7 +40,7 @@ import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.PasoEstiloScree
 import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.PasoPlatosFondoScreen
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasScreen
-import com.fullwar.menuapp.presentation.features.menu.plato.PlatoViewModel
+import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.HeavyGray
 import com.fullwar.menuapp.ui.theme.MenuAppTheme

@@ -10,5 +10,7 @@ data class PlatoCreateRequestDto(
     @SerialName("descripcion")
     val descripcion: String,
     @SerialName("tipoPlatoId")
-    val tipoPlatoId: Int
+    val tipoPlatoId: Int,
+    @SerialName("imagenId")
+    val imagenId: Int? = null
 )

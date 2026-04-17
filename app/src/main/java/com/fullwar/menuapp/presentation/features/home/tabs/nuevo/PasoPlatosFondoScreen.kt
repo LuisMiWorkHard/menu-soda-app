@@ -34,15 +34,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
+import com.fullwar.menuapp.data.model.ImagenResponseDto
+import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import com.fullwar.menuapp.data.model.PlatoCreateRequestDto
 import com.fullwar.menuapp.data.model.PlatoCreateResponseDto
 import com.fullwar.menuapp.data.model.PlatoResponseDto
+import com.fullwar.menuapp.data.model.PlatoUpdateRequestDto
 import com.fullwar.menuapp.data.model.TipoPlatoResponseDto
 import com.fullwar.menuapp.domain.repository.IPlatoRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
-import com.fullwar.menuapp.presentation.features.menu.plato.NuevoPlatoBottomSheet
-import com.fullwar.menuapp.presentation.features.menu.plato.PlatoViewModel
+import com.fullwar.menuapp.presentation.features.menu.plato.gestion.nuevo.NuevoPlatoBottomSheet
+import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
 import com.fullwar.menuapp.ui.theme.*
 
 data class SugerenciaPlatoItem(
@@ -360,12 +363,7 @@ fun PlatoDisponibleCard(plato: PlatoResponseDto, isSelected: Boolean, onToggle: 
             modifier = Modifier.padding(SpacingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(CornerRadiusSmall))
-                    .background(HeavyGray)
-            )
+            CustomImageView(imagenId = plato.imagenId, sizeDp = 60)
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = plato.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
@@ -422,11 +420,13 @@ private class FakePlatoRepository : IPlatoRepository {
         PlatoResponseDto(id = 3, nombre = "Seco de Res", descripcion = "Clásico con frijoles y arroz", tipoPlatoId = 1, estadoId = 1, fechaRegistro = "01/01/2024", usuarioRegistro = "admin")
     )
     override suspend fun createPlato(request: PlatoCreateRequestDto): PlatoCreateResponseDto = throw NotImplementedError()
+    override suspend fun updatePlato(id: Int, request: PlatoUpdateRequestDto) = throw NotImplementedError()
     override suspend fun getTiposPlato(): List<TipoPlatoResponseDto> = listOf(
         TipoPlatoResponseDto(1, "Carnes", 1, "01/01/2024", "admin"),
         TipoPlatoResponseDto(2, "Pescados", 1, "01/01/2024", "admin"),
         TipoPlatoResponseDto(3, "Vegetariano", 1, "01/01/2024", "admin")
     )
+    override suspend fun uploadImage(imageBytes: ByteArray, fileName: String, extension: String): ImagenResponseDto = throw NotImplementedError()
 }
 
 private val fakePlatoResponseDto = PlatoResponseDto(

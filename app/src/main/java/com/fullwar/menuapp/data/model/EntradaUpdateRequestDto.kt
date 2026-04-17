@@ -5,10 +5,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class EntradaUpdateRequestDto(
+    @SerialName("nombre")
+    val nombre: String,
     @SerialName("descripcion")
-    val descripcion: String,
-    @SerialName("descripcionLarga")
-    val descripcionLarga: String = "",
+    val descripcion: String = "",
     @SerialName("tipoEntradaId")
     val tipoEntradaId: Int,
     @SerialName("imagenId")
