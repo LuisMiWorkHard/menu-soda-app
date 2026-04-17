@@ -10,6 +10,7 @@ import com.fullwar.menuapp.data.model.EntradaUpdateRequestDto
 import com.fullwar.menuapp.data.model.ImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
+import com.fullwar.menuapp.presentation.common.utils.FuzzyMatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -19,37 +20,45 @@ class EntradaRepositoryImpl(
     private val imagenService: ImagenService
 ) : IEntradaRepository {
 
-    override suspend fun getEntradas(): List<EntradaResponseDto> {
-        return withContext(Dispatchers.IO) {
-            entradaService.getEntradas()
-        }
-    }
+    private var cachedEntradas: List<EntradaResponseDto>? = null
 
-    override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto {
-        return withContext(Dispatchers.IO) {
-            entradaService.createEntrada(request)
+    override suspend fun getEntradas(): List<EntradaResponseDto> =
+        withContext(Dispatchers.IO) {
+            entradaService.getEntradas().also { cachedEntradas = it }
         }
-    }
 
-    override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto {
-        return withContext(Dispatchers.IO) {
-            entradaService.updateEntrada(id, request)
+    override suspend fun searchEntradas(query: String): List<EntradaResponseDto> =
+        withContext(Dispatchers.IO) {
+            entradaService.getEntradas(filter = query)
         }
-    }
 
-    override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> {
-        return withContext(Dispatchers.IO) {
+    override suspend fun findSimilarEntradas(nombre: String, excludeId: Int?): List<EntradaResponseDto> =
+        withContext(Dispatchers.IO) {
+            val list = cachedEntradas ?: entradaService.getEntradas().also { cachedEntradas = it }
+            list.filter { it.id != excludeId && FuzzyMatcher.isDuplicate(nombre, it.nombre) }.take(3)
+        }
+
+    override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto =
+        withContext(Dispatchers.IO) {
+            entradaService.createEntrada(request).also { cachedEntradas = null }
+        }
+
+    override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto =
+        withContext(Dispatchers.IO) {
+            entradaService.updateEntrada(id, request).also { cachedEntradas = null }
+        }
+
+    override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> =
+        withContext(Dispatchers.IO) {
             tipoEntradaService.getTiposEntrada()
         }
-    }
 
     override suspend fun uploadImage(
         imageBytes: ByteArray,
         fileName: String,
         extension: String
-    ): ImagenResponseDto {
-        return withContext(Dispatchers.IO) {
+    ): ImagenResponseDto =
+        withContext(Dispatchers.IO) {
             imagenService.uploadImage(imageBytes, fileName, extension)
         }
-    }
 }

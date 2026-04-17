@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.PlatoCreateResponseDto
+import com.fullwar.menuapp.data.model.PlatoResponseDto
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoFormContent
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
@@ -27,7 +28,8 @@ import com.fullwar.menuapp.ui.theme.*
 fun NuevoPlatoBottomSheet(
     viewModel: PlatoViewModel,
     onDismiss: () -> Unit,
-    onSuccess: () -> Unit
+    onSuccess: () -> Unit,
+    onSelectExisting: ((PlatoResponseDto) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -78,7 +80,7 @@ fun NuevoPlatoBottomSheet(
 
             Spacer(modifier = Modifier.height(SpacingLarge))
 
-            PlatoFormContent(viewModel = viewModel)
+            PlatoFormContent(viewModel = viewModel, onSelectExisting = onSelectExisting)
 
             Spacer(modifier = Modifier.height(SpacingXXLarge))
 

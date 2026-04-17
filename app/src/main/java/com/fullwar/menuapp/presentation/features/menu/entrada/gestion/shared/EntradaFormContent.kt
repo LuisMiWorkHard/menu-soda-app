@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
@@ -53,7 +55,10 @@ import com.fullwar.menuapp.ui.theme.*
 import java.io.File
 
 @Composable
-fun EntradaFormContent(viewModel: EntradaViewModel) {
+fun EntradaFormContent(
+    viewModel: EntradaViewModel,
+    onSelectExisting: ((EntradaResponseDto) -> Unit)? = null
+) {
     val context = LocalContext.current
 
     val nombre = viewModel.formFields.fields["entnom"] as? TextFieldValue ?: TextFieldValue()
@@ -188,7 +193,16 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
     OutlinedTextField(
         value = nombre,
         onValueChange = { viewModel.updateField("entnom", it) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged { focusState ->
+                if (!focusState.isFocused && onSelectExisting != null && !viewModel.isEditMode) {
+                    val text = (viewModel.formFields.fields["entnom"] as? TextFieldValue)?.text ?: ""
+                    if (text.isNotBlank()) viewModel.checkForDuplicates(text)
+                } else if (focusState.isFocused) {
+                    viewModel.clearDuplicateMatches()
+                }
+            },
         placeholder = {
             Text(
                 text = stringResource(R.string.entrada_nombre_placeholder),
@@ -222,6 +236,86 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
             }
         }
     )
+
+    val duplicateMatches = viewModel.duplicateMatches
+    if (onSelectExisting != null && duplicateMatches.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(SpacingSmall))
+        Surface(
+            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+            shape = RoundedCornerShape(CornerRadiusMedium),
+            modifier = Modifier.fillMaxWidth(),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+        ) {
+            Column(modifier = Modifier.padding(SpacingMedium)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Filled.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(IconSizeMedium)
+                    )
+                    Spacer(modifier = Modifier.width(SpacingSmall))
+                    Text(
+                        text = "¿Ya existe algo similar?",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = TextSizeMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                Spacer(modifier = Modifier.height(SpacingSmall))
+                duplicateMatches.forEach { dto ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            if (dto.imagenId != null) {
+                                AsyncImage(
+                                    model = "${Constants.BASE_URL}/api/imagen/${dto.imagenId}/contenido",
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(RoundedCornerShape(CornerRadiusSmall)),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Spacer(modifier = Modifier.width(SpacingSmall))
+                            }
+                            Text(
+                                text = dto.nombre,
+                                fontSize = TextSizeSmall,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        TextButton(onClick = {
+                            onSelectExisting(dto)
+                            viewModel.clearDuplicateMatches()
+                        }) {
+                            Text(
+                                text = "Usar este →",
+                                fontSize = TextSizeSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(SpacingXSmall))
+                TextButton(
+                    onClick = { viewModel.clearDuplicateMatches() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Continuar creando",
+                        fontSize = TextSizeSmall,
+                        color = HeavyGray
+                    )
+                }
+            }
+        }
+    }
 
     Spacer(modifier = Modifier.height(SpacingLarge))
 
@@ -349,6 +443,9 @@ fun EntradaFormContent(viewModel: EntradaViewModel) {
 
 private class FakeEntradaRepository : IEntradaRepository {
     override suspend fun getEntradas(): List<EntradaResponseDto> = emptyList()
+    override suspend fun searchEntradas(query: String): List<EntradaResponseDto> =
+        getEntradas().filter { it.nombre.contains(query, ignoreCase = true) }
+    override suspend fun findSimilarEntradas(nombre: String, excludeId: Int?): List<EntradaResponseDto> = emptyList()
     override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto = throw NotImplementedError()
     override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto = throw NotImplementedError()
     override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> = listOf(

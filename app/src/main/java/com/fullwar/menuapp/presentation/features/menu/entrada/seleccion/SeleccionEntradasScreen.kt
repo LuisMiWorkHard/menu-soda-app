@@ -27,6 +27,7 @@ import com.fullwar.menuapp.di.Constants
 import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
@@ -67,13 +69,36 @@ fun SeleccionEntradasScreen(
     val showSugerencias = menuViewModel.showSugerencias
     var searchQuery by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
+    var pendingAutoSelectNombre by remember { mutableStateOf<String?>(null) }
 
     // Cargar entradas al inicio
     LaunchedEffect(Unit) {
         entradaViewModel.loadEntradas()
     }
 
+    // Búsqueda fuzzy con debounce
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isBlank()) {
+            entradaViewModel.resetSearch()
+        } else {
+            delay(300)
+            entradaViewModel.searchEntradas(searchQuery)
+        }
+    }
+
     val entradasState = entradaViewModel.entradasState
+
+    // Auto-seleccionar elemento recién creado cuando la lista se refresca
+    LaunchedEffect(entradasState) {
+        val nombre = pendingAutoSelectNombre ?: return@LaunchedEffect
+        if (entradasState is State.Success) {
+            val dto = entradasState.data.find { it.nombre == nombre }
+            dto?.let {
+                menuViewModel.updateEntradas(menuViewModel.selectedEntradas + it)
+                pendingAutoSelectNombre = null
+            }
+        }
+    }
 
     val sugerencias = remember {
         listOf(
@@ -108,14 +133,14 @@ fun SeleccionEntradasScreen(
         }
     }
 
-    val entradasSeleccionadas = todasLasEntradas.filter { it.nombre in selectedEntradas }
-    val entradasNoSeleccionadas = todasLasEntradas.filter { it.nombre !in selectedEntradas }
+    val entradasSeleccionadas = todasLasEntradas.filter { e -> selectedEntradas.any { s -> s.id == e.id } }
+    val entradasNoSeleccionadas = todasLasEntradas.filter { e -> selectedEntradas.none { s -> s.id == e.id } }
 
     // Seleccionados siempre visibles, sin filtrar por búsqueda
     val seleccionadasFiltradas = entradasSeleccionadas
 
-    val noSeleccionadasFiltradas = if (searchQuery.isBlank()) entradasNoSeleccionadas
-        else entradasNoSeleccionadas.filter { it.nombre.contains(searchQuery, ignoreCase = true) }
+    val searchResults = entradaViewModel.searchResults
+    val noSeleccionadasFiltradas = searchResults.filter { e -> selectedEntradas.none { s -> s.id == e.id } }
 
     val sinResultados = searchQuery.isNotBlank() && noSeleccionadasFiltradas.isEmpty()
 
@@ -128,8 +153,17 @@ fun SeleccionEntradasScreen(
                 showBottomSheet = false
             },
             onSuccess = {
+                val nombre = (entradaViewModel.formFields.fields["entnom"] as? TextFieldValue)?.text?.trim() ?: ""
+                if (nombre.isNotEmpty()) pendingAutoSelectNombre = nombre
                 entradaViewModel.resetForm()
                 showBottomSheet = false
+                searchQuery = ""
+            },
+            onSelectExisting = { dto ->
+                menuViewModel.updateEntradas(menuViewModel.selectedEntradas + dto)
+                entradaViewModel.resetForm()
+                showBottomSheet = false
+                searchQuery = ""
             }
         )
     }
@@ -184,7 +218,10 @@ fun SeleccionEntradasScreen(
                             items(sugerencias) { sugerencia ->
                                 SugerenciaCard(
                                     sugerencia = sugerencia,
-                                    onAdd = { menuViewModel.updateEntradas(selectedEntradas + sugerencia.nombre) }
+                                    onAdd = {
+                                        val dto = todasLasEntradas.find { it.nombre == sugerencia.nombre }
+                                        dto?.let { menuViewModel.updateEntradas(menuViewModel.selectedEntradas + it) }
+                                    }
                                 )
                             }
                         }
@@ -278,6 +315,8 @@ fun SeleccionEntradasScreen(
                         AnadirNuevaListItem(
                             onClick = {
                                 entradaViewModel.loadTiposEntrada()
+                                entradaViewModel.initForCreate()
+                                entradaViewModel.updateField("entnom", TextFieldValue(searchQuery))
                                 showBottomSheet = true
                             }
                         )
@@ -285,14 +324,14 @@ fun SeleccionEntradasScreen(
                 }
 
                 // Seleccionados al tope
-                items(seleccionadasFiltradas, key = { it.nombre }) { entrada ->
+                items(seleccionadasFiltradas, key = { it.id }) { entrada ->
                     EntradaListItem(
                         entrada = entrada,
                         isSelected = true,
                         onToggle = { checked ->
                             menuViewModel.updateEntradas(
-                                if (checked) selectedEntradas + entrada.nombre
-                                else selectedEntradas - entrada.nombre
+                                if (checked) selectedEntradas + entrada
+                                else selectedEntradas.filter { it.id != entrada.id }.toSet()
                             )
                         }
                     )
@@ -306,14 +345,14 @@ fun SeleccionEntradasScreen(
                 }
 
                 // No seleccionados
-                items(noSeleccionadasFiltradas, key = { it.nombre }) { entrada ->
+                items(noSeleccionadasFiltradas, key = { it.id }) { entrada ->
                     EntradaListItem(
                         entrada = entrada,
                         isSelected = false,
                         onToggle = { checked ->
                             menuViewModel.updateEntradas(
-                                if (checked) selectedEntradas + entrada.nombre
-                                else selectedEntradas - entrada.nombre
+                                if (checked) selectedEntradas + entrada
+                                else selectedEntradas.filter { it.id != entrada.id }.toSet()
                             )
                         }
                     )
@@ -415,11 +454,15 @@ private fun AnadirNuevaListItem(onClick: () -> Unit) {
 // --- Previews ---
 
 private class FakeEntradaRepository : IEntradaRepository {
-    override suspend fun getEntradas() = listOf(
+    private val all = listOf(
         EntradaResponseDto(id = 1, nombre = "Ceviche Clásico", descripcion = "Fresco y ligero", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
         EntradaResponseDto(id = 2, nombre = "Carpaccio de Betabel", descripcion = "Con parmesano y limón", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
         EntradaResponseDto(id = 3, nombre = "Sopa Azteca", descripcion = "Perfecta para días fríos", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin")
     )
+    override suspend fun getEntradas() = all
+    override suspend fun searchEntradas(query: String) =
+        if (query.isBlank()) all else all.filter { it.nombre.contains(query, ignoreCase = true) }
+    override suspend fun findSimilarEntradas(nombre: String, excludeId: Int?) = emptyList<EntradaResponseDto>()
     override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto = throw NotImplementedError()
     override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto = throw NotImplementedError()
     override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> = emptyList()

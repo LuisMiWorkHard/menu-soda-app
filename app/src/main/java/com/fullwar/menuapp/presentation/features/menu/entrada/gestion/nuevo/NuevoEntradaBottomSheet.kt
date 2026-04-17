@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
+import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaFormContent
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
@@ -27,7 +28,8 @@ import com.fullwar.menuapp.ui.theme.*
 fun NuevaEntradaBottomSheet(
     viewModel: EntradaViewModel,
     onDismiss: () -> Unit,
-    onSuccess: () -> Unit
+    onSuccess: () -> Unit,
+    onSelectExisting: ((EntradaResponseDto) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -78,7 +80,7 @@ fun NuevaEntradaBottomSheet(
 
             Spacer(modifier = Modifier.height(SpacingLarge))
 
-            EntradaFormContent(viewModel = viewModel)
+            EntradaFormContent(viewModel = viewModel, onSelectExisting = onSelectExisting)
 
             Spacer(modifier = Modifier.height(SpacingXXLarge))
 

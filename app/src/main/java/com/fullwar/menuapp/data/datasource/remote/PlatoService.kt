@@ -8,6 +8,7 @@ import com.fullwar.menuapp.data.model.PlatoUpdateRequestDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -17,8 +18,10 @@ class PlatoService(private val httpClient: HttpClient) {
         private const val TAG = "PlatoService"
     }
 
-    suspend fun getPlatos(): List<PlatoResponseDto> {
-        val response = httpClient.get("api/plato")
+    suspend fun getPlatos(nombre: String? = null): List<PlatoResponseDto> {
+        val response = httpClient.get("api/plato") {
+            nombre?.takeIf { it.isNotBlank() }?.let { parameter("nombre", it) }
+        }
         Log.d(TAG, "getPlatos() - Status: ${response.status.value}")
         return response.body()
     }

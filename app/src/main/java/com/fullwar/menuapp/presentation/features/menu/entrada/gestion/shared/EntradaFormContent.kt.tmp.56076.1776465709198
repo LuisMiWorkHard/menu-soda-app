@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared
+package com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared
 
 import android.Manifest
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -13,8 +13,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
@@ -27,13 +25,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,33 +42,34 @@ import androidx.core.content.FileProvider
 import coil3.compose.AsyncImage
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.di.Constants
+import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
+import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
+import com.fullwar.menuapp.data.model.EntradaResponseDto
+import com.fullwar.menuapp.data.model.EntradaUpdateRequestDto
 import com.fullwar.menuapp.data.model.ImagenResponseDto
-import com.fullwar.menuapp.data.model.PlatoCreateRequestDto
-import com.fullwar.menuapp.data.model.PlatoCreateResponseDto
-import com.fullwar.menuapp.data.model.PlatoResponseDto
-import com.fullwar.menuapp.data.model.PlatoUpdateRequestDto
-import com.fullwar.menuapp.data.model.TipoPlatoResponseDto
-import com.fullwar.menuapp.domain.model.TipoPlato
-import com.fullwar.menuapp.domain.repository.IPlatoRepository
+import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
+import com.fullwar.menuapp.domain.model.TipoEntrada
+import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.ui.theme.*
 import java.io.File
 
 @Composable
-fun PlatoFormContent(
-    viewModel: PlatoViewModel,
-    onSelectExisting: ((PlatoResponseDto) -> Unit)? = null
+fun EntradaFormContent(
+    viewModel: EntradaViewModel,
+    onSelectExisting: ((EntradaResponseDto) -> Unit)? = null
 ) {
     val context = LocalContext.current
 
-    val nombre = viewModel.formFields.fields["platnom"] as? TextFieldValue ?: TextFieldValue()
-    val descripcion = viewModel.formFields.fields["platdes"] as? TextFieldValue ?: TextFieldValue()
-    val tipoSeleccionado = viewModel.formFields.fields["codtippla"] as? TipoPlato
+    val nombre = viewModel.formFields.fields["entnom"] as? TextFieldValue ?: TextFieldValue()
+    val descripcion = viewModel.formFields.fields["entdes"] as? TextFieldValue ?: TextFieldValue()
+    val tipoSeleccionado = viewModel.formFields.fields["codtipent"] as? TipoEntrada
     val imageUri = viewModel.formFields.fields["imageUri"] as? Uri
-    val tiposState = viewModel.tiposPlatoState
+    val tiposState = viewModel.tiposEntradaState
     val errors: Map<String, Int?> = viewModel.formFields.errors
     val serverErrors: Map<String, String?> = viewModel.formFields.serverErrors
     val currentImagenId = viewModel.currentImagenId
+    val duplicateMatches = viewModel.duplicateMatches
 
     val descripcionFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -105,13 +107,13 @@ fun PlatoFormContent(
     if (showPhotoSourceDialog) {
         AlertDialog(
             onDismissRequest = { showPhotoSourceDialog = false },
-            title = { Text(stringResource(R.string.plato_foto_source_title)) },
+            title = { Text(stringResource(R.string.entrada_foto_source_title)) },
             confirmButton = {
                 TextButton(onClick = {
                     showPhotoSourceDialog = false
                     cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }) {
-                    Text(stringResource(R.string.plato_foto_camara), color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.entrada_foto_camara), color = MaterialTheme.colorScheme.primary)
                 }
             },
             dismissButton = {
@@ -121,7 +123,7 @@ fun PlatoFormContent(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 }) {
-                    Text(stringResource(R.string.plato_foto_galeria), color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.entrada_foto_galeria), color = MaterialTheme.colorScheme.primary)
                 }
             }
         )
@@ -171,7 +173,7 @@ fun PlatoFormContent(
                 )
                 Spacer(modifier = Modifier.height(SpacingSmall))
                 Text(
-                    text = stringResource(R.string.plato_subir_foto),
+                    text = stringResource(R.string.entrada_subir_foto),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = TextSizeSmall,
                     fontWeight = FontWeight.Medium
@@ -182,34 +184,27 @@ fun PlatoFormContent(
 
     Spacer(modifier = Modifier.height(SpacingXLarge))
 
-    // Campo: Nombre del plato
+    // Campo: Nombre de la entrada
     Text(
-        text = stringResource(R.string.plato_nombre_label),
+        text = stringResource(R.string.entrada_nombre_label),
         fontWeight = FontWeight.Medium,
         fontSize = TextSizeMedium
     )
     Spacer(modifier = Modifier.height(SpacingSmall))
     OutlinedTextField(
         value = nombre,
-        onValueChange = { viewModel.updateField("platnom", it) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .onFocusChanged { focusState ->
-                if (!focusState.isFocused && onSelectExisting != null && !viewModel.isEditMode) {
-                    val text = (viewModel.formFields.fields["platnom"] as? TextFieldValue)?.text ?: ""
-                    if (text.isNotBlank()) viewModel.checkForDuplicates(text)
-                } else if (focusState.isFocused) {
-                    viewModel.clearDuplicateMatches()
-                }
-            },
+        onValueChange = { viewModel.updateField("entnom", it) },
+        modifier = Modifier.fillMaxWidth(),
         placeholder = {
             Text(
-                text = stringResource(R.string.plato_nombre_placeholder),
+                text = stringResource(R.string.entrada_nombre_placeholder),
                 color = HeavyGray
             )
         },
         shape = RoundedCornerShape(CornerRadiusMedium),
-        textStyle = TextStyle(color = MaterialTheme.colorScheme.primary),
+        textStyle = TextStyle(
+            color = MaterialTheme.colorScheme.primary
+        ),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = White,
             unfocusedContainerColor = White,
@@ -222,121 +217,41 @@ fun PlatoFormContent(
         keyboardActions = KeyboardActions(
             onNext = { descripcionFocusRequester.requestFocus() }
         ),
-        isError = errors["platnom"] != null || serverErrors["platnom"] != null,
+        isError = errors["entnom"] != null || serverErrors["entnom"] != null,
         supportingText = {
-            val errorRes = errors["platnom"]
-            val serverError = serverErrors["platnom"]
+            val errorRes = errors["entnom"]
+            val serverError = serverErrors["entnom"]
             when {
                 errorRes != null -> Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error)
                 serverError != null -> Text(serverError, color = MaterialTheme.colorScheme.error)
-                else -> Text("${nombre.text.length}/100", color = HeavyGray, fontSize = TextSizeXSmall)
+                else -> Text("${nombre.text.length}/200", color = HeavyGray, fontSize = TextSizeXSmall)
             }
         }
     )
 
-    val duplicateMatches = viewModel.duplicateMatches
-    if (onSelectExisting != null && duplicateMatches.isNotEmpty()) {
-        Spacer(modifier = Modifier.height(SpacingSmall))
-        Surface(
-            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
-            shape = RoundedCornerShape(CornerRadiusMedium),
-            modifier = Modifier.fillMaxWidth(),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
-        ) {
-            Column(modifier = Modifier.padding(SpacingMedium)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Filled.Warning,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(IconSizeMedium)
-                    )
-                    Spacer(modifier = Modifier.width(SpacingSmall))
-                    Text(
-                        text = "¿Ya existe algo similar?",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = TextSizeMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-                Spacer(modifier = Modifier.height(SpacingSmall))
-                duplicateMatches.forEach { dto ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            if (dto.imagenId != null) {
-                                AsyncImage(
-                                    model = "${Constants.BASE_URL}/api/imagen/${dto.imagenId}/contenido",
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(RoundedCornerShape(CornerRadiusSmall)),
-                                    contentScale = ContentScale.Crop
-                                )
-                                Spacer(modifier = Modifier.width(SpacingSmall))
-                            }
-                            Text(
-                                text = dto.nombre,
-                                fontSize = TextSizeSmall,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        TextButton(onClick = {
-                            onSelectExisting(dto)
-                            viewModel.clearDuplicateMatches()
-                        }) {
-                            Text(
-                                text = "Usar este →",
-                                fontSize = TextSizeSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(SpacingXSmall))
-                TextButton(
-                    onClick = { viewModel.clearDuplicateMatches() },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Continuar creando",
-                        fontSize = TextSizeSmall,
-                        color = HeavyGray
-                    )
-                }
-            }
-        }
-    }
-
     Spacer(modifier = Modifier.height(SpacingLarge))
 
-    // Campo: Descripción del plato
+    // Campo: Descripción corta
     Text(
-        text = stringResource(R.string.plato_descripcion_label),
+        text = stringResource(R.string.entrada_descripcion_label),
         fontWeight = FontWeight.Medium,
         fontSize = TextSizeMedium
     )
     Spacer(modifier = Modifier.height(SpacingSmall))
     OutlinedTextField(
         value = descripcion,
-        onValueChange = { viewModel.updateField("platdes", it) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(descripcionFocusRequester),
+        onValueChange = { viewModel.updateField("entdes", it) },
+        modifier = Modifier.fillMaxWidth().focusRequester(descripcionFocusRequester),
         placeholder = {
             Text(
-                text = stringResource(R.string.plato_descripcion_placeholder),
+                text = stringResource(R.string.entrada_descripcion_placeholder),
                 color = HeavyGray
             )
         },
         shape = RoundedCornerShape(CornerRadiusMedium),
-        textStyle = TextStyle(color = MaterialTheme.colorScheme.primary),
+        textStyle = TextStyle(
+            color = MaterialTheme.colorScheme.primary
+        ),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = White,
             unfocusedContainerColor = White,
@@ -350,23 +265,23 @@ fun PlatoFormContent(
         keyboardActions = KeyboardActions(
             onDone = { focusManager.clearFocus() }
         ),
-        isError = errors["platdes"] != null || serverErrors["platdes"] != null,
+        isError = errors["entdes"] != null || serverErrors["entdes"] != null,
         supportingText = {
-            val errorRes = errors["platdes"]
-            val serverError = serverErrors["platdes"]
+            val errorRes = errors["entdes"]
+            val serverError = serverErrors["entdes"]
             when {
                 errorRes != null -> Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error)
                 serverError != null -> Text(serverError, color = MaterialTheme.colorScheme.error)
-                else -> Text("${descripcion.text.length}/150", color = HeavyGray, fontSize = TextSizeXSmall)
+                else -> Text("${descripcion.text.length}/1000", color = HeavyGray, fontSize = TextSizeXSmall)
             }
         }
     )
 
     Spacer(modifier = Modifier.height(SpacingLarge))
 
-    // Tipo de plato (chips)
+    // Tipo de entrada (chips)
     Text(
-        text = stringResource(R.string.plato_tipo_label),
+        text = stringResource(R.string.entrada_tipo_label),
         fontWeight = FontWeight.Medium,
         fontSize = TextSizeMedium
     )
@@ -379,7 +294,7 @@ fun PlatoFormContent(
                 modifier = Modifier.size(IconSizeMedium)
             )
         }
-        is State.Success<List<TipoPlato>> -> {
+        is State.Success<List<TipoEntrada>> -> {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(SpacingSmall),
                 verticalArrangement = Arrangement.spacedBy(SpacingSmall)
@@ -388,7 +303,7 @@ fun PlatoFormContent(
                     val isSelected = tipoSeleccionado?.id == tipo.id
                     FilterChip(
                         selected = isSelected,
-                        onClick = { viewModel.updateField("codtippla", tipo) },
+                        onClick = { viewModel.updateField("codtipent", tipo) },
                         label = { Text(text = tipo.descripcion, fontSize = TextSizeSmall) },
                         shape = RoundedCornerShape(CornerRadiusMedium),
                         colors = FilterChipDefaults.filterChipColors(
@@ -417,8 +332,8 @@ fun PlatoFormContent(
         else -> {}
     }
 
-    val tipoError = errors["codtippla"]
-    val tipoServerError = serverErrors["codtippla"]
+    val tipoError = errors["codtipent"]
+    val tipoServerError = serverErrors["codtipent"]
     if (tipoError != null) {
         Text(
             text = stringResource(tipoError),
@@ -438,27 +353,25 @@ fun PlatoFormContent(
 
 // --- Previews ---
 
-private class FakePlatoRepository : IPlatoRepository {
-    override suspend fun getPlatos(): List<PlatoResponseDto> = emptyList()
-    override suspend fun searchPlatos(query: String): List<PlatoResponseDto> =
-        getPlatos().filter { it.nombre.contains(query, ignoreCase = true) }
-    override suspend fun findSimilarPlatos(nombre: String, excludeId: Int?): List<PlatoResponseDto> = emptyList()
-    override suspend fun createPlato(request: PlatoCreateRequestDto): PlatoCreateResponseDto = throw NotImplementedError()
-    override suspend fun updatePlato(id: Int, request: PlatoUpdateRequestDto) = throw NotImplementedError()
-    override suspend fun getTiposPlato(): List<TipoPlatoResponseDto> = listOf(
-        TipoPlatoResponseDto(1, "Carnes", 1, "01/01/2024", "admin"),
-        TipoPlatoResponseDto(2, "Pescados", 1, "01/01/2024", "admin"),
-        TipoPlatoResponseDto(3, "Vegetariano", 1, "01/01/2024", "admin")
+private class FakeEntradaRepository : IEntradaRepository {
+    override suspend fun getEntradas(): List<EntradaResponseDto> = emptyList()
+    override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto = throw NotImplementedError()
+    override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto = throw NotImplementedError()
+    override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> = listOf(
+        TipoEntradaResponseDto(1, "Fría", 1, "01/01/2024", "admin"),
+        TipoEntradaResponseDto(2, "Caliente", 1, "01/01/2024", "admin"),
+        TipoEntradaResponseDto(3, "Ensalada", 1, "01/01/2024", "admin")
     )
     override suspend fun uploadImage(imageBytes: ByteArray, fileName: String, extension: String): ImagenResponseDto = throw NotImplementedError()
 }
 
-private val fakePlato = PlatoResponseDto(
+private val fakeEntrada = EntradaResponseDto(
     id = 1,
-    nombre = "Lomo Saltado",
-    descripcion = "Clásico plato peruano",
-    tipoPlatoId = 1,
+    nombre = "Ceviche Clásico",
+    descripcion = "Fresco, ligero y con toque de limón",
     estadoId = 1,
+    tipoEntradaId = 2,
+    imagenId = null,
     fechaRegistro = "01/01/2024",
     usuarioRegistro = "admin"
 )
@@ -475,96 +388,104 @@ private fun PreviewWrapper(darkTheme: Boolean, content: @Composable () -> Unit) 
 }
 
 @Composable
-private fun FormScrollWrapper(viewModel: PlatoViewModel) {
+private fun FormScrollWrapper(viewModel: EntradaViewModel) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .padding(horizontal = SpacingXLarge)
             .padding(vertical = SpacingLarge)
     ) {
-        PlatoFormContent(viewModel = viewModel)
+        EntradaFormContent(viewModel = viewModel)
     }
 }
 
-@Preview(showBackground = true, name = "PlatoForm - Vacío - Claro")
+// Estado 1: Vacío (sin tipos cargados)
+
+@Preview(showBackground = true, name = "EntradaForm - Vacío - Claro")
 @Composable
-private fun PlatoFormVacioPreview() {
-    val vm = remember { PlatoViewModel(FakePlatoRepository()) }
+private fun EntradaFormVacioPreview() {
+    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
     LaunchedEffect(Unit) { vm.initForCreate() }
     PreviewWrapper(darkTheme = false) { FormScrollWrapper(vm) }
 }
 
-@Preview(showBackground = true, name = "PlatoForm - Vacío - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, name = "EntradaForm - Vacío - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
-private fun PlatoFormVacioDarkPreview() {
-    val vm = remember { PlatoViewModel(FakePlatoRepository()) }
+private fun EntradaFormVacioDarkPreview() {
+    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
     LaunchedEffect(Unit) { vm.initForCreate() }
     PreviewWrapper(darkTheme = true) { FormScrollWrapper(vm) }
 }
 
-@Preview(showBackground = true, name = "PlatoForm - Con tipos - Claro")
+// Estado 2: Con tipos cargados
+
+@Preview(showBackground = true, name = "EntradaForm - Con tipos - Claro")
 @Composable
-private fun PlatoFormConTiposPreview() {
-    val vm = remember { PlatoViewModel(FakePlatoRepository()) }
+private fun EntradaFormConTiposPreview() {
+    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
     LaunchedEffect(Unit) {
         vm.initForCreate()
-        vm.loadTiposPlato()
+        vm.loadTiposEntrada()
     }
     PreviewWrapper(darkTheme = false) { FormScrollWrapper(vm) }
 }
 
-@Preview(showBackground = true, name = "PlatoForm - Con tipos - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, name = "EntradaForm - Con tipos - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
-private fun PlatoFormConTiposDarkPreview() {
-    val vm = remember { PlatoViewModel(FakePlatoRepository()) }
+private fun EntradaFormConTiposDarkPreview() {
+    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
     LaunchedEffect(Unit) {
         vm.initForCreate()
-        vm.loadTiposPlato()
+        vm.loadTiposEntrada()
     }
     PreviewWrapper(darkTheme = true) { FormScrollWrapper(vm) }
 }
 
-@Preview(showBackground = true, name = "PlatoForm - Con datos - Claro")
+// Estado 3: Con datos (modo editar)
+
+@Preview(showBackground = true, name = "EntradaForm - Con datos - Claro")
 @Composable
-private fun PlatoFormConDatosPreview() {
-    val vm = remember { PlatoViewModel(FakePlatoRepository()) }
+private fun EntradaFormConDatosPreview() {
+    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
     LaunchedEffect(Unit) {
-        vm.initForEdit(fakePlato)
-        vm.loadTiposPlato()
+        vm.initForEdit(fakeEntrada)
+        vm.loadTiposEntrada()
     }
     PreviewWrapper(darkTheme = false) { FormScrollWrapper(vm) }
 }
 
-@Preview(showBackground = true, name = "PlatoForm - Con datos - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, name = "EntradaForm - Con datos - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
-private fun PlatoFormConDatosDarkPreview() {
-    val vm = remember { PlatoViewModel(FakePlatoRepository()) }
+private fun EntradaFormConDatosDarkPreview() {
+    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
     LaunchedEffect(Unit) {
-        vm.initForEdit(fakePlato)
-        vm.loadTiposPlato()
+        vm.initForEdit(fakeEntrada)
+        vm.loadTiposEntrada()
     }
     PreviewWrapper(darkTheme = true) { FormScrollWrapper(vm) }
 }
 
-@Preview(showBackground = true, name = "PlatoForm - Con errores - Claro")
+// Estado 4: Con errores de validación
+
+@Preview(showBackground = true, name = "EntradaForm - Con errores - Claro")
 @Composable
-private fun PlatoFormConErroresPreview() {
-    val vm = remember { PlatoViewModel(FakePlatoRepository()) }
+private fun EntradaFormConErroresPreview() {
+    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
     LaunchedEffect(Unit) {
         vm.initForCreate()
-        vm.loadTiposPlato()
+        vm.loadTiposEntrada()
         vm.validate()
     }
     PreviewWrapper(darkTheme = false) { FormScrollWrapper(vm) }
 }
 
-@Preview(showBackground = true, name = "PlatoForm - Con errores - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, name = "EntradaForm - Con errores - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
-private fun PlatoFormConErroresDarkPreview() {
-    val vm = remember { PlatoViewModel(FakePlatoRepository()) }
+private fun EntradaFormConErroresDarkPreview() {
+    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
     LaunchedEffect(Unit) {
         vm.initForCreate()
-        vm.loadTiposPlato()
+        vm.loadTiposEntrada()
         vm.validate()
     }
     PreviewWrapper(darkTheme = true) { FormScrollWrapper(vm) }

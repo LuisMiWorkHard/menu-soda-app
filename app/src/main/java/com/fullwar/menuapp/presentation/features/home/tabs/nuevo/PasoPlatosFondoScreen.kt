@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
@@ -62,13 +64,36 @@ fun PasoPlatosFondoScreen(
     val showSugerencias = menuViewModel.showSugerencias
     var searchQuery by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
+    var pendingAutoSelectNombre by remember { mutableStateOf<String?>(null) }
 
     // Cargar platos al inicio
     LaunchedEffect(Unit) {
         platoViewModel.loadPlatos()
     }
 
+    // Búsqueda fuzzy con debounce
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isBlank()) {
+            platoViewModel.resetSearch()
+        } else {
+            delay(300)
+            platoViewModel.searchPlatos(searchQuery)
+        }
+    }
+
     val platosState = platoViewModel.platosState
+
+    // Auto-seleccionar elemento recién creado cuando la lista se refresca
+    LaunchedEffect(platosState) {
+        val nombre = pendingAutoSelectNombre ?: return@LaunchedEffect
+        if (platosState is State.Success) {
+            val dto = platosState.data.find { it.nombre == nombre }
+            dto?.let {
+                menuViewModel.updatePlatosFuertes(menuViewModel.selectedPlatosFuertes + it)
+                pendingAutoSelectNombre = null
+            }
+        }
+    }
 
     val sugerenciasMock = listOf(
         SugerenciaPlatoItem("Lomo Saltado", "Ideal con la Sopa del día."),
@@ -90,12 +115,12 @@ fun PasoPlatosFondoScreen(
         else -> emptyList()
     }
 
-    val platosSeleccionados = todosLosPlatos.filter { it.nombre in selectedPlatos }
-    val platosNoSeleccionados = todosLosPlatos.filter { it.nombre !in selectedPlatos }
+    val platosSeleccionados = todosLosPlatos.filter { p -> selectedPlatos.any { s -> s.id == p.id } }
+    val platosNoSeleccionados = todosLosPlatos.filter { p -> selectedPlatos.none { s -> s.id == p.id } }
 
     val seleccionadosFiltrados = platosSeleccionados
-    val noSeleccionadosFiltrados = if (searchQuery.isBlank()) platosNoSeleccionados
-        else platosNoSeleccionados.filter { it.nombre.contains(searchQuery, ignoreCase = true) }
+    val searchResults = platoViewModel.searchResults
+    val noSeleccionadosFiltrados = searchResults.filter { p -> selectedPlatos.none { s -> s.id == p.id } }
 
     val sinResultados = searchQuery.isNotBlank() && noSeleccionadosFiltrados.isEmpty()
 
@@ -111,8 +136,17 @@ fun PasoPlatosFondoScreen(
                 showBottomSheet = false
             },
             onSuccess = {
+                val nombre = (platoViewModel.formFields.fields["platnom"] as? TextFieldValue)?.text?.trim() ?: ""
+                if (nombre.isNotEmpty()) pendingAutoSelectNombre = nombre
                 platoViewModel.initForCreate()
                 showBottomSheet = false
+                searchQuery = ""
+            },
+            onSelectExisting = { dto ->
+                menuViewModel.updatePlatosFuertes(menuViewModel.selectedPlatosFuertes + dto)
+                platoViewModel.initForCreate()
+                showBottomSheet = false
+                searchQuery = ""
             }
         )
     }
@@ -162,7 +196,8 @@ fun PasoPlatosFondoScreen(
                             ) {
                                 items(sugerencias) { item ->
                                     SugerenciaPlatoCard(item) {
-                                        menuViewModel.updatePlatosFuertes(selectedPlatos + item.nombre)
+                                        val dto = todosLosPlatos.find { it.nombre == item.nombre }
+                                        dto?.let { menuViewModel.updatePlatosFuertes(menuViewModel.selectedPlatosFuertes + it) }
                                     }
                                 }
                             }
@@ -237,6 +272,8 @@ fun PasoPlatosFondoScreen(
                             AnadirNuevoListItem(
                                 onClick = {
                                     platoViewModel.loadTiposPlato()
+                                    platoViewModel.initForCreate()
+                                    platoViewModel.updateField("platnom", TextFieldValue(searchQuery))
                                     showBottomSheet = true
                                 }
                             )
@@ -250,8 +287,8 @@ fun PasoPlatosFondoScreen(
                             isSelected = true,
                             onToggle = { checked ->
                                 menuViewModel.updatePlatosFuertes(
-                                    if (checked) selectedPlatos + plato.nombre
-                                    else selectedPlatos - plato.nombre
+                                    if (checked) selectedPlatos + plato
+                                    else selectedPlatos.filter { it.id != plato.id }.toSet()
                                 )
                             }
                         )
@@ -271,8 +308,8 @@ fun PasoPlatosFondoScreen(
                             isSelected = false,
                             onToggle = { checked ->
                                 menuViewModel.updatePlatosFuertes(
-                                    if (checked) selectedPlatos + plato.nombre
-                                    else selectedPlatos - plato.nombre
+                                    if (checked) selectedPlatos + plato
+                                    else selectedPlatos.filter { it.id != plato.id }.toSet()
                                 )
                             }
                         )
@@ -414,11 +451,15 @@ private fun AnadirNuevoListItem(onClick: () -> Unit) {
 // --- Previews ---
 
 private class FakePlatoRepository : IPlatoRepository {
-    override suspend fun getPlatos() = listOf(
+    private val all = listOf(
         PlatoResponseDto(id = 1, nombre = "Pollo a la Plancha", descripcion = "Con ensalada fresca o papas", tipoPlatoId = 1, estadoId = 1, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
         PlatoResponseDto(id = 2, nombre = "Salmón al Horno", descripcion = "Acompañado de espárragos", tipoPlatoId = 1, estadoId = 1, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
         PlatoResponseDto(id = 3, nombre = "Seco de Res", descripcion = "Clásico con frijoles y arroz", tipoPlatoId = 1, estadoId = 1, fechaRegistro = "01/01/2024", usuarioRegistro = "admin")
     )
+    override suspend fun getPlatos() = all
+    override suspend fun searchPlatos(query: String) =
+        if (query.isBlank()) all else all.filter { it.nombre.contains(query, ignoreCase = true) }
+    override suspend fun findSimilarPlatos(nombre: String, excludeId: Int?) = emptyList<PlatoResponseDto>()
     override suspend fun createPlato(request: PlatoCreateRequestDto): PlatoCreateResponseDto = throw NotImplementedError()
     override suspend fun updatePlato(id: Int, request: PlatoUpdateRequestDto) = throw NotImplementedError()
     override suspend fun getTiposPlato(): List<TipoPlatoResponseDto> = listOf(

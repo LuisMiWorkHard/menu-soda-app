@@ -9,6 +9,8 @@ import com.fullwar.menuapp.data.model.TipoPlatoResponseDto
 
 interface IPlatoRepository {
     suspend fun getPlatos(): List<PlatoResponseDto>
+    suspend fun searchPlatos(query: String): List<PlatoResponseDto>
+    suspend fun findSimilarPlatos(nombre: String, excludeId: Int? = null): List<PlatoResponseDto>
     suspend fun createPlato(request: PlatoCreateRequestDto): PlatoCreateResponseDto
     suspend fun updatePlato(id: Int, request: PlatoUpdateRequestDto)
     suspend fun getTiposPlato(): List<TipoPlatoResponseDto>

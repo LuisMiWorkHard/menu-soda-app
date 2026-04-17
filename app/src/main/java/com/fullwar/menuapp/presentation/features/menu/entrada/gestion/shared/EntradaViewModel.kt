@@ -69,6 +69,14 @@ class EntradaViewModel(
     var entradasState by mutableStateOf<State<List<EntradaResponseDto>>>(State.Initial)
         private set
 
+    var searchResults by mutableStateOf<List<EntradaResponseDto>>(emptyList())
+        private set
+
+    var duplicateMatches by mutableStateOf<List<EntradaResponseDto>>(emptyList())
+        private set
+
+    val isEditMode: Boolean get() = editingId != null
+
     // --- Inicializar modo ---
 
     fun initForCreate() {
@@ -118,6 +126,34 @@ class EntradaViewModel(
         }
     }
 
+    // --- Search entradas (server-side fuzzy) ---
+    fun searchEntradas(query: String) {
+        viewModelScope.launch {
+            try {
+                searchResults = entradaRepository.searchEntradas(query)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error searching entradas", e)
+            }
+        }
+    }
+
+    fun checkForDuplicates(nombre: String) {
+        viewModelScope.launch {
+            try {
+                duplicateMatches = entradaRepository.findSimilarEntradas(nombre, editingId)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error checking duplicates", e)
+            }
+        }
+    }
+
+    fun clearDuplicateMatches() { duplicateMatches = emptyList() }
+
+    fun resetSearch() {
+        val state = entradasState
+        if (state is State.Success) searchResults = state.data
+    }
+
     // --- Load entradas list ---
     fun loadEntradas() {
         viewModelScope.launch {
@@ -125,6 +161,7 @@ class EntradaViewModel(
             try {
                 val entradas = entradaRepository.getEntradas()
                 entradasState = State.Success(entradas)
+                searchResults = entradas
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading entradas", e)
                 entradasState = State.Error(e.message ?: "Error cargando entradas")
