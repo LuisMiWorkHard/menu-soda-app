@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.common.components
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,19 +22,17 @@ import com.fullwar.menuapp.R
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.fullwar.menuapp.di.Constants
 import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
 import com.fullwar.menuapp.ui.theme.HeavyGray
 
 @Composable
 fun CustomImageView(
-    imagenId: Int?,
+    imageUrl: String?,
     sizeDp: Int = 60,
+    @DrawableRes defaultImageRes: Int = R.drawable.default_image_meal,
     modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(CornerRadiusSmall)
-    val hasImage = imagenId != null && imagenId > 0
-    val imageUrl = if (hasImage) "${Constants.BASE_URL}/api/imagen/$imagenId/contenido" else null
     val context = LocalContext.current
     val px = with(LocalDensity.current) { sizeDp.dp.toPx() }.toInt()
 
@@ -73,7 +72,7 @@ fun CustomImageView(
         )
     } else {
         Image(
-            painter = painterResource(id = R.drawable.default_image_meal),
+            painter = painterResource(id = defaultImageRes),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = modifier

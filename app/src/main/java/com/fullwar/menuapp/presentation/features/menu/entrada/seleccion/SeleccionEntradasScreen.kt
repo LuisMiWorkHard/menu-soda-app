@@ -19,11 +19,6 @@ import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Search
-import coil3.request.ImageRequest
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import coil3.imageLoader
-import com.fullwar.menuapp.di.Constants
 import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -47,12 +42,15 @@ import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.data.model.EntradaUpdateRequestDto
 import com.fullwar.menuapp.data.model.ImagenResponseDto
+import com.fullwar.menuapp.data.model.MenuImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
+import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo.NuevaEntradaBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
+import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasViewModel
 import com.fullwar.menuapp.ui.theme.*
 
 data class SugerenciaItem(
@@ -63,7 +61,8 @@ data class SugerenciaItem(
 @Composable
 fun SeleccionEntradasScreen(
     menuViewModel: MenuViewModel,
-    entradaViewModel: EntradaViewModel
+    entradaViewModel: EntradaViewModel,
+    seleccionViewModel: SeleccionEntradasViewModel
 ) {
     val selectedEntradas = menuViewModel.selectedEntradas
     val showSugerencias = menuViewModel.showSugerencias
@@ -73,20 +72,20 @@ fun SeleccionEntradasScreen(
 
     // Cargar entradas al inicio
     LaunchedEffect(Unit) {
-        entradaViewModel.loadEntradas()
+        seleccionViewModel.loadEntradas()
     }
 
     // Búsqueda fuzzy con debounce
     LaunchedEffect(searchQuery) {
         if (searchQuery.isBlank()) {
-            entradaViewModel.resetSearch()
+            seleccionViewModel.resetSearch()
         } else {
             delay(300)
-            entradaViewModel.searchEntradas(searchQuery)
+            seleccionViewModel.searchEntradas(searchQuery)
         }
     }
 
-    val entradasState = entradaViewModel.entradasState
+    val entradasState = seleccionViewModel.entradasState
 
     // Auto-seleccionar elemento recién creado cuando la lista se refresca
     LaunchedEffect(entradasState) {
@@ -115,31 +114,12 @@ fun SeleccionEntradasScreen(
         else -> emptyList()
     }
 
-    // Precargar imágenes en disco/memoria para que estén listas al hacer scroll
-    val context = LocalContext.current
-    val density = LocalDensity.current
-    LaunchedEffect(todasLasEntradas) {
-        if (todasLasEntradas.isEmpty()) return@LaunchedEffect
-        val imageLoader = context.imageLoader
-        val sizePx = with(density) { 60.dp.roundToPx() }
-        todasLasEntradas.forEach { entrada ->
-            entrada.imagenId?.let { id ->
-                val request = ImageRequest.Builder(context)
-                    .data("${Constants.BASE_URL}/api/imagen/$id/contenido")
-                    .size(sizePx, sizePx)
-                    .build()
-                imageLoader.enqueue(request)
-            }
-        }
-    }
-
     val entradasSeleccionadas = todasLasEntradas.filter { e -> selectedEntradas.any { s -> s.id == e.id } }
-    val entradasNoSeleccionadas = todasLasEntradas.filter { e -> selectedEntradas.none { s -> s.id == e.id } }
 
     // Seleccionados siempre visibles, sin filtrar por búsqueda
     val seleccionadasFiltradas = entradasSeleccionadas
 
-    val searchResults = entradaViewModel.searchResults
+    val searchResults = seleccionViewModel.searchResults
     val noSeleccionadasFiltradas = searchResults.filter { e -> selectedEntradas.none { s -> s.id == e.id } }
 
     val sinResultados = searchQuery.isNotBlank() && noSeleccionadasFiltradas.isEmpty()
@@ -156,6 +136,7 @@ fun SeleccionEntradasScreen(
                 val nombre = (entradaViewModel.formFields.fields["entnom"] as? TextFieldValue)?.text?.trim() ?: ""
                 if (nombre.isNotEmpty()) pendingAutoSelectNombre = nombre
                 entradaViewModel.resetForm()
+                seleccionViewModel.loadEntradas()
                 showBottomSheet = false
                 searchQuery = ""
             },
@@ -327,6 +308,7 @@ fun SeleccionEntradasScreen(
                 items(seleccionadasFiltradas, key = { it.id }) { entrada ->
                     EntradaListItem(
                         entrada = entrada,
+                        imageUrl = seleccionViewModel.imagenesMap[entrada.imagenId],
                         isSelected = true,
                         onToggle = { checked ->
                             menuViewModel.updateEntradas(
@@ -348,6 +330,7 @@ fun SeleccionEntradasScreen(
                 items(noSeleccionadasFiltradas, key = { it.id }) { entrada ->
                     EntradaListItem(
                         entrada = entrada,
+                        imageUrl = seleccionViewModel.imagenesMap[entrada.imagenId],
                         isSelected = false,
                         onToggle = { checked ->
                             menuViewModel.updateEntradas(
@@ -389,6 +372,7 @@ fun SeleccionEntradasScreen(
 @Composable
 private fun EntradaListItem(
     entrada: EntradaResponseDto,
+    imageUrl: String?,
     isSelected: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
@@ -403,7 +387,7 @@ private fun EntradaListItem(
             modifier = Modifier.padding(SpacingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CustomImageView(imagenId = entrada.imagenId)
+            CustomImageView(imageUrl = imageUrl)
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = entrada.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
@@ -453,6 +437,10 @@ private fun AnadirNuevaListItem(onClick: () -> Unit) {
 
 // --- Previews ---
 
+private class FakeMenuImagenRepository : IMenuImagenRepository {
+    override suspend fun getMenuImagenes(): List<MenuImagenResponseDto> = emptyList()
+}
+
 private class FakeEntradaRepository : IEntradaRepository {
     private val all = listOf(
         EntradaResponseDto(id = 1, nombre = "Ceviche Clásico", descripcion = "Fresco y ligero", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
@@ -484,8 +472,9 @@ private val fakeSugerencia = SugerenciaItem(
 private fun SeleccionEntradasScreenPreview() {
     val menuVm = remember { MenuViewModel() }
     val entradaVm = remember { EntradaViewModel(FakeEntradaRepository()) }
+    val seleccionVm = remember { SeleccionEntradasViewModel(FakeEntradaRepository(), FakeMenuImagenRepository()) }
     MenuAppTheme(darkTheme = false) {
-        SeleccionEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm)
+        SeleccionEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm, seleccionViewModel = seleccionVm)
     }
 }
 
@@ -494,9 +483,10 @@ private fun SeleccionEntradasScreenPreview() {
 private fun SeleccionEntradasScreenDarkPreview() {
     val menuVm = remember { MenuViewModel() }
     val entradaVm = remember { EntradaViewModel(FakeEntradaRepository()) }
+    val seleccionVm = remember { SeleccionEntradasViewModel(FakeEntradaRepository(), FakeMenuImagenRepository()) }
     MenuAppTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            SeleccionEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm)
+            SeleccionEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm, seleccionViewModel = seleccionVm)
         }
     }
 }
@@ -505,7 +495,7 @@ private fun SeleccionEntradasScreenDarkPreview() {
 @Composable
 private fun EntradaListItemSelectedPreview() {
     MenuAppTheme(darkTheme = false) {
-        EntradaListItem(entrada = fakeEntrada, isSelected = true, onToggle = {})
+        EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = true, onToggle = {})
     }
 }
 
@@ -513,7 +503,7 @@ private fun EntradaListItemSelectedPreview() {
 @Composable
 private fun EntradaListItemUnselectedPreview() {
     MenuAppTheme(darkTheme = false) {
-        EntradaListItem(entrada = fakeEntrada, isSelected = false, onToggle = {})
+        EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = false, onToggle = {})
     }
 }
 
@@ -522,7 +512,7 @@ private fun EntradaListItemUnselectedPreview() {
 private fun EntradaListItemDarkPreview() {
     MenuAppTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            EntradaListItem(entrada = fakeEntrada, isSelected = false, onToggle = {})
+            EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = false, onToggle = {})
         }
     }
 }

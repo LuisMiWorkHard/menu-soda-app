@@ -56,9 +56,6 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
     )
 
     // --- Async states ---
-    var platosState by mutableStateOf<State<List<PlatoResponseDto>>>(State.Initial)
-        private set
-
     var createState by mutableStateOf<State<PlatoCreateResponseDto>>(State.Initial)
         private set
 
@@ -66,9 +63,6 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
         private set
 
     var tiposPlatoState by mutableStateOf<State<List<TipoPlato>>>(State.Initial)
-        private set
-
-    var searchResults by mutableStateOf<List<PlatoResponseDto>>(emptyList())
         private set
 
     var duplicateMatches by mutableStateOf<List<PlatoResponseDto>>(emptyList())
@@ -109,17 +103,6 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
         else createPlato(context)
     }
 
-    // --- Search platos (server-side fuzzy) ---
-    fun searchPlatos(query: String) {
-        viewModelScope.launch {
-            try {
-                searchResults = repository.searchPlatos(query)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error searching platos", e)
-            }
-        }
-    }
-
     fun checkForDuplicates(nombre: String) {
         viewModelScope.launch {
             try {
@@ -131,26 +114,6 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
     }
 
     fun clearDuplicateMatches() { duplicateMatches = emptyList() }
-
-    fun resetSearch() {
-        val state = platosState
-        if (state is State.Success) searchResults = state.data
-    }
-
-    // --- Cargar lista de platos ---
-    fun loadPlatos() {
-        viewModelScope.launch {
-            platosState = State.Loading
-            try {
-                val platos = repository.getPlatos()
-                platosState = State.Success(platos)
-                searchResults = platos
-            } catch (e: Exception) {
-                Log.e(TAG, "Error loading platos", e)
-                platosState = State.Error(e.message ?: "Error al cargar platos")
-            }
-        }
-    }
 
     // --- Cargar tipos de plato para los chips ---
     fun loadTiposPlato() {
@@ -200,7 +163,6 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
                     imagenId = codima
                 )
                 val response = repository.createPlato(request)
-                loadPlatos()
                 createState = State.Success(response)
             } catch (e: ApiException) {
                 Log.e(TAG, "ApiException creating plato: ${e.message}")
@@ -250,7 +212,6 @@ class PlatoViewModel(private val repository: IPlatoRepository) : ViewModel(), Dy
                     imagenId = codima
                 )
                 repository.updatePlato(id, request)
-                loadPlatos()
                 editState = State.Success(Unit)
             } catch (e: ApiException) {
                 Log.e(TAG, "ApiException updating plato: ${e.message}")

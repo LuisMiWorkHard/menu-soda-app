@@ -37,9 +37,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.PasoEstiloScreen
-import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.PasoPlatosFondoScreen
+import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoScreen
+import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasScreen
+import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasViewModel
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.HeavyGray
@@ -66,7 +68,9 @@ fun MenuScreen() {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val menuViewModel: MenuViewModel = koinViewModel()
     val entradaViewModel: EntradaViewModel = koinViewModel()
+    val seleccionEntradasViewModel: SeleccionEntradasViewModel = koinViewModel()
     val platoViewModel: PlatoViewModel = koinViewModel()
+    val seleccionPlatosFondoViewModel: SeleccionPlatosFondoViewModel = koinViewModel()
 
     val currentStep = when (currentRoute) {
         MenuRoute.Entradas.route -> 1
@@ -110,14 +114,19 @@ fun MenuScreen() {
             composable(MenuRoute.Entradas.route) {
                 SeleccionEntradasScreen(
                     menuViewModel = menuViewModel,
-                    entradaViewModel = entradaViewModel
+                    entradaViewModel = entradaViewModel,
+                    seleccionViewModel = seleccionEntradasViewModel
                 )
             }
             composable(MenuRoute.PlatosFondo.route) {
-                PasoPlatosFondoScreen(menuViewModel = menuViewModel, platoViewModel = platoViewModel)
+                SeleccionPlatosFondoScreen(
+                    menuViewModel = menuViewModel,
+                    platoViewModel = platoViewModel,
+                    seleccionViewModel = seleccionPlatosFondoViewModel
+                )
             }
             composable(MenuRoute.Estilo.route) {
-                PasoEstiloScreen()
+                PasoEstiloScreen(menuViewModel = menuViewModel)
             }
         }
     }

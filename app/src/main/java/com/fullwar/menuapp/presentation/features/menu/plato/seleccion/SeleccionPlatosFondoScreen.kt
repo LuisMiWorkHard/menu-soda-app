@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.home.tabs.nuevo
+package com.fullwar.menuapp.presentation.features.menu.plato.seleccion
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
@@ -42,7 +42,9 @@ import com.fullwar.menuapp.data.model.PlatoCreateRequestDto
 import com.fullwar.menuapp.data.model.PlatoCreateResponseDto
 import com.fullwar.menuapp.data.model.PlatoResponseDto
 import com.fullwar.menuapp.data.model.PlatoUpdateRequestDto
+import com.fullwar.menuapp.data.model.MenuImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoPlatoResponseDto
+import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.domain.repository.IPlatoRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
@@ -56,9 +58,10 @@ data class SugerenciaPlatoItem(
 )
 
 @Composable
-fun PasoPlatosFondoScreen(
+fun SeleccionPlatosFondoScreen(
     menuViewModel: MenuViewModel,
-    platoViewModel: PlatoViewModel
+    platoViewModel: PlatoViewModel,
+    seleccionViewModel: SeleccionPlatosFondoViewModel
 ) {
     val selectedPlatos = menuViewModel.selectedPlatosFuertes
     val showSugerencias = menuViewModel.showSugerencias
@@ -68,20 +71,20 @@ fun PasoPlatosFondoScreen(
 
     // Cargar platos al inicio
     LaunchedEffect(Unit) {
-        platoViewModel.loadPlatos()
+        seleccionViewModel.loadPlatos()
     }
 
     // Búsqueda fuzzy con debounce
     LaunchedEffect(searchQuery) {
         if (searchQuery.isBlank()) {
-            platoViewModel.resetSearch()
+            seleccionViewModel.resetSearch()
         } else {
             delay(300)
-            platoViewModel.searchPlatos(searchQuery)
+            seleccionViewModel.searchPlatos(searchQuery)
         }
     }
 
-    val platosState = platoViewModel.platosState
+    val platosState = seleccionViewModel.platosState
 
     // Auto-seleccionar elemento recién creado cuando la lista se refresca
     LaunchedEffect(platosState) {
@@ -119,7 +122,7 @@ fun PasoPlatosFondoScreen(
     val platosNoSeleccionados = todosLosPlatos.filter { p -> selectedPlatos.none { s -> s.id == p.id } }
 
     val seleccionadosFiltrados = platosSeleccionados
-    val searchResults = platoViewModel.searchResults
+    val searchResults = seleccionViewModel.searchResults
     val noSeleccionadosFiltrados = searchResults.filter { p -> selectedPlatos.none { s -> s.id == p.id } }
 
     val sinResultados = searchQuery.isNotBlank() && noSeleccionadosFiltrados.isEmpty()
@@ -139,6 +142,7 @@ fun PasoPlatosFondoScreen(
                 val nombre = (platoViewModel.formFields.fields["platnom"] as? TextFieldValue)?.text?.trim() ?: ""
                 if (nombre.isNotEmpty()) pendingAutoSelectNombre = nombre
                 platoViewModel.initForCreate()
+                seleccionViewModel.loadPlatos()
                 showBottomSheet = false
                 searchQuery = ""
             },
@@ -284,6 +288,7 @@ fun PasoPlatosFondoScreen(
                     items(seleccionadosFiltrados, key = { it.id }) { plato ->
                         PlatoDisponibleCard(
                             plato = plato,
+                            imageUrl = seleccionViewModel.imagenesMap[plato.imagenId],
                             isSelected = true,
                             onToggle = { checked ->
                                 menuViewModel.updatePlatosFuertes(
@@ -305,6 +310,7 @@ fun PasoPlatosFondoScreen(
                     items(noSeleccionadosFiltrados, key = { it.id }) { plato ->
                         PlatoDisponibleCard(
                             plato = plato,
+                            imageUrl = seleccionViewModel.imagenesMap[plato.imagenId],
                             isSelected = false,
                             onToggle = { checked ->
                                 menuViewModel.updatePlatosFuertes(
@@ -388,7 +394,7 @@ fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
 }
 
 @Composable
-fun PlatoDisponibleCard(plato: PlatoResponseDto, isSelected: Boolean, onToggle: (Boolean) -> Unit) {
+fun PlatoDisponibleCard(plato: PlatoResponseDto, imageUrl: String?, isSelected: Boolean, onToggle: (Boolean) -> Unit) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
         color = if (isSelected) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
@@ -400,7 +406,7 @@ fun PlatoDisponibleCard(plato: PlatoResponseDto, isSelected: Boolean, onToggle: 
             modifier = Modifier.padding(SpacingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CustomImageView(imagenId = plato.imagenId, sizeDp = 60)
+            CustomImageView(imageUrl = imageUrl, sizeDp = 60, defaultImageRes = R.drawable.default_image_menu)
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = plato.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
@@ -450,6 +456,10 @@ private fun AnadirNuevoListItem(onClick: () -> Unit) {
 
 // --- Previews ---
 
+private class FakeMenuImagenRepository : IMenuImagenRepository {
+    override suspend fun getMenuImagenes(): List<MenuImagenResponseDto> = emptyList()
+}
+
 private class FakePlatoRepository : IPlatoRepository {
     private val all = listOf(
         PlatoResponseDto(id = 1, nombre = "Pollo a la Plancha", descripcion = "Con ensalada fresca o papas", tipoPlatoId = 1, estadoId = 1, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
@@ -482,22 +492,24 @@ private val fakeSugerenciaPlato = SugerenciaPlatoItem(
 
 @Preview(showBackground = true, name = "PasoPlatosFondo - Claro")
 @Composable
-private fun PasoPlatosFondoScreenPreview() {
+private fun SeleccionPlatosFondoScreenPreview() {
     val menuVm = remember { MenuViewModel() }
     val platoVm = remember { PlatoViewModel(FakePlatoRepository()) }
+    val seleccionVm = remember { SeleccionPlatosFondoViewModel(FakePlatoRepository(), FakeMenuImagenRepository()) }
     MenuAppTheme(darkTheme = false) {
-        PasoPlatosFondoScreen(menuViewModel = menuVm, platoViewModel = platoVm)
+        SeleccionPlatosFondoScreen(menuViewModel = menuVm, platoViewModel = platoVm, seleccionViewModel = seleccionVm)
     }
 }
 
 @Preview(showBackground = true, name = "PasoPlatosFondo - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
-private fun PasoPlatosFondoScreenDarkPreview() {
+private fun SeleccionPlatosFondoScreenDarkPreview() {
     val menuVm = remember { MenuViewModel() }
     val platoVm = remember { PlatoViewModel(FakePlatoRepository()) }
+    val seleccionVm = remember { SeleccionPlatosFondoViewModel(FakePlatoRepository(), FakeMenuImagenRepository()) }
     MenuAppTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            PasoPlatosFondoScreen(menuViewModel = menuVm, platoViewModel = platoVm)
+            SeleccionPlatosFondoScreen(menuViewModel = menuVm, platoViewModel = platoVm, seleccionViewModel = seleccionVm)
         }
     }
 }
@@ -522,7 +534,7 @@ private fun SugerenciaPlatoCardDarkPreview() {
 @Composable
 private fun PlatoDisponibleCardSelectedPreview() {
     MenuAppTheme(darkTheme = false) {
-        PlatoDisponibleCard(plato = fakePlatoResponseDto, isSelected = true, onToggle = {})
+        PlatoDisponibleCard(plato = fakePlatoResponseDto, imageUrl = null, isSelected = true, onToggle = {})
     }
 }
 
@@ -530,7 +542,7 @@ private fun PlatoDisponibleCardSelectedPreview() {
 @Composable
 private fun PlatoDisponibleCardUnselectedPreview() {
     MenuAppTheme(darkTheme = false) {
-        PlatoDisponibleCard(plato = fakePlatoResponseDto, isSelected = false, onToggle = {})
+        PlatoDisponibleCard(plato = fakePlatoResponseDto, imageUrl = null, isSelected = false, onToggle = {})
     }
 }
 
@@ -539,7 +551,7 @@ private fun PlatoDisponibleCardUnselectedPreview() {
 private fun PlatoDisponibleCardDarkPreview() {
     MenuAppTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            PlatoDisponibleCard(plato = fakePlatoResponseDto, isSelected = false, onToggle = {})
+            PlatoDisponibleCard(plato = fakePlatoResponseDto, imageUrl = null, isSelected = false, onToggle = {})
         }
     }
 }

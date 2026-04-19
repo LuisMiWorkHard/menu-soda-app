@@ -66,12 +66,6 @@ class EntradaViewModel(
     var tiposEntradaState by mutableStateOf<State<List<TipoEntrada>>>(State.Initial)
         private set
 
-    var entradasState by mutableStateOf<State<List<EntradaResponseDto>>>(State.Initial)
-        private set
-
-    var searchResults by mutableStateOf<List<EntradaResponseDto>>(emptyList())
-        private set
-
     var duplicateMatches by mutableStateOf<List<EntradaResponseDto>>(emptyList())
         private set
 
@@ -126,17 +120,6 @@ class EntradaViewModel(
         }
     }
 
-    // --- Search entradas (server-side fuzzy) ---
-    fun searchEntradas(query: String) {
-        viewModelScope.launch {
-            try {
-                searchResults = entradaRepository.searchEntradas(query)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error searching entradas", e)
-            }
-        }
-    }
-
     fun checkForDuplicates(nombre: String) {
         viewModelScope.launch {
             try {
@@ -148,26 +131,6 @@ class EntradaViewModel(
     }
 
     fun clearDuplicateMatches() { duplicateMatches = emptyList() }
-
-    fun resetSearch() {
-        val state = entradasState
-        if (state is State.Success) searchResults = state.data
-    }
-
-    // --- Load entradas list ---
-    fun loadEntradas() {
-        viewModelScope.launch {
-            entradasState = State.Loading
-            try {
-                val entradas = entradaRepository.getEntradas()
-                entradasState = State.Success(entradas)
-                searchResults = entradas
-            } catch (e: Exception) {
-                Log.e(TAG, "Error loading entradas", e)
-                entradasState = State.Error(e.message ?: "Error cargando entradas")
-            }
-        }
-    }
 
     // --- Crear nueva entrada ---
     private fun createEntrada(context: Context) {
@@ -200,7 +163,6 @@ class EntradaViewModel(
                 )
 
                 val response = entradaRepository.createEntrada(request)
-                loadEntradas()
                 createState = State.Success(response)
             } catch (e: ApiException) {
                 Log.e(TAG, "ApiException creating entrada: ${e.message}")
@@ -249,7 +211,6 @@ class EntradaViewModel(
                 )
 
                 val response = entradaRepository.updateEntrada(id, request)
-                loadEntradas()
                 editState = State.Success(response)
             } catch (e: ApiException) {
                 Log.e(TAG, "ApiException updating entrada: ${e.message}")

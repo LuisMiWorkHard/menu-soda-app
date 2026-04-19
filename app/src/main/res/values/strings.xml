@@ -118,4 +118,7 @@
     <string name="login_error_generic">Error al iniciar sesión</string>
     <string name="error_location_required">Se requiere permiso de ubicación para iniciar sesión</string>
     <string name="anadir_nueva">Añadir nueva</string>
+
+    <!-- Paso Estilo -->
+    <string name="paso_estilo_resumen_desc">Has seleccionado %1$d entrantes y %2$d platos principales.</string>
 </resources>
