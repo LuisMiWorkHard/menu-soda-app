@@ -46,7 +46,9 @@ import com.fullwar.menuapp.data.model.MenuImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
+import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.utils.State
+import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo.NuevaEntradaBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
@@ -281,11 +283,9 @@ fun SeleccionEntradasScreen(
             }
             is State.Error -> {
                 item {
-                    Text(
-                        text = entradasState.message,
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = TextSizeSmall,
-                        modifier = Modifier.padding(vertical = SpacingMedium)
+                    ErrorBanner(
+                        message = entradasState.message,
+                        modifier = Modifier.padding(vertical = SpacingSmall)
                     )
                 }
             }
@@ -390,8 +390,8 @@ private fun EntradaListItem(
             CustomImageView(imageUrl = imageUrl)
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = entrada.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = entrada.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = entrada.nombre.toSmartUpperCase(), fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
+                Text(text = entrada.descripcion.toSmartUpperCase(), fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Checkbox(
                 checked = isSelected,

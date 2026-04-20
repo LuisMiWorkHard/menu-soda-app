@@ -49,6 +49,7 @@ import com.fullwar.menuapp.data.model.PlatoUpdateRequestDto
 import com.fullwar.menuapp.data.model.TipoPlatoResponseDto
 import com.fullwar.menuapp.domain.model.TipoPlato
 import com.fullwar.menuapp.domain.repository.IPlatoRepository
+import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.ui.theme.*
 import java.io.File
@@ -191,7 +192,7 @@ fun PlatoFormContent(
     Spacer(modifier = Modifier.height(SpacingSmall))
     OutlinedTextField(
         value = nombre,
-        onValueChange = { viewModel.updateField("platnom", it) },
+        onValueChange = { viewModel.updateField("platnom", it.copy(text = it.text.uppercase())) },
         modifier = Modifier
             .fillMaxWidth()
             .onFocusChanged { focusState ->
@@ -325,7 +326,7 @@ fun PlatoFormContent(
     Spacer(modifier = Modifier.height(SpacingSmall))
     OutlinedTextField(
         value = descripcion,
-        onValueChange = { viewModel.updateField("platdes", it) },
+        onValueChange = { viewModel.updateField("platdes", it.copy(text = it.text.uppercase())) },
         modifier = Modifier
             .fillMaxWidth()
             .focusRequester(descripcionFocusRequester),
@@ -408,11 +409,7 @@ fun PlatoFormContent(
             }
         }
         is State.Error -> {
-            Text(
-                text = tiposState.message,
-                color = MaterialTheme.colorScheme.error,
-                fontSize = TextSizeSmall
-            )
+            ErrorBanner(message = tiposState.message)
         }
         else -> {}
     }

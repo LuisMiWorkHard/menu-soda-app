@@ -6,6 +6,7 @@ import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import com.fullwar.menuapp.data.datasource.remote.AuthService
 import com.fullwar.menuapp.data.datasource.remote.EntradaService
 import com.fullwar.menuapp.data.datasource.remote.ImagenService
+import com.fullwar.menuapp.data.datasource.remote.MenuDiarioService
 import com.fullwar.menuapp.data.datasource.remote.MenuImagenService
 import com.fullwar.menuapp.data.datasource.remote.PlatoService
 import com.fullwar.menuapp.data.datasource.remote.TipoEntradaService
@@ -13,9 +14,11 @@ import com.fullwar.menuapp.data.datasource.remote.TipoPlatoService
 import com.fullwar.menuapp.data.repository.SecureDataStoreImpl
 import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
 import com.fullwar.menuapp.data.repository.EntradaRepositoryImpl
+import com.fullwar.menuapp.data.repository.MenuDiarioRepositoryImpl
 import com.fullwar.menuapp.data.repository.MenuImagenRepositoryImpl
 import com.fullwar.menuapp.data.repository.PlatoRepositoryImpl
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
+import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
 import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.domain.repository.IPlatoRepository
 import com.fullwar.menuapp.data.repository.LocationProviderImpl
@@ -74,4 +77,8 @@ val appModule = module {
     // MenuImagen feature: service usa AuthClient (Bearer token)
     single { MenuImagenService(get(named("AuthClient"))) }
     singleOf(::MenuImagenRepositoryImpl) bind IMenuImagenRepository::class
+
+    // MenuDiario feature: service usa AuthClient (Bearer token)
+    single { MenuDiarioService(get(named("AuthClient"))) }
+    singleOf(::MenuDiarioRepositoryImpl) bind IMenuDiarioRepository::class
 }

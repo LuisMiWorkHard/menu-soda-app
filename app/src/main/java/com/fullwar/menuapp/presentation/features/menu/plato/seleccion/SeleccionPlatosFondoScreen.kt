@@ -46,7 +46,9 @@ import com.fullwar.menuapp.data.model.MenuImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoPlatoResponseDto
 import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.domain.repository.IPlatoRepository
+import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.utils.State
+import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.nuevo.NuevoPlatoBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
@@ -261,11 +263,9 @@ fun SeleccionPlatosFondoScreen(
                 }
                 is State.Error -> {
                     item {
-                        Text(
-                            text = platosState.message,
-                            color = MaterialTheme.colorScheme.error,
-                            fontSize = TextSizeSmall,
-                            modifier = Modifier.padding(vertical = SpacingMedium)
+                        ErrorBanner(
+                            message = platosState.message,
+                            modifier = Modifier.padding(vertical = SpacingSmall)
                         )
                     }
                 }
@@ -409,8 +409,8 @@ fun PlatoDisponibleCard(plato: PlatoResponseDto, imageUrl: String?, isSelected: 
             CustomImageView(imageUrl = imageUrl, sizeDp = 60, defaultImageRes = R.drawable.default_image_menu)
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = plato.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = plato.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = plato.nombre.toSmartUpperCase(), fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
+                Text(text = plato.descripcion.toSmartUpperCase(), fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Checkbox(
                 checked = isSelected,
@@ -444,7 +444,7 @@ private fun AnadirNuevoListItem(onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(SpacingSmall))
             Text(
-                text = stringResource(R.string.anadir_nueva),
+                text = stringResource(R.string.anadir_nuevo),
                 color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = TextSizeMedium

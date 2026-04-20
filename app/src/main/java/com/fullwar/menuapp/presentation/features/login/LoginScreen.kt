@@ -46,6 +46,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.domain.model.TipoDocumento
+import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import com.fullwar.menuapp.presentation.navigation.AppScreens
@@ -333,10 +334,8 @@ private fun LoginScreenContent(
 
             // Error de login
             if (loginError != null) {
-                Text(
-                    text = loginError,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = TextSizeSmall,
+                ErrorBanner(
+                    message = loginError,
                     modifier = Modifier.padding(top = SpacingSmall)
                 )
             }

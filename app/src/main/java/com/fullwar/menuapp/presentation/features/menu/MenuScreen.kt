@@ -36,6 +36,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.R
+import com.fullwar.menuapp.presentation.features.menu.estilo.SaveUiState
 import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloViewModel
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoScreen
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoViewModel
@@ -95,16 +96,23 @@ fun MenuScreen() {
         else -> 0
     }
 
+    val isSiguienteEnabled = when (currentStep) {
+        3 -> pasoEstiloViewModel.selectedImagenId != null &&
+                pasoEstiloViewModel.saveState !is SaveUiState.Loading
+        else -> true
+    }
+
     MenuScreenContent(
         currentStep = currentStep,
         stepTitle = stepTitle,
         selectedCount = currentSelectedSize,
+        isSiguienteEnabled = isSiguienteEnabled,
         onAnterior = { navController.popBackStack() },
         onSiguiente = {
             when (currentStep) {
                 1 -> navController.navigate(MenuRoute.PlatosFondo.route)
                 2 -> navController.navigate(MenuRoute.Estilo.route)
-                3 -> { /* Finalizar menú */ }
+                3 -> pasoEstiloViewModel.onFinalizarClicked()
             }
         }
     ) {
@@ -141,6 +149,7 @@ private fun MenuScreenContent(
     totalSteps: Int = 3,
     stepTitle: String,
     selectedCount: Int,
+    isSiguienteEnabled: Boolean = true,
     onAnterior: () -> Unit,
     onSiguiente: () -> Unit,
     content: @Composable () -> Unit
@@ -186,6 +195,7 @@ private fun MenuScreenContent(
                     }
                     Button(
                         onClick = onSiguiente,
+                        enabled = isSiguienteEnabled,
                         modifier = Modifier.weight(1f).height(48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(CornerRadiusMedium)

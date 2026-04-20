@@ -1,6 +1,8 @@
 package com.fullwar.menuapp.presentation.features.menu.estilo
 
+import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,14 +25,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ZoomIn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,8 +47,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -55,7 +66,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
+import androidx.core.content.FileProvider
+import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.utils.fontFamilyFromString
+import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -72,11 +86,13 @@ import com.fullwar.menuapp.data.model.PlatoResponseDto
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
-import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
 import com.fullwar.menuapp.ui.theme.DeepCharcoal
 import com.fullwar.menuapp.ui.theme.IconSizeMedium
 import com.fullwar.menuapp.ui.theme.IconSizeSmall
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 import com.fullwar.menuapp.ui.theme.RichBlack
 import com.fullwar.menuapp.ui.theme.Shadow
 import com.fullwar.menuapp.ui.theme.SpacingLarge
@@ -99,18 +115,73 @@ fun SeleccionEstiloScreen(
     val platos = menuViewModel.selectedPlatosFuertes.toList()
     val imagenesState = pasoEstiloViewModel.imagenesState
     val selectedImagenId = pasoEstiloViewModel.selectedImagenId
+    val saveState = pasoEstiloViewModel.saveState
+    val triggerCapture = pasoEstiloViewModel.triggerCapture
+
+    val context = LocalContext.current
+    val graphicsLayer = rememberGraphicsLayer()
 
     LaunchedEffect(Unit) { pasoEstiloViewModel.loadImagenes() }
 
-    SeleccionEstiloContent(
-        imagenesState = imagenesState,
-        selectedImagenId = selectedImagenId,
-        entradas = entradas,
-        platos = platos,
-        onSelectImagen = { pasoEstiloViewModel.selectImagen(it) },
-        onRetry = { pasoEstiloViewModel.loadImagenes() },
-        modifier = modifier
-    )
+    LaunchedEffect(triggerCapture) {
+        if (!triggerCapture) return@LaunchedEffect
+        pasoEstiloViewModel.onCaptureHandled()
+        val bitmap = graphicsLayer.toImageBitmap()
+        val imagenFile = withContext(Dispatchers.IO) {
+            saveBitmapToCache(context, bitmap.asAndroidBitmap())
+        }
+        pasoEstiloViewModel.guardarMenuDiario(entradas, platos, imagenFile)
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        SeleccionEstiloContent(
+            imagenesState = imagenesState,
+            selectedImagenId = selectedImagenId,
+            entradas = entradas,
+            platos = platos,
+            previewCaptureModifier = Modifier.drawWithContent {
+                graphicsLayer.record { this@drawWithContent.drawContent() }
+                drawLayer(graphicsLayer)
+            },
+            onSelectImagen = { pasoEstiloViewModel.selectImagen(it) },
+            onRetry = { pasoEstiloViewModel.loadImagenes() },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        if (saveState is SaveUiState.Loading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.45f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    }
+
+    if (saveState is SaveUiState.Success) {
+        MenuGuardadoDialog(
+            onCompartirWhatsApp = {
+                saveState.imagenFile?.let { shareViaWhatsApp(context, it) }
+                pasoEstiloViewModel.resetSaveState()
+            },
+            onDismiss = { pasoEstiloViewModel.resetSaveState() }
+        )
+    }
+
+    if (saveState is SaveUiState.Error) {
+        AlertDialog(
+            onDismissRequest = { pasoEstiloViewModel.resetSaveState() },
+            title = { Text("Error al guardar") },
+            text = { Text(saveState.message) },
+            confirmButton = {
+                TextButton(onClick = { pasoEstiloViewModel.resetSaveState() }) {
+                    Text("Aceptar")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -121,7 +192,8 @@ private fun SeleccionEstiloContent(
     platos: List<PlatoResponseDto>,
     onSelectImagen: (Int) -> Unit,
     onRetry: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    previewCaptureModifier: Modifier = Modifier
 ) {
     val selectedImagen = (imagenesState as? State.Success)
         ?.data?.firstOrNull { it.id == selectedImagenId }
@@ -145,11 +217,13 @@ private fun SeleccionEstiloContent(
 
         if (selectedImagenId != null && selectedImagen != null) {
             item {
-                MenuPreviewCard(
-                    imagen = selectedImagen,
-                    entradas = entradas,
-                    platos = platos
-                )
+                Box(modifier = previewCaptureModifier) {
+                    MenuPreviewCard(
+                        imagen = selectedImagen,
+                        entradas = entradas,
+                        platos = platos
+                    )
+                }
             }
         }
 
@@ -179,21 +253,11 @@ private fun SeleccionEstiloContent(
             }
             is State.Error -> {
                 item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = SpacingLarge),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(SpacingSmall)
-                    ) {
-                        Text(
-                            text = imagenesState.message,
-                            color = MaterialTheme.colorScheme.error,
-                            fontSize = TextSizeSmall,
-                            textAlign = TextAlign.Center
-                        )
-                        Button(onClick = onRetry) { Text("Reintentar") }
-                    }
+                    ErrorBanner(
+                        message = imagenesState.message,
+                        modifier = Modifier.padding(vertical = SpacingSmall),
+                        onRetry = onRetry
+                    )
                 }
             }
             is State.Success -> {
@@ -268,31 +332,14 @@ fun MenuPreviewCard(
         if (cardSizePx != IntSize.Zero) {
             val cardH = with(density) { cardSizePx.height.toDp() }
 
-            // Capa 2: Overlay de legibilidad
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(cardH)
-                    .background(RichBlack.copy(alpha = 0.45f))
-            )
-
-            // Capa 3: Borde decorativo interior
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(cardH)
-                    .padding(SpacingLarge)
-                    .border(1.dp, White.copy(alpha = 0.4f), RoundedCornerShape(CornerRadiusSmall))
-            )
-
-            // Capa 4: Secciones de texto con SubcomposeLayout para distribución exacta de alturas
+            // Capa 2: Secciones de texto con SubcomposeLayout para distribución exacta de alturas
             val topDp    = with(density) { (cardSizePx.height * imagen.areaTextoTop).toInt().toDp() }
             val bottomDp = with(density) { (cardSizePx.height * imagen.areaTextoBottom).toInt().toDp() }
             val startDp  = with(density) { (cardSizePx.width  * imagen.areaTextoInicio).toInt().toDp() }
             val endDp    = with(density) { (cardSizePx.width  * imagen.areaTextoFin).toInt().toDp() }
 
-            val entradasText = entradas.joinToString("\n") { "· ${it.nombre}" }.ifBlank { "—" }
-            val platosText   = platos.joinToString("\n")   { "· ${it.nombre}" }.ifBlank { "—" }
+            val entradasText = entradas.joinToString("\n") { "· ${it.nombre.toSmartUpperCase()}" }.ifBlank { "—" }
+            val platosText   = platos.joinToString("\n")   { "· ${it.nombre.toSmartUpperCase()}" }.ifBlank { "—" }
             val maxFontSize  = imagen.maxFontSize.sp
             val fontFamily   = fontFamilyFromString(imagen.fontFamily)
 
@@ -312,11 +359,11 @@ fun MenuPreviewCard(
 
                 // Pase 1: altura natural de cada sección sin restricción de alto
                 val entradasNatural = subcompose("entradas_m") {
-                    SeccionMenu("ENTRADAS", entradasText, maxFontSize = maxFontSize, fontFamily = fontFamily, fillAvailableHeight = false)
+                    SeccionMenu("Entradas", entradasText, maxFontSize = maxFontSize, fontFamily = fontFamily, fillAvailableHeight = false)
                 }[0].measure(measureConstraints).height
 
                 val platosNatural = subcompose("platos_m") {
-                    SeccionMenu("PLATOS", platosText, maxFontSize = maxFontSize, fontFamily = fontFamily, fillAvailableHeight = false)
+                    SeccionMenu("Segundos", platosText, maxFontSize = maxFontSize, fontFamily = fontFamily, fillAvailableHeight = false)
                 }[0].measure(measureConstraints).height
 
                 // Decidir alturas finales
@@ -331,14 +378,14 @@ fun MenuPreviewCard(
 
                 // Pase 2: renderizado final con altura restringida
                 val entradasFinal = subcompose("entradas_f") {
-                    SeccionMenu("ENTRADAS", entradasText, maxFontSize = maxFontSize, fontFamily = fontFamily)
+                    SeccionMenu("Entradas", entradasText, maxFontSize = maxFontSize, fontFamily = fontFamily)
                 }[0].measure(Constraints(
                     minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth,
                     minHeight = entradasH, maxHeight = entradasH
                 ))
 
                 val platosFinal = subcompose("platos_f") {
-                    SeccionMenu("PLATOS", platosText, maxFontSize = maxFontSize, fontFamily = fontFamily)
+                    SeccionMenu("Segundos", platosText, maxFontSize = maxFontSize, fontFamily = fontFamily)
                 }[0].measure(Constraints(
                     minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth,
                     minHeight = platosH, maxHeight = platosH
@@ -376,7 +423,7 @@ private fun SeccionMenu(
     ) {
         Text(
             text = etiqueta,
-            fontSize = TextSizeXSmall,
+            fontSize = (maxFontSize.value + 1f).sp,
             letterSpacing = 2.sp,
             fontWeight = FontWeight.SemiBold,
             color = White.copy(alpha = 0.7f),
@@ -609,6 +656,65 @@ private fun ImagenFondoPreviewDialog(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun MenuGuardadoDialog(
+    onCompartirWhatsApp: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("¡Menú guardado!", fontWeight = FontWeight.Bold) },
+        text = { Text("El menú del día fue registrado correctamente. ¿Deseas compartir la carta por WhatsApp?") },
+        confirmButton = {
+            Button(
+                onClick = onCompartirWhatsApp,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Share,
+                    contentDescription = null,
+                    modifier = Modifier.size(IconSizeSmall)
+                )
+                Spacer(Modifier.width(SpacingXSmall))
+                Text("Compartir por WhatsApp")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cerrar") }
+        }
+    )
+}
+
+private fun saveBitmapToCache(context: android.content.Context, bitmap: Bitmap): File? {
+    return try {
+        val dir = File(context.cacheDir, "menu_images").also { it.mkdirs() }
+        val file = File(dir, "menu_preview_${System.currentTimeMillis()}.jpg")
+        file.outputStream().use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+        }
+        file
+    } catch (e: Exception) {
+        null
+    }
+}
+
+private fun shareViaWhatsApp(context: android.content.Context, file: File) {
+    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "image/jpeg"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        setPackage("com.whatsapp")
+    }
+    if (context.packageManager.resolveActivity(intent, 0) != null) {
+        context.startActivity(intent)
+    } else {
+        context.startActivity(
+            Intent.createChooser(intent.apply { setPackage(null) }, "Compartir menú")
+        )
     }
 }
 

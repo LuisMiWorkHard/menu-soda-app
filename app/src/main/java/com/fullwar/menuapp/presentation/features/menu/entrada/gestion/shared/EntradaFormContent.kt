@@ -50,6 +50,7 @@ import com.fullwar.menuapp.data.model.ImagenResponseDto
 import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
 import com.fullwar.menuapp.domain.model.TipoEntrada
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
+import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.ui.theme.*
 import java.io.File
@@ -192,7 +193,7 @@ fun EntradaFormContent(
     Spacer(modifier = Modifier.height(SpacingSmall))
     OutlinedTextField(
         value = nombre,
-        onValueChange = { viewModel.updateField("entnom", it) },
+        onValueChange = { viewModel.updateField("entnom", it.copy(text = it.text.uppercase())) },
         modifier = Modifier
             .fillMaxWidth()
             .onFocusChanged { focusState ->
@@ -328,7 +329,7 @@ fun EntradaFormContent(
     Spacer(modifier = Modifier.height(SpacingSmall))
     OutlinedTextField(
         value = descripcion,
-        onValueChange = { viewModel.updateField("entdes", it) },
+        onValueChange = { viewModel.updateField("entdes", it.copy(text = it.text.uppercase())) },
         modifier = Modifier.fillMaxWidth().focusRequester(descripcionFocusRequester),
         placeholder = {
             Text(
@@ -411,11 +412,7 @@ fun EntradaFormContent(
             }
         }
         is State.Error -> {
-            Text(
-                text = tiposState.message,
-                color = MaterialTheme.colorScheme.error,
-                fontSize = TextSizeSmall
-            )
+            ErrorBanner(message = tiposState.message)
         }
         else -> {}
     }

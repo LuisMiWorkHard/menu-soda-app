@@ -46,22 +46,26 @@
 
     <!-- Nuevo Menu Steps -->
     <string name="nuevo_paso1_titulo">Entradas</string>
-    <string name="nuevo_paso2_titulo">Platos Fuertes</string>
-    <string name="nuevo_paso3_titulo">Previsualización</string>
+    <string name="nuevo_paso2_titulo">Segundos</string>
+    <string name="nuevo_paso3_titulo">Estilo</string>
     <string name="nuevo_progreso_label">Progreso del menú diario</string>
     <string name="nuevo_progreso_de">%1$d DE %2$d</string>
-    <string name="nuevo_buscar_entradas">Buscar entradas…</string>
     <string name="nuevo_sugerencias">Sugerencias inteligentes</string>
-    <string name="nuevo_listado_entradas">Listado de entradas</string>
-    <string name="nuevo_siguiente_platos">Siguiente paso: Platos Fuertes</string>
-    <string name="nuevo_siguiente_bebidas">Siguiente paso: Bebidas</string>
     <string name="nuevo_finalizar">Finalizar menú</string>
     <string name="nuevo_proximamente">Próximamente</string>
     <string name="nuevo_anterior">Anterior</string>
     <string name="nuevo_siguiente">Siguiente ❯</string>
 
-    <!-- Platos Fondo -->
-    <string name="platos_fondo_buscar">Buscar platos de fondo…</string>
+    <!-- Entradas -->
+    <string name="anadir_nueva">Añadir nueva</string>
+    <string name="nuevo_buscar_entradas">Buscar entradas…</string>
+    <string name="nuevo_listado_entradas">Listado de entradas</string>
+    <string name="nuevo_siguiente_platos">Siguiente paso: Segundos</string>
+    <string name="nuevo_siguiente_bebidas">Siguiente paso: Estilo</string>
+
+    <!-- Segundos -->
+    <string name="anadir_nuevo">Añadir nuevo</string>
+    <string name="platos_fondo_buscar">Buscar segundos…</string>
     <string name="platos_fondo_sugerencias">SUGERENCIAS INTELIGENTES</string>
     <string name="platos_fondo_disponibles">Platos Disponibles</string>
     <string name="platos_fondo_nuevo_plato">Nuevo Plato</string>
@@ -91,7 +95,7 @@
     <string name="error_entrada_descripcion_max">La descripción no puede exceder 1000 caracteres</string>
     <string name="error_entrada_tipo_vacio">Seleccione un tipo de entrada</string>
 
-    <!-- Añadir / Editar Plato Bottom Sheet -->
+    <!-- Añadir / Editar Segundo Bottom Sheet -->
     <string name="plato_nuevo_titulo">Añadir Nuevo Plato</string>
     <string name="plato_nombre_label">Nombre del plato</string>
     <string name="plato_nombre_placeholder">Ej. Lomo Saltado</string>
@@ -107,7 +111,7 @@
     <string name="plato_editar_titulo">Editar Plato</string>
     <string name="plato_cancelar">Cancelar</string>
 
-    <!-- Plato Validations -->
+    <!-- Segundos Validations -->
     <string name="error_plato_nombre_vacio">Ingrese el nombre del plato</string>
     <string name="error_plato_nombre_max">El nombre no puede exceder 100 caracteres</string>
     <string name="error_plato_descripcion_vacia">Ingrese la descripción del plato</string>
@@ -117,8 +121,7 @@
     <!-- Login Error -->
     <string name="login_error_generic">Error al iniciar sesión</string>
     <string name="error_location_required">Se requiere permiso de ubicación para iniciar sesión</string>
-    <string name="anadir_nueva">Añadir nueva</string>
 
     <!-- Paso Estilo -->
-    <string name="paso_estilo_resumen_desc">Has seleccionado %1$d entrantes y %2$d platos principales.</string>
+    <string name="paso_estilo_resumen_desc">Has seleccionado %1$d entradas y %2$d segundos.</string>
 </resources>
