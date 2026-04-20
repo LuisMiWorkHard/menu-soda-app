@@ -25,6 +25,7 @@ import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.Ent
 import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasViewModel
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoViewModel
+import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloViewModel
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import org.koin.android.ext.koin.androidContext
@@ -42,6 +43,7 @@ val appModule = module {
     viewModelOf(::SeleccionEntradasViewModel)
     viewModelOf(::PlatoViewModel)
     viewModelOf(::SeleccionPlatosFondoViewModel)
+    viewModelOf(::SeleccionEstiloViewModel)
 
     // Almacenamiento seguro cifrado (DataStore + Tink + Android Keystore)
     single<SecureStorageProvider> { SecureDataStoreImpl(androidContext()) }

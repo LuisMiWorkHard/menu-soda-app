@@ -47,7 +47,7 @@
     <!-- Nuevo Menu Steps -->
     <string name="nuevo_paso1_titulo">Entradas</string>
     <string name="nuevo_paso2_titulo">Platos Fuertes</string>
-    <string name="nuevo_paso3_titulo">Bebidas</string>
+    <string name="nuevo_paso3_titulo">Previsualización</string>
     <string name="nuevo_progreso_label">Progreso del menú diario</string>
     <string name="nuevo_progreso_de">%1$d DE %2$d</string>
     <string name="nuevo_buscar_entradas">Buscar entradas…</string>

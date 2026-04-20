@@ -36,12 +36,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.R
-import com.fullwar.menuapp.presentation.features.home.tabs.nuevo.PasoEstiloScreen
+import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloViewModel
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoScreen
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasScreen
 import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasViewModel
+import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloScreen
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.HeavyGray
@@ -71,6 +72,7 @@ fun MenuScreen() {
     val seleccionEntradasViewModel: SeleccionEntradasViewModel = koinViewModel()
     val platoViewModel: PlatoViewModel = koinViewModel()
     val seleccionPlatosFondoViewModel: SeleccionPlatosFondoViewModel = koinViewModel()
+    val pasoEstiloViewModel: SeleccionEstiloViewModel = koinViewModel()
 
     val currentStep = when (currentRoute) {
         MenuRoute.Entradas.route -> 1
@@ -126,7 +128,7 @@ fun MenuScreen() {
                 )
             }
             composable(MenuRoute.Estilo.route) {
-                PasoEstiloScreen(menuViewModel = menuViewModel)
+                SeleccionEstiloScreen(menuViewModel = menuViewModel, pasoEstiloViewModel = pasoEstiloViewModel)
             }
         }
     }
@@ -244,11 +246,13 @@ fun ProgressHeader(currentStep: Int, totalSteps: Int, stepTitle: String, selecte
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            Text(
-                text = stringResource(id = R.string.platos_fondo_seleccionados, selectedCount),
-                fontSize = TextSizeMedium,
-                color = MaterialTheme.colorScheme.secondary
-            )
+            if(currentStep != 3) {
+                Text(
+                    text = stringResource(id = R.string.platos_fondo_seleccionados, selectedCount),
+                    fontSize = TextSizeMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
         }
         Spacer(modifier = Modifier.height(SpacingSmall))
         LinearProgressIndicator(
