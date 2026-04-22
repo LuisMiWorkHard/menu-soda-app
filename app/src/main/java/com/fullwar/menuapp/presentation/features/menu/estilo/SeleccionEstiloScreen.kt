@@ -25,16 +25,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -60,12 +55,19 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ParagraphStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.em
 import androidx.core.content.FileProvider
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.utils.fontFamilyFromString
@@ -102,14 +104,14 @@ import com.fullwar.menuapp.ui.theme.SpacingXSmall
 import com.fullwar.menuapp.ui.theme.TextSizeMedium
 import com.fullwar.menuapp.ui.theme.TextSizeSmall
 import com.fullwar.menuapp.ui.theme.TextSizeXLarge
-import com.fullwar.menuapp.ui.theme.TextSizeXSmall
 import com.fullwar.menuapp.ui.theme.White
 
 @Composable
 fun SeleccionEstiloScreen(
     menuViewModel: MenuViewModel,
     pasoEstiloViewModel: SeleccionEstiloViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onMenuGuardado: () -> Unit = {}
 ) {
     val entradas = menuViewModel.selectedEntradas.toList()
     val platos = menuViewModel.selectedPlatosFuertes.toList()
@@ -125,12 +127,12 @@ fun SeleccionEstiloScreen(
 
     LaunchedEffect(triggerCapture) {
         if (!triggerCapture) return@LaunchedEffect
-        pasoEstiloViewModel.onCaptureHandled()
         val bitmap = graphicsLayer.toImageBitmap()
         val imagenFile = withContext(Dispatchers.IO) {
             saveBitmapToCache(context, bitmap.asAndroidBitmap())
         }
         pasoEstiloViewModel.guardarMenuDiario(entradas, platos, imagenFile)
+        pasoEstiloViewModel.onCaptureHandled()
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -147,27 +149,6 @@ fun SeleccionEstiloScreen(
             onRetry = { pasoEstiloViewModel.loadImagenes() },
             modifier = Modifier.fillMaxSize()
         )
-
-        if (saveState is SaveUiState.Loading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.45f)),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            }
-        }
-    }
-
-    if (saveState is SaveUiState.Success) {
-        MenuGuardadoDialog(
-            onCompartirWhatsApp = {
-                saveState.imagenFile?.let { shareViaWhatsApp(context, it) }
-                pasoEstiloViewModel.resetSaveState()
-            },
-            onDismiss = { pasoEstiloViewModel.resetSaveState() }
-        )
     }
 
     if (saveState is SaveUiState.Error) {
@@ -179,6 +160,21 @@ fun SeleccionEstiloScreen(
                 TextButton(onClick = { pasoEstiloViewModel.resetSaveState() }) {
                     Text("Aceptar")
                 }
+            }
+        )
+    }
+
+    if (saveState is SaveUiState.Loading || saveState is SaveUiState.Success) {
+        GuardarMenuOverlay(
+            saveState = saveState,
+            onCompartir = { file ->
+                compartirImagen(context, file)
+                onMenuGuardado()
+                pasoEstiloViewModel.resetSaveState()
+            },
+            onMenuGuardado = {
+                onMenuGuardado()
+                pasoEstiloViewModel.resetSaveState()
             }
         )
     }
@@ -217,12 +213,14 @@ private fun SeleccionEstiloContent(
 
         if (selectedImagenId != null && selectedImagen != null) {
             item {
-                Box(modifier = previewCaptureModifier) {
-                    MenuPreviewCard(
-                        imagen = selectedImagen,
-                        entradas = entradas,
-                        platos = platos
-                    )
+                Box(modifier = Modifier.clip(RoundedCornerShape(CornerRadiusMedium))) {
+                    Box(modifier = previewCaptureModifier) {
+                        MenuPreviewCard(
+                            imagen = selectedImagen,
+                            entradas = entradas,
+                            platos = platos
+                        )
+                    }
                 }
             }
         }
@@ -298,7 +296,6 @@ fun MenuPreviewCard(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clip(RoundedCornerShape(CornerRadiusMedium))
             .onSizeChanged { cardSizePx = it }
     ) {
         // Capa 1: Imagen de fondo
@@ -338,10 +335,11 @@ fun MenuPreviewCard(
             val startDp  = with(density) { (cardSizePx.width  * imagen.areaTextoInicio).toInt().toDp() }
             val endDp    = with(density) { (cardSizePx.width  * imagen.areaTextoFin).toInt().toDp() }
 
-            val entradasText = entradas.joinToString("\n") { "· ${it.nombre.toSmartUpperCase()}" }.ifBlank { "—" }
-            val platosText   = platos.joinToString("\n")   { "· ${it.nombre.toSmartUpperCase()}" }.ifBlank { "—" }
-            val maxFontSize  = imagen.maxFontSize.sp
-            val fontFamily   = fontFamilyFromString(imagen.fontFamily)
+            val entradasText = buildMenuText(entradas.map { it.nombre.toSmartUpperCase() })
+            val platosText   = buildMenuText(platos.map   { it.nombre.toSmartUpperCase() })
+            val maxFontSize       = imagen.maxFontSize.sp
+            val fontFamilyEtiqueta  = FontFamily(Font(R.font.rubik_microbe_regular))
+            val fontFamilyContenido = fontFamilyFromString(imagen.fontFamily)
 
             SubcomposeLayout(
                 modifier = Modifier
@@ -349,56 +347,78 @@ fun MenuPreviewCard(
                     .height(cardH)
                     .padding(top = topDp, bottom = bottomDp, start = startDp, end = endDp)
             ) { constraints ->
-                // Medir divisor
-                val dividerH = subcompose("divider") {
-                    HorizontalDivider(color = White.copy(alpha = 0.3f), thickness = 1.dp)
-                }[0].measure(constraints.copy(minHeight = 0)).height
-
-                val available = constraints.maxHeight - dividerH
+                val available = constraints.maxHeight
                 val measureConstraints = Constraints(maxWidth = constraints.maxWidth)
 
                 // Pase 1: altura natural de cada sección sin restricción de alto
                 val entradasNatural = subcompose("entradas_m") {
-                    SeccionMenu("Entradas", entradasText, maxFontSize = maxFontSize, fontFamily = fontFamily, fillAvailableHeight = false)
+                    SeccionMenu(
+                        etiqueta = "Entradas",
+                        contenido = entradasText,
+                        maxFontSize = maxFontSize,
+                        fontFamilyEtiqueta = fontFamilyEtiqueta,
+                        fontFamily = fontFamilyContenido,
+                        fillAvailableHeight = false
+                    )
                 }[0].measure(measureConstraints).height
 
                 val platosNatural = subcompose("platos_m") {
-                    SeccionMenu("Segundos", platosText, maxFontSize = maxFontSize, fontFamily = fontFamily, fillAvailableHeight = false)
+                    SeccionMenu(
+                        etiqueta = "Segundos",
+                        contenido = platosText,
+                        maxFontSize = maxFontSize,
+                        fontFamilyEtiqueta = fontFamilyEtiqueta,
+                        fontFamily = fontFamilyContenido,
+                        fillAvailableHeight = false
+                    )
                 }[0].measure(measureConstraints).height
 
-                // Decidir alturas finales
-                val (entradasH, platosH) = if (entradasNatural + platosNatural <= available) {
-                    entradasNatural to (available - entradasNatural)
-                } else {
-                    val eW = entradas.size.coerceAtLeast(1).toFloat()
-                    val pW = platos.size.coerceAtLeast(1).toFloat()
-                    val eH = (available * eW / (eW + pW)).toInt()
-                    eH to (available - eH)
-                }
+                // Decidir alturas finales:
+                // eHByCount: espacio proporcional a la cantidad de ítems de cada seccion
+                // entradasH: el menor entre el espacio natural y el proporcional,
+                //             evitando que entradas reciba mas espacio del que ocupa
+                //             (si gana el proporcional, AutoSizeText reduce la fuente para caber)
+                val eHByCount = (available * entradas.size.coerceAtLeast(1).toFloat() /
+                    (entradas.size.coerceAtLeast(1) + platos.size.coerceAtLeast(1)).toFloat()).toInt()
+                val entradasH = minOf(entradasNatural, eHByCount)
+                val platosH = available - entradasH
 
                 // Pase 2: renderizado final con altura restringida
+                // Entradas: sin weight(1f), el texto se envuelve a su altura real
                 val entradasFinal = subcompose("entradas_f") {
-                    SeccionMenu("Entradas", entradasText, maxFontSize = maxFontSize, fontFamily = fontFamily)
+                    SeccionMenu(
+                        etiqueta = "Entradas",
+                        contenido = entradasText,
+                        maxFontSize = maxFontSize,
+                        fontFamilyEtiqueta = fontFamilyEtiqueta,
+                        fontFamily = fontFamilyContenido,
+                        fillAvailableHeight = false,
+                        resetKey = entradasH
+                    )
                 }[0].measure(Constraints(
                     minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth,
-                    minHeight = entradasH, maxHeight = entradasH
+                    minHeight = 0, maxHeight = entradasH
                 ))
 
+                // Platos: llena todo el espacio restante real
+                val actualPlatosH = constraints.maxHeight - entradasFinal.height
                 val platosFinal = subcompose("platos_f") {
-                    SeccionMenu("Segundos", platosText, maxFontSize = maxFontSize, fontFamily = fontFamily)
+                    SeccionMenu(
+                        etiqueta = "Segundos",
+                        contenido = platosText,
+                        maxFontSize = maxFontSize,
+                        fontFamilyEtiqueta = fontFamilyEtiqueta,
+                        fontFamily = fontFamilyContenido,
+                        resetKey = actualPlatosH
+                    )
                 }[0].measure(Constraints(
                     minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth,
-                    minHeight = platosH, maxHeight = platosH
+                    minHeight = actualPlatosH, maxHeight = actualPlatosH
                 ))
-
-                val dividerFinal = subcompose("divider_f") {
-                    HorizontalDivider(color = White.copy(alpha = 0.3f), thickness = 1.dp)
-                }[0].measure(constraints.copy(minHeight = 0))
 
                 layout(constraints.maxWidth, constraints.maxHeight) {
                     entradasFinal.placeRelative(0, 0)
-                    dividerFinal.placeRelative(0, entradasH)
-                    platosFinal.placeRelative(0, entradasH + dividerH)
+                    platosFinal.placeRelative(0, entradasFinal.height)
                 }
             }
         }
@@ -408,11 +428,13 @@ fun MenuPreviewCard(
 @Composable
 private fun SeccionMenu(
     etiqueta: String,
-    contenido: String,
+    contenido: AnnotatedString,
     modifier: Modifier = Modifier,
     maxFontSize: TextUnit = 17.sp,
+    fontFamilyEtiqueta: FontFamily = FontFamily.Default,
     fontFamily: FontFamily = FontFamily.Default,
-    fillAvailableHeight: Boolean = true
+    fillAvailableHeight: Boolean = true,
+    resetKey: Any = Unit
 ) {
     Column(
         modifier = modifier
@@ -426,6 +448,7 @@ private fun SeccionMenu(
             fontSize = (maxFontSize.value + 1f).sp,
             letterSpacing = 2.sp,
             fontWeight = FontWeight.SemiBold,
+            fontFamily = fontFamilyEtiqueta,
             color = White.copy(alpha = 0.7f),
             textAlign = TextAlign.Start
         )
@@ -435,7 +458,8 @@ private fun SeccionMenu(
         else
             Modifier.fillMaxWidth()
         AutoSizeText(
-            text = contenido.ifBlank { "—" },
+            text = contenido,
+            resetKey = resetKey,
             modifier = textModifier,
             maxFontSize = maxFontSize,
             fontFamily = fontFamily
@@ -445,7 +469,8 @@ private fun SeccionMenu(
 
 @Composable
 private fun AutoSizeText(
-    text: String,
+    text: AnnotatedString,
+    resetKey: Any = Unit,
     modifier: Modifier = Modifier,
     maxFontSize: TextUnit = 17.sp,
     minFontSize: TextUnit = 8.sp,
@@ -454,7 +479,7 @@ private fun AutoSizeText(
     fontFamily: FontFamily = FontFamily.Default,
     textAlign: TextAlign = TextAlign.Start
 ) {
-    var fontSize by remember(text, maxFontSize) { mutableStateOf(maxFontSize) }
+    var fontSize by remember(text, maxFontSize, resetKey) { mutableStateOf(maxFontSize) }
 
     Text(
         text = text,
@@ -472,6 +497,19 @@ private fun AutoSizeText(
         }
     )
 }
+
+private fun buildMenuText(items: List<String>): AnnotatedString =
+    if (items.isEmpty()) {
+        AnnotatedString("—")
+    } else {
+        buildAnnotatedString {
+            items.forEachIndexed { index, item ->
+                withStyle(ParagraphStyle(textIndent = TextIndent(restLine = 0.85.em))) {
+                    append("· $item")
+                }
+            }
+        }
+    }
 
 @Composable
 fun ResumenSeleccionRow(cantidadEntradas: Int, cantidadPlatos: Int) {
@@ -659,35 +697,6 @@ private fun ImagenFondoPreviewDialog(
     }
 }
 
-@Composable
-private fun MenuGuardadoDialog(
-    onCompartirWhatsApp: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("¡Menú guardado!", fontWeight = FontWeight.Bold) },
-        text = { Text("El menú del día fue registrado correctamente. ¿Deseas compartir la carta por WhatsApp?") },
-        confirmButton = {
-            Button(
-                onClick = onCompartirWhatsApp,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Share,
-                    contentDescription = null,
-                    modifier = Modifier.size(IconSizeSmall)
-                )
-                Spacer(Modifier.width(SpacingXSmall))
-                Text("Compartir por WhatsApp")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cerrar") }
-        }
-    )
-}
-
 private fun saveBitmapToCache(context: android.content.Context, bitmap: Bitmap): File? {
     return try {
         val dir = File(context.cacheDir, "menu_images").also { it.mkdirs() }
@@ -701,21 +710,14 @@ private fun saveBitmapToCache(context: android.content.Context, bitmap: Bitmap):
     }
 }
 
-private fun shareViaWhatsApp(context: android.content.Context, file: File) {
+private fun compartirImagen(context: android.content.Context, file: File) {
     val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "image/jpeg"
         putExtra(Intent.EXTRA_STREAM, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        setPackage("com.whatsapp")
     }
-    if (context.packageManager.resolveActivity(intent, 0) != null) {
-        context.startActivity(intent)
-    } else {
-        context.startActivity(
-            Intent.createChooser(intent.apply { setPackage(null) }, "Compartir menú")
-        )
-    }
+    context.startActivity(Intent.createChooser(intent, "Compartir menú"))
 }
 
 // --- Datos fake para previews ---

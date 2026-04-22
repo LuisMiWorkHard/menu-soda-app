@@ -48,7 +48,14 @@ fun SetupNavigation() {
             )
         }
         composable(route = AppScreens.MenuScreen.route) {
-            MenuScreen()
+            MenuScreen(
+                onMenuGuardado = {
+                    navController.popBackStack(
+                        route = AppScreens.HomeScreen.route,
+                        inclusive = false
+                    )
+                }
+            )
         }
     }
 }

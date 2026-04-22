@@ -65,7 +65,7 @@ sealed class MenuRoute(val route: String) {
 }
 
 @Composable
-fun MenuScreen() {
+fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val menuViewModel: MenuViewModel = koinViewModel()
@@ -136,7 +136,11 @@ fun MenuScreen() {
                 )
             }
             composable(MenuRoute.Estilo.route) {
-                SeleccionEstiloScreen(menuViewModel = menuViewModel, pasoEstiloViewModel = pasoEstiloViewModel)
+                SeleccionEstiloScreen(
+                    menuViewModel = menuViewModel,
+                    pasoEstiloViewModel = pasoEstiloViewModel,
+                    onMenuGuardado = onMenuGuardado
+                )
             }
         }
     }
