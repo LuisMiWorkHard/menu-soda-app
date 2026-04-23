@@ -7,53 +7,49 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddCircleOutline
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.Search
-import com.fullwar.menuapp.presentation.common.components.CustomImageView
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.fullwar.menuapp.R
-import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
-import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
-import com.fullwar.menuapp.data.model.EntradaResponseDto
-import com.fullwar.menuapp.data.model.EntradaUpdateRequestDto
-import com.fullwar.menuapp.data.model.ImagenResponseDto
-import com.fullwar.menuapp.data.model.MenuImagenResponseDto
-import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
+import com.fullwar.menuapp.data.model.*
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
+import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo.NuevaEntradaBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
-import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasViewModel
 import com.fullwar.menuapp.ui.theme.*
+import kotlinx.coroutines.delay
 
 data class SugerenciaItem(
     val nombre: String,
@@ -116,12 +112,9 @@ fun SeleccionEntradasScreen(
         else -> emptyList()
     }
 
-    val entradasSeleccionadas = todasLasEntradas.filter { e -> selectedEntradas.any { s -> s.id == e.id } }
-
-    // Seleccionados siempre visibles, sin filtrar por búsqueda
-    val seleccionadasFiltradas = entradasSeleccionadas
-
     val searchResults = seleccionViewModel.searchResults
+    
+    // Filtrar para mostrar solo los NO seleccionados en la lista principal
     val noSeleccionadasFiltradas = searchResults.filter { e -> selectedEntradas.none { s -> s.id == e.id } }
 
     val sinResultados = searchQuery.isNotBlank() && noSeleccionadasFiltradas.isEmpty()
@@ -155,218 +148,325 @@ fun SeleccionEntradasScreen(
     val canScrollDown by remember { derivedStateOf { listState.canScrollForward } }
 
     Box(modifier = Modifier.fillMaxSize()) {
-    LazyColumn(
-        state = listState,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = SpacingLarge),
-        verticalArrangement = Arrangement.spacedBy(SpacingMedium)
-    ) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = SpacingLarge),
+            verticalArrangement = Arrangement.spacedBy(SpacingMedium)
+        ) {
 
-        // Sugerencias inteligentes
-        if (showSugerencias) {
+            // Sugerencias inteligentes (sólo si el plato no está seleccionado)
+            if (showSugerencias) {
+                val sugerenciasVisibles = sugerencias.filter { sug -> selectedEntradas.none { it.nombre == sug.nombre } }
+                if (sugerenciasVisibles.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(SpacingSmall))
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(CornerRadiusMedium),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(SpacingMedium)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = YellowIdea, modifier = Modifier.size(IconSizeSmall))
+                                        Spacer(modifier = Modifier.width(SpacingSmall))
+                                        Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    IconButton(
+                                        onClick = { menuViewModel.hideSugerencias() },
+                                        modifier = Modifier.size(IconSizeSmall)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Close,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                LazyRow(
+                                    modifier = Modifier.padding(top = SpacingMedium),
+                                    horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
+                                ) {
+                                    items(sugerenciasVisibles) { sugerencia ->
+                                        SugerenciaCard(
+                                            sugerencia = sugerencia,
+                                            onAdd = {
+                                                val dto = todasLasEntradas.find { it.nombre == sugerencia.nombre }
+                                                dto?.let { menuViewModel.updateEntradas(menuViewModel.selectedEntradas + it) }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Campo de búsqueda
             item {
                 Spacer(modifier = Modifier.height(SpacingSmall))
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = White,
+                            shape = RoundedCornerShape(CornerRadiusMedium)
+                        ),
+                    placeholder = {
+                        Text(
+                            text = stringResource(id = R.string.nuevo_buscar_entradas),
+                            color = HeavyGray
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = null,
+                            tint = HeavyGray
+                        )
+                    },
                     shape = RoundedCornerShape(CornerRadiusMedium),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(SpacingMedium)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = YellowIdea, modifier = Modifier.size(IconSizeSmall))
-                                Spacer(modifier = Modifier.width(SpacingSmall))
-                                Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            IconButton(
-                                onClick = { menuViewModel.hideSugerencias() },
-                                modifier = Modifier.size(IconSizeSmall)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Close,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                        LazyRow(
-                            modifier = Modifier.padding(top = SpacingMedium),
-                            horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
-                        ) {
-                            items(sugerencias) { sugerencia ->
-                                SugerenciaCard(
-                                    sugerencia = sugerencia,
-                                    onAdd = {
-                                        val dto = todasLasEntradas.find { it.nombre == sugerencia.nombre }
-                                        dto?.let { menuViewModel.updateEntradas(menuViewModel.selectedEntradas + it) }
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Campo de búsqueda
-        item {
-            Spacer(modifier = Modifier.height(SpacingSmall))
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = White,
-                        shape = RoundedCornerShape(CornerRadiusMedium)
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colorScheme.primary
                     ),
-                placeholder = {
-                    Text(
-                        text = stringResource(id = R.string.nuevo_buscar_entradas),
-                        color = HeavyGray
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.Search,
-                        contentDescription = null,
-                        tint = HeavyGray
-                    )
-                },
-                shape = RoundedCornerShape(CornerRadiusMedium),
-                textStyle = TextStyle(
-                    color = MaterialTheme.colorScheme.primary
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    cursorColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                singleLine = true
-            )
-        }
-
-        // Listado de entradas - header
-        item {
-            Spacer(modifier = Modifier.height(SpacingSmall))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(id = R.string.nuevo_listado_entradas),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = TextSizeMedium
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        cursorColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    singleLine = true
                 )
             }
-        }
 
-        // Estado de carga
-        when (entradasState) {
-            is State.Loading -> {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = SpacingXLarge),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
-                }
-            }
-            is State.Error -> {
-                item {
-                    ErrorBanner(
-                        message = entradasState.message,
-                        modifier = Modifier.padding(vertical = SpacingSmall)
+            // Listado de entradas - header
+            item {
+                Spacer(modifier = Modifier.height(SpacingSmall))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.nuevo_listado_entradas),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = TextSizeMedium
                     )
                 }
             }
-            is State.Success -> {
-                // Añadir nueva solo si no hay resultados en ninguna de las dos listas
-                if (sinResultados) {
+
+            // Estado de carga
+            when (entradasState) {
+                is State.Loading -> {
                     item {
-                        AnadirNuevaListItem(
-                            onClick = {
-                                entradaViewModel.loadTiposEntrada()
-                                entradaViewModel.initForCreate()
-                                entradaViewModel.updateField("entnom", TextFieldValue(searchQuery))
-                                showBottomSheet = true
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = SpacingXLarge),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+                is State.Error -> {
+                    item {
+                        ErrorBanner(
+                            message = entradasState.message,
+                            modifier = Modifier.padding(vertical = SpacingSmall)
+                        )
+                    }
+                }
+                is State.Success -> {
+                    // Añadir nueva solo si no hay resultados en ninguna de las dos listas
+                    if (sinResultados) {
+                        item {
+                            AnadirNuevaListItem(
+                                onClick = {
+                                    entradaViewModel.loadTiposEntrada()
+                                    entradaViewModel.initForCreate()
+                                    entradaViewModel.updateField("entnom", TextFieldValue(searchQuery))
+                                    showBottomSheet = true
+                                }
+                            )
+                        }
+                    }
+
+                    // Sólo mostramos las NO seleccionadas (las seleccionadas están en el BottomSheet)
+                    items(noSeleccionadasFiltradas, key = { it.id }) { entrada ->
+                        EntradaListItem(
+                            entrada = entrada,
+                            imageUrl = seleccionViewModel.imagenesMap[entrada.imagenId],
+                            isSelected = false,
+                            onToggle = { checked ->
+                                if (checked) {
+                                    menuViewModel.updateEntradas(selectedEntradas + entrada)
+                                }
                             }
                         )
                     }
                 }
-
-                // Seleccionados al tope
-                items(seleccionadasFiltradas, key = { it.id }) { entrada ->
-                    EntradaListItem(
-                        entrada = entrada,
-                        imageUrl = seleccionViewModel.imagenesMap[entrada.imagenId],
-                        isSelected = true,
-                        onToggle = { checked ->
-                            menuViewModel.updateEntradas(
-                                if (checked) selectedEntradas + entrada
-                                else selectedEntradas.filter { it.id != entrada.id }.toSet()
-                            )
-                        }
-                    )
-                }
-
-                // Separador entre seleccionados y no seleccionados
-                if (seleccionadasFiltradas.isNotEmpty()) {
-                    item {
-                        HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.surface)
-                    }
-                }
-
-                // No seleccionados
-                items(noSeleccionadasFiltradas, key = { it.id }) { entrada ->
-                    EntradaListItem(
-                        entrada = entrada,
-                        imageUrl = seleccionViewModel.imagenesMap[entrada.imagenId],
-                        isSelected = false,
-                        onToggle = { checked ->
-                            menuViewModel.updateEntradas(
-                                if (checked) selectedEntradas + entrada
-                                else selectedEntradas.filter { it.id != entrada.id }.toSet()
-                            )
-                        }
-                    )
-                }
+                else -> {}
             }
-            else -> {}
+
+            // Espacio extra para que el botón inferior no tape
+            item { Spacer(modifier = Modifier.height(SpacingLarge)) }
         }
 
-        // Espacio extra para que el botón inferior no tape
-        item { Spacer(modifier = Modifier.height(SpacingLarge)) }
-    }
-
-    // Indicador de scroll
-    AnimatedVisibility(
-        visible = canScrollDown,
-        modifier = Modifier.align(Alignment.BottomCenter),
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+        // Indicador de scroll
+        AnimatedVisibility(
+            visible = canScrollDown,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+                        )
                     )
-                )
-        )
-    }
+            )
+        }
     } // Box
+}
+
+@Composable
+fun SelectedEntradasBottomSheetContent(
+    entradas: List<EntradaResponseDto>,
+    imagenesMap: Map<Int, String>,
+    onRemove: (EntradaResponseDto) -> Unit,
+    onMove: (Int, Int) -> Unit
+) {
+    // Estado para seguir el desplazamiento del ítem arrastrado
+    var draggedItemIndex by remember { mutableStateOf<Int?>(null) }
+    var draggingOffset by remember { mutableFloatStateOf(0f) }
+    val listSize by rememberUpdatedState(entradas.size)
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 350.dp)
+            .padding(horizontal = SpacingLarge),
+        verticalArrangement = Arrangement.spacedBy(SpacingSmall)
+    ) {
+        itemsIndexed(entradas, key = { _, entrada -> entrada.id }) { index, entrada ->
+            // Usar rememberUpdatedState para asegurar que las lambdas capturen el índice actual
+            val currentIndexState by rememberUpdatedState(index)
+            val isDragging = draggedItemIndex == currentIndexState
+            
+            Surface(
+                shape = RoundedCornerShape(CornerRadiusMedium),
+                color = if (isDragging) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
+                tonalElevation = if (isDragging) 8.dp else 0.dp,
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp, 
+                    if (isDragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(if (isDragging) 1f else 0f)
+                    .graphicsLayer {
+                        translationY = if (isDragging) draggingOffset else 0f
+                        scaleX = if (isDragging) 1.02f else 1.0f
+                        scaleY = if (isDragging) 1.02f else 1.0f
+                    }
+            ) {
+                Row(
+                    modifier = Modifier.padding(SpacingSmall),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CustomImageView(
+                        imageUrl = imagenesMap[entrada.imagenId],
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Spacer(modifier = Modifier.width(SpacingMedium))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = entrada.nombre.toSmartUpperCase(),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = entrada.descripcion.toSmartUpperCase(),
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    
+                    // Manija de Arrastre (Drag Handle)
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .pointerInput(entrada.id) {
+                                detectDragGesturesAfterLongPress(
+                                    onDragStart = { draggedItemIndex = currentIndexState },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        draggingOffset += dragAmount.y
+                                        
+                                        val activeIndex = draggedItemIndex ?: currentIndexState
+                                        val threshold = 50f
+                                        
+                                        val targetIndex = when {
+                                            draggingOffset > threshold && activeIndex < listSize - 1 -> activeIndex + 1
+                                            draggingOffset < -threshold && activeIndex > 0 -> activeIndex - 1
+                                            else -> null
+                                        }
+                                        
+                                        if (targetIndex != null) {
+                                            onMove(activeIndex, targetIndex)
+                                            draggedItemIndex = targetIndex
+                                            draggingOffset += if (targetIndex > activeIndex) -threshold else threshold
+                                        }
+                                    },
+                                    onDragEnd = {
+                                        draggedItemIndex = null
+                                        draggingOffset = 0f
+                                    },
+                                    onDragCancel = {
+                                        draggedItemIndex = null
+                                        draggingOffset = 0f
+                                    }
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.DragHandle,
+                            contentDescription = "Arrastrar",
+                            tint = if (isDragging) MaterialTheme.colorScheme.primary else HeavyGray
+                        )
+                    }
+
+                    IconButton(onClick = { onRemove(entrada) }) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "Remover",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(IconSizeSmall)
+                        )
+                    }
+                }
+            }
+        }
+        item { Spacer(modifier = Modifier.height(SpacingSmall)) }
+    }
 }
 
 @Composable

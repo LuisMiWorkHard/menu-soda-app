@@ -1,8 +1,11 @@
 package com.fullwar.menuapp.presentation.features.menu
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,10 +14,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -24,6 +32,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -41,10 +53,12 @@ import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloView
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoScreen
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
+import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SelectedEntradasBottomSheetContent
 import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasScreen
 import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.SeleccionEntradasViewModel
 import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloScreen
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
+import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SelectedPlatosFondoBottomSheetContent
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.HeavyGray
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
@@ -114,6 +128,30 @@ fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
                 2 -> navController.navigate(MenuRoute.Estilo.route)
                 3 -> pasoEstiloViewModel.onFinalizarClicked()
             }
+        },
+        bottomSheetContent = {
+            when (currentStep) {
+                1 -> {
+                    SelectedEntradasBottomSheetContent(
+                        entradas = menuViewModel.selectedEntradas,
+                        imagenesMap = seleccionEntradasViewModel.imagenesMap,
+                        onRemove = { entrada ->
+                            menuViewModel.updateEntradas(menuViewModel.selectedEntradas - entrada)
+                        },
+                        onMove = { from, to -> menuViewModel.moveEntrada(from, to) }
+                    )
+                }
+                2 -> {
+                    SelectedPlatosFondoBottomSheetContent(
+                        platos = menuViewModel.selectedPlatosFuertes,
+                        imagenesMap = seleccionPlatosFondoViewModel.imagenesMap,
+                        onRemove = { plato ->
+                            menuViewModel.updatePlatosFuertes(menuViewModel.selectedPlatosFuertes - plato)
+                        },
+                        onMove = { from, to -> menuViewModel.movePlato(from, to) }
+                    )
+                }
+            }
         }
     ) {
         NavHost(
@@ -156,8 +194,11 @@ private fun MenuScreenContent(
     isSiguienteEnabled: Boolean = true,
     onAnterior: () -> Unit,
     onSiguiente: () -> Unit,
+    bottomSheetContent: @Composable () -> Unit = {},
     content: @Composable () -> Unit
 ) {
+    var isExpanded by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -175,42 +216,90 @@ private fun MenuScreenContent(
         bottomBar = {
             Surface(
                 color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 8.dp
+                shadowElevation = 8.dp,
+                shape = RoundedCornerShape(topStart = CornerRadiusMedium, topEnd = CornerRadiusMedium)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(SpacingLarge),
-                    horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
-                ) {
-                    if (currentStep > 1) {
-                        OutlinedButton(
-                            onClick = onAnterior,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(CornerRadiusMedium),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    // Header del BottomSheet (solo pasos 1 y 2 con elementos seleccionados)
+                    if ((currentStep == 1 || currentStep == 2) && selectedCount > 0) {
+                        // Drag handle visual
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = SpacingSmall),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .width(40.dp)
+                                    .height(4.dp)
+                                    .background(HeavyGray, RoundedCornerShape(2.dp))
+                            )
+                        }
+
+                        // Etiqueta Seleccionados e Icono
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isExpanded = !isExpanded }
+                                .padding(horizontal = SpacingLarge, vertical = SpacingMedium),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = stringResource(id = R.string.nuevo_anterior),
+                                text = stringResource(id = R.string.platos_fondo_seleccionados, selectedCount),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = TextSizeMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Icon(
+                                imageVector = if (isExpanded) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        AnimatedVisibility(visible = isExpanded) {
+                            bottomSheetContent()
+                        }
+                    }
+
+                    // Botones de navegación (siempre visibles en el bottom bar)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(horizontal = SpacingLarge, vertical = SpacingMedium),
+                        horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
+                    ) {
+                        if (currentStep > 1) {
+                            OutlinedButton(
+                                onClick = onAnterior,
+                                modifier = Modifier.weight(1f).height(48.dp),
+                                shape = RoundedCornerShape(CornerRadiusMedium),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.nuevo_anterior),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        Button(
+                            onClick = onSiguiente,
+                            enabled = isSiguienteEnabled,
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(CornerRadiusMedium)
+                        ) {
+                            Text(
+                                text = if (currentStep == totalSteps)
+                                    stringResource(id = R.string.nuevo_finalizar)
+                                else
+                                    stringResource(id = R.string.nuevo_siguiente),
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                    }
-                    Button(
-                        onClick = onSiguiente,
-                        enabled = isSiguienteEnabled,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        shape = RoundedCornerShape(CornerRadiusMedium)
-                    ) {
-                        Text(
-                            text = if (currentStep == totalSteps)
-                                stringResource(id = R.string.nuevo_finalizar)
-                            else
-                                stringResource(id = R.string.nuevo_siguiente),
-                            fontWeight = FontWeight.Bold
-                        )
                     }
                 }
             }

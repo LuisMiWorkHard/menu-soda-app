@@ -8,24 +8,40 @@ import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.data.model.PlatoResponseDto
 
 class MenuViewModel : ViewModel() {
-    var selectedEntradas by mutableStateOf(setOf<EntradaResponseDto>())
+    var selectedEntradas by mutableStateOf(listOf<EntradaResponseDto>())
         private set
 
-    var selectedPlatosFuertes by mutableStateOf(setOf<PlatoResponseDto>())
+    var selectedPlatosFuertes by mutableStateOf(listOf<PlatoResponseDto>())
         private set
 
-    var selectedBebidas by mutableStateOf(setOf<String>())
+    var selectedBebidas by mutableStateOf(listOf<String>())
         private set
 
     var showSugerencias by mutableStateOf(true)
         private set
 
-    fun updateEntradas(entradas: Set<EntradaResponseDto>) {
+    fun updateEntradas(entradas: List<EntradaResponseDto>) {
         selectedEntradas = entradas
     }
 
-    fun updatePlatosFuertes(platos: Set<PlatoResponseDto>) {
+    fun updatePlatosFuertes(platos: List<PlatoResponseDto>) {
         selectedPlatosFuertes = platos
+    }
+
+    fun moveEntrada(fromIndex: Int, toIndex: Int) {
+        if (fromIndex !in selectedEntradas.indices || toIndex !in selectedEntradas.indices) return
+        val newList = selectedEntradas.toMutableList()
+        val item = newList.removeAt(fromIndex)
+        newList.add(toIndex, item)
+        selectedEntradas = newList
+    }
+
+    fun movePlato(fromIndex: Int, toIndex: Int) {
+        if (fromIndex !in selectedPlatosFuertes.indices || toIndex !in selectedPlatosFuertes.indices) return
+        val newList = selectedPlatosFuertes.toMutableList()
+        val item = newList.removeAt(fromIndex)
+        newList.add(toIndex, item)
+        selectedPlatosFuertes = newList
     }
 
     fun hideSugerencias() {
