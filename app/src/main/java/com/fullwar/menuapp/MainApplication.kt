@@ -34,12 +34,6 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
             androidContext(this@MainApplication)
             modules(appModule, networkModule)
         }
-
-        // Inicializar el caché de token en background
-        applicationScope.launch {
-            val authRepository = get<AuthRepositoryImpl>(AuthRepositoryImpl::class.java)
-            authRepository.initialize()
-        }
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {

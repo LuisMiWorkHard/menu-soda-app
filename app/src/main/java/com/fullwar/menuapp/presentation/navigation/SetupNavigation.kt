@@ -12,6 +12,7 @@ import com.fullwar.menuapp.presentation.features.home.HomeScreen
 import com.fullwar.menuapp.presentation.features.login.LoginScreen
 import com.fullwar.menuapp.presentation.features.menu.MenuScreen
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
+import com.fullwar.menuapp.presentation.features.splash.SplashScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -35,8 +36,11 @@ fun SetupNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = AppScreens.LoginScreen.route
+        startDestination = AppScreens.SplashScreen.route
     ) {
+        composable(route = AppScreens.SplashScreen.route) {
+            SplashScreen(navController = navController)
+        }
         composable(route = AppScreens.LoginScreen.route) {
             LoginScreen(navController = navController, sharedViewModel = sharedViewModel)
         }

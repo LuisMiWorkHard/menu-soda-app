@@ -31,6 +31,7 @@ import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionP
 import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloViewModel
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
+import com.fullwar.menuapp.presentation.features.splash.SplashViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -40,6 +41,7 @@ import org.koin.dsl.module
 
 val appModule = module {
     viewModelOf(::SharedViewModel)
+    viewModelOf(::SplashViewModel)
     viewModelOf(::LoginViewModel)
     viewModelOf(::MenuViewModel)
     viewModelOf(::EntradaViewModel)
