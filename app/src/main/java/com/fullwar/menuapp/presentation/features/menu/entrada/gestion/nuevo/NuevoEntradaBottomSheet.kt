@@ -19,7 +19,7 @@ import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.presentation.common.utils.State
-import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaFormContent
+import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaForm
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import com.fullwar.menuapp.ui.theme.*
 
@@ -80,7 +80,7 @@ fun NuevaEntradaBottomSheet(
 
             Spacer(modifier = Modifier.height(SpacingLarge))
 
-            EntradaFormContent(viewModel = viewModel, onSelectExisting = onSelectExisting)
+            EntradaForm(viewModel = viewModel, onSelectExisting = onSelectExisting)
 
             Spacer(modifier = Modifier.height(SpacingXXLarge))
 

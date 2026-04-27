@@ -491,7 +491,7 @@ private fun EntradaListItem(
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = entrada.nombre.toSmartUpperCase(), fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = entrada.descripcion.toSmartUpperCase(), fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = entrada.descripcion.toSmartUpperCase(), fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurface)
             }
             Checkbox(
                 checked = isSelected,
