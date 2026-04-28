@@ -34,6 +34,31 @@ class AuthRepositoryImpl(
 
     override fun getToken(): String? = cachedToken
 
+    fun isCurrentTokenExpired(): Boolean {
+        val token = cachedToken ?: return true
+        return isTokenExpired(token)
+    }
+
+    private fun isTokenExpired(token: String): Boolean {
+        return try {
+            val parts = token.split(".")
+            if (parts.size != 3) return true
+            val payload = String(
+                android.util.Base64.decode(
+                    parts[1],
+                    android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING
+                ),
+                Charsets.UTF_8
+            )
+            val exp = Regex(""""exp"\s*:\s*(\d+)""")
+                .find(payload)?.groupValues?.get(1)?.toLongOrNull() ?: return true
+            System.currentTimeMillis() / 1000L >= (exp - 30L)
+        } catch (e: Exception) {
+            Log.w(TAG, "isTokenExpired: error al decodificar JWT, se trata como expirado")
+            true
+        }
+    }
+
     suspend fun loginAsync(credentials: LoginRequestDto): LoginResponseDto {
         val startTime = System.currentTimeMillis()
 
@@ -67,15 +92,27 @@ class AuthRepositoryImpl(
         return response
     }
 
-    suspend fun logoutAsync() {
-        authService.logout()
+    suspend fun clearLocalSession() {
         cachedToken = null
-
         withContext(Dispatchers.IO) {
             secureStorage.remove(ACCESS_TOKEN_KEY)
             cookiesStorage.clear()
         }
+        Log.d(TAG, "clearLocalSession completed")
+    }
 
+    suspend fun logoutAsync() {
+        try {
+            authService.logout()
+            Log.d(TAG, "logoutAsync: server logout successful")
+        } catch (e: Exception) {
+            Log.w(TAG, "logoutAsync: server logout failed (ignorado): ${e.message}")
+        }
+        cachedToken = null
+        withContext(Dispatchers.IO) {
+            secureStorage.remove(ACCESS_TOKEN_KEY)
+            cookiesStorage.clear()
+        }
         Log.d(TAG, "logoutAsync completed")
     }
 }

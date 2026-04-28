@@ -510,7 +510,7 @@ fun PlatoDisponibleCard(plato: PlatoResponseDto, imageUrl: String?, isSelected: 
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = plato.nombre.toSmartUpperCase(), fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = plato.descripcion.toSmartUpperCase(), fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = plato.descripcion.toSmartUpperCase(), fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurface)
             }
             Checkbox(
                 checked = isSelected,

@@ -1,28 +1,25 @@
 package com.fullwar.menuapp.presentation.features.menu.entrada.gestion.editar
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.*
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaResponseDto
+import com.fullwar.menuapp.presentation.common.components.GestionBottomSheet
+import com.fullwar.menuapp.presentation.common.components.GestionBottomSheetContent
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaForm
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
-import com.fullwar.menuapp.ui.theme.*
+import com.fullwar.menuapp.ui.theme.MenuAppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditarEntradaBottomSheet(
     viewModel: EntradaViewModel,
@@ -31,7 +28,6 @@ fun EditarEntradaBottomSheet(
     onSuccess: () -> Unit
 ) {
     val context = LocalContext.current
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val editState = viewModel.editState
 
     LaunchedEffect(entrada.id) {
@@ -44,102 +40,89 @@ fun EditarEntradaBottomSheet(
         }
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        shape = RoundedCornerShape(topStart = CornerRadiusLarge, topEnd = CornerRadiusLarge)
+    GestionBottomSheet(
+        title = stringResource(R.string.entrada_editar_titulo),
+        saveLabel = stringResource(R.string.entrada_guardar_cambios),
+        cancelLabel = stringResource(R.string.entrada_cancelar),
+        isLoading = editState is State.Loading,
+        errorMessage = (editState as? State.Error)?.message,
+        onSave = { viewModel.save(context) },
+        onDismiss = onDismiss
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = SpacingXLarge)
-                .padding(bottom = SpacingXXLarge)
+        EntradaForm(viewModel = viewModel)
+    }
+}
+
+@Preview(showBackground = true, name = "EditarEntrada - Normal - Claro")
+@Composable
+private fun EditarEntradaNormalClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        GestionBottomSheetContent(
+            title = "Editar Entrada",
+            saveLabel = "Guardar Cambios",
+            cancelLabel = "Cancelar",
+            isLoading = false,
+            errorMessage = null,
+            onSave = {},
+            onDismiss = {}
         ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Spacer(modifier = Modifier.height(200.dp))
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "EditarEntrada - Normal - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun EditarEntradaNormalOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            GestionBottomSheetContent(
+                title = "Editar Entrada",
+                saveLabel = "Guardar Cambios",
+                cancelLabel = "Cancelar",
+                isLoading = false,
+                errorMessage = null,
+                onSave = {},
+                onDismiss = {}
             ) {
-                Text(
-                    text = stringResource(R.string.entrada_editar_titulo),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = TextSizeXLarge
-                )
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = null,
-                        tint = HeavyGray
-                    )
-                }
+                Spacer(modifier = Modifier.height(200.dp))
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(SpacingLarge))
+@Preview(showBackground = true, name = "EditarEntrada - Cargando - Claro")
+@Composable
+private fun EditarEntradaCargandoClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        GestionBottomSheetContent(
+            title = "Editar Entrada",
+            saveLabel = "Guardar Cambios",
+            cancelLabel = "Cancelar",
+            isLoading = true,
+            errorMessage = null,
+            onSave = {},
+            onDismiss = {}
+        ) {
+            Spacer(modifier = Modifier.height(200.dp))
+        }
+    }
+}
 
-            EntradaForm(viewModel = viewModel)
-
-            Spacer(modifier = Modifier.height(SpacingXXLarge))
-
-            // Error general del servidor
-            if (editState is State.Error) {
-                Surface(
-                    color = Color(0xFFFCE4EC),
-                    shape = RoundedCornerShape(CornerRadiusSmall),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = SpacingLarge)
-                ) {
-                    Text(
-                        text = editState.message,
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = TextSizeSmall,
-                        modifier = Modifier.padding(SpacingMedium)
-                    )
-                }
-            }
-
-            // Botón: Guardar Cambios
-            Button(
-                onClick = { viewModel.save(context) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(ButtonHeightLarge),
-                shape = RoundedCornerShape(CornerRadiusMedium),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                enabled = editState !is State.Loading
-            ) {
-                if (editState is State.Loading) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(IconSizeMedium),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = stringResource(R.string.entrada_guardar_cambios),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = TextSizeMedium
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(SpacingMedium))
-
-            // Botón: Cancelar
-            TextButton(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = stringResource(R.string.entrada_cancelar),
-                    color = HeavyGray,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = TextSizeMedium
-                )
-            }
+@Preview(showBackground = true, name = "EditarEntrada - Error - Claro")
+@Composable
+private fun EditarEntradaErrorClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        GestionBottomSheetContent(
+            title = "Editar Entrada",
+            saveLabel = "Guardar Cambios",
+            cancelLabel = "Cancelar",
+            isLoading = false,
+            errorMessage = "No se pudo guardar la entrada. Intenta nuevamente.",
+            onSave = {},
+            onDismiss = {}
+        ) {
+            Spacer(modifier = Modifier.height(200.dp))
         }
     }
 }

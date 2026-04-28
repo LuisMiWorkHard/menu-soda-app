@@ -173,8 +173,13 @@ val networkModule = module {
                         request.headers.append("Authorization", "Bearer $newToken")
                         execute(request)
                     } catch (e: Exception) {
-                        authRepository.logoutAsync()
-                        AuthEventBus.emitSessionExpired()
+                        try {
+                            authRepository.logoutAsync()
+                        } catch (logoutException: Exception) {
+                            android.util.Log.w("NetworkModule", "logoutAsync falló en interceptor: ${logoutException.message}")
+                        } finally {
+                            AuthEventBus.emitSessionExpired()
+                        }
                         originalCall
                     }
                 }

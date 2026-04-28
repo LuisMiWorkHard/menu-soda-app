@@ -54,7 +54,6 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ParagraphStyle
@@ -137,7 +136,7 @@ fun SeleccionEstiloScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        (
+        SeleccionEstiloContent(
             imagenesState = imagenesState,
             selectedImagenId = selectedImagenId,
             entradas = entradas,
@@ -527,7 +526,7 @@ fun ResumenSeleccionRow(cantidadEntradas: Int, cantidadPlatos: Int) {
             Icon(
                 imageVector = Icons.Filled.RoomService,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(IconSizeMedium)
             )
             Spacer(modifier = Modifier.width(SpacingSmall))
@@ -541,7 +540,7 @@ fun ResumenSeleccionRow(cantidadEntradas: Int, cantidadPlatos: Int) {
                 Text(
                     text = stringResource(R.string.paso_estilo_resumen_desc, cantidadEntradas, cantidadPlatos),
                     fontSize = TextSizeSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
