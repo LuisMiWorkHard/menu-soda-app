@@ -137,7 +137,7 @@ fun SeleccionEstiloScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        SeleccionEstiloContent(
+        (
             imagenesState = imagenesState,
             selectedImagenId = selectedImagenId,
             entradas = entradas,

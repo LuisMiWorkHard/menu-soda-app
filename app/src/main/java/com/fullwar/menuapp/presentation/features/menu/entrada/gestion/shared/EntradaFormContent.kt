@@ -42,34 +42,65 @@ import androidx.core.content.FileProvider
 import coil3.compose.AsyncImage
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.di.Constants
-import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
-import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
-import com.fullwar.menuapp.data.model.EntradaUpdateRequestDto
-import com.fullwar.menuapp.data.model.ImagenResponseDto
-import com.fullwar.menuapp.data.model.TipoEntradaResponseDto
 import com.fullwar.menuapp.domain.model.TipoEntrada
-import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.ui.theme.*
 import java.io.File
 
 @Composable
-fun EntradaFormContent(
+fun EntradaForm(
     viewModel: EntradaViewModel,
     onSelectExisting: ((EntradaResponseDto) -> Unit)? = null
 ) {
-    val context = LocalContext.current
-
-    val nombre = viewModel.formFields.fields["entnom"] as? TextFieldValue ?: TextFieldValue()
-    val descripcion = viewModel.formFields.fields["entdes"] as? TextFieldValue ?: TextFieldValue()
+    val nombre           = viewModel.formFields.fields["entnom"] as? TextFieldValue ?: TextFieldValue()
+    val descripcion      = viewModel.formFields.fields["entdes"] as? TextFieldValue ?: TextFieldValue()
     val tipoSeleccionado = viewModel.formFields.fields["codtipent"] as? TipoEntrada
-    val imageUri = viewModel.formFields.fields["imageUri"] as? Uri
-    val tiposState = viewModel.tiposEntradaState
-    val errors: Map<String, Int?> = viewModel.formFields.errors
-    val serverErrors: Map<String, String?> = viewModel.formFields.serverErrors
-    val currentImagenId = viewModel.currentImagenId
+    val imageUri         = viewModel.formFields.fields["imageUri"] as? Uri
+
+    EntradaFormContent(
+        nombre              = nombre,
+        descripcion         = descripcion,
+        tipoSeleccionado    = tipoSeleccionado,
+        imageUri            = imageUri,
+        currentImagenId     = viewModel.currentImagenId,
+        tiposState          = viewModel.tiposEntradaState,
+        errors              = viewModel.formFields.errors,
+        serverErrors        = viewModel.formFields.serverErrors,
+        duplicateMatches    = viewModel.duplicateMatches,
+        isEditMode          = viewModel.isEditMode,
+        onSelectExisting    = onSelectExisting,
+        onNombreChange      = { viewModel.updateField("entnom", it) },
+        onDescripcionChange = { viewModel.updateField("entdes", it) },
+        onTipoChange        = { viewModel.updateField("codtipent", it) },
+        onImageChange       = { viewModel.updateField("imageUri", it) },
+        onCheckDuplicates   = { viewModel.checkForDuplicates(it) },
+        onClearDuplicates   = { viewModel.clearDuplicateMatches() }
+    )
+}
+
+@Composable
+fun EntradaFormContent(
+    nombre: TextFieldValue,
+    descripcion: TextFieldValue,
+    tipoSeleccionado: TipoEntrada?,
+    imageUri: Uri?,
+    currentImagenId: Int?,
+    tiposState: State<List<TipoEntrada>>,
+    errors: Map<String, Int?>,
+    serverErrors: Map<String, String?>,
+    duplicateMatches: List<EntradaResponseDto>,
+    isEditMode: Boolean,
+    onSelectExisting: ((EntradaResponseDto) -> Unit)? = null,
+    onNombreChange: (TextFieldValue) -> Unit,
+    onDescripcionChange: (TextFieldValue) -> Unit,
+    onTipoChange: (TipoEntrada) -> Unit,
+    onImageChange: (Uri?) -> Unit,
+    onCheckDuplicates: (String) -> Unit,
+    onClearDuplicates: () -> Unit
+) {
+    val context = LocalContext.current
 
     val descripcionFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -80,14 +111,14 @@ fun EntradaFormContent(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success && cameraUri != null) {
-            viewModel.updateField("imageUri", cameraUri)
+            onImageChange(cameraUri)
         }
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        uri?.let { viewModel.updateField("imageUri", it) }
+        uri?.let { onImageChange(it) }
     }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -193,15 +224,15 @@ fun EntradaFormContent(
     Spacer(modifier = Modifier.height(SpacingSmall))
     OutlinedTextField(
         value = nombre,
-        onValueChange = { viewModel.updateField("entnom", it.copy(text = it.text.uppercase())) },
+        onValueChange = { onNombreChange(it.copy(text = it.text.uppercase())) },
         modifier = Modifier
             .fillMaxWidth()
             .onFocusChanged { focusState ->
-                if (!focusState.isFocused && onSelectExisting != null && !viewModel.isEditMode) {
-                    val text = (viewModel.formFields.fields["entnom"] as? TextFieldValue)?.text ?: ""
-                    if (text.isNotBlank()) viewModel.checkForDuplicates(text)
+                if (!focusState.isFocused && onSelectExisting != null && !isEditMode) {
+                    val text = nombre.text
+                    if (text.isNotBlank()) onCheckDuplicates(text)
                 } else if (focusState.isFocused) {
-                    viewModel.clearDuplicateMatches()
+                    onClearDuplicates()
                 }
             },
         placeholder = {
@@ -238,7 +269,6 @@ fun EntradaFormContent(
         }
     )
 
-    val duplicateMatches = viewModel.duplicateMatches
     if (onSelectExisting != null && duplicateMatches.isNotEmpty()) {
         Spacer(modifier = Modifier.height(SpacingSmall))
         Surface(
@@ -293,7 +323,7 @@ fun EntradaFormContent(
                         }
                         TextButton(onClick = {
                             onSelectExisting(dto)
-                            viewModel.clearDuplicateMatches()
+                            onClearDuplicates()
                         }) {
                             Text(
                                 text = "Usar este →",
@@ -305,7 +335,7 @@ fun EntradaFormContent(
                 }
                 Spacer(modifier = Modifier.height(SpacingXSmall))
                 TextButton(
-                    onClick = { viewModel.clearDuplicateMatches() },
+                    onClick = { onClearDuplicates() },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
@@ -329,7 +359,7 @@ fun EntradaFormContent(
     Spacer(modifier = Modifier.height(SpacingSmall))
     OutlinedTextField(
         value = descripcion,
-        onValueChange = { viewModel.updateField("entdes", it.copy(text = it.text.uppercase())) },
+        onValueChange = { onDescripcionChange(it.copy(text = it.text.uppercase())) },
         modifier = Modifier.fillMaxWidth().focusRequester(descripcionFocusRequester),
         placeholder = {
             Text(
@@ -392,7 +422,7 @@ fun EntradaFormContent(
                     val isSelected = tipoSeleccionado?.id == tipo.id
                     FilterChip(
                         selected = isSelected,
-                        onClick = { viewModel.updateField("codtipent", tipo) },
+                        onClick = { onTipoChange(tipo) },
                         label = { Text(text = tipo.descripcion, fontSize = TextSizeSmall) },
                         shape = RoundedCornerShape(CornerRadiusMedium),
                         colors = FilterChipDefaults.filterChipColors(
@@ -438,30 +468,10 @@ fun EntradaFormContent(
 
 // --- Previews ---
 
-private class FakeEntradaRepository : IEntradaRepository {
-    override suspend fun getEntradas(): List<EntradaResponseDto> = emptyList()
-    override suspend fun searchEntradas(query: String): List<EntradaResponseDto> =
-        getEntradas().filter { it.nombre.contains(query, ignoreCase = true) }
-    override suspend fun findSimilarEntradas(nombre: String, excludeId: Int?): List<EntradaResponseDto> = emptyList()
-    override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto = throw NotImplementedError()
-    override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto = throw NotImplementedError()
-    override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> = listOf(
-        TipoEntradaResponseDto(1, "Fría", 1, "01/01/2024", "admin"),
-        TipoEntradaResponseDto(2, "Caliente", 1, "01/01/2024", "admin"),
-        TipoEntradaResponseDto(3, "Ensalada", 1, "01/01/2024", "admin")
-    )
-    override suspend fun uploadImage(imageBytes: ByteArray, fileName: String, extension: String): ImagenResponseDto = throw NotImplementedError()
-}
-
-private val fakeEntrada = EntradaResponseDto(
-    id = 1,
-    nombre = "Ceviche Clásico",
-    descripcion = "Fresco, ligero y con toque de limón",
-    estadoId = 1,
-    tipoEntradaId = 2,
-    imagenId = null,
-    fechaRegistro = "01/01/2024",
-    usuarioRegistro = "admin"
+private val fakeTipos = listOf(
+    TipoEntrada(1, "Fría"),
+    TipoEntrada(2, "Caliente"),
+    TipoEntrada(3, "Ensalada")
 )
 
 @Composable
@@ -476,14 +486,14 @@ private fun PreviewWrapper(darkTheme: Boolean, content: @Composable () -> Unit) 
 }
 
 @Composable
-private fun FormScrollWrapper(viewModel: EntradaViewModel) {
+private fun FormScrollWrapper(content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .padding(horizontal = SpacingXLarge)
             .padding(vertical = SpacingLarge)
     ) {
-        EntradaFormContent(viewModel = viewModel)
+        content()
     }
 }
 
@@ -492,17 +502,37 @@ private fun FormScrollWrapper(viewModel: EntradaViewModel) {
 @Preview(showBackground = true, name = "EntradaForm - Vacío - Claro")
 @Composable
 private fun EntradaFormVacioPreview() {
-    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
-    LaunchedEffect(Unit) { vm.initForCreate() }
-    PreviewWrapper(darkTheme = false) { FormScrollWrapper(vm) }
+    PreviewWrapper(darkTheme = false) {
+        FormScrollWrapper {
+            EntradaFormContent(
+                nombre = TextFieldValue(), descripcion = TextFieldValue(),
+                tipoSeleccionado = null, imageUri = null, currentImagenId = null,
+                tiposState = State.Initial,
+                errors = emptyMap(), serverErrors = emptyMap(),
+                duplicateMatches = emptyList(), isEditMode = false,
+                onNombreChange = {}, onDescripcionChange = {}, onTipoChange = {},
+                onImageChange = {}, onCheckDuplicates = {}, onClearDuplicates = {}
+            )
+        }
+    }
 }
 
 @Preview(showBackground = true, name = "EntradaForm - Vacío - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun EntradaFormVacioDarkPreview() {
-    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
-    LaunchedEffect(Unit) { vm.initForCreate() }
-    PreviewWrapper(darkTheme = true) { FormScrollWrapper(vm) }
+    PreviewWrapper(darkTheme = true) {
+        FormScrollWrapper {
+            EntradaFormContent(
+                nombre = TextFieldValue(), descripcion = TextFieldValue(),
+                tipoSeleccionado = null, imageUri = null, currentImagenId = null,
+                tiposState = State.Initial,
+                errors = emptyMap(), serverErrors = emptyMap(),
+                duplicateMatches = emptyList(), isEditMode = false,
+                onNombreChange = {}, onDescripcionChange = {}, onTipoChange = {},
+                onImageChange = {}, onCheckDuplicates = {}, onClearDuplicates = {}
+            )
+        }
+    }
 }
 
 // Estado 2: Con tipos cargados
@@ -510,23 +540,37 @@ private fun EntradaFormVacioDarkPreview() {
 @Preview(showBackground = true, name = "EntradaForm - Con tipos - Claro")
 @Composable
 private fun EntradaFormConTiposPreview() {
-    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
-    LaunchedEffect(Unit) {
-        vm.initForCreate()
-        vm.loadTiposEntrada()
+    PreviewWrapper(darkTheme = false) {
+        FormScrollWrapper {
+            EntradaFormContent(
+                nombre = TextFieldValue(), descripcion = TextFieldValue(),
+                tipoSeleccionado = null, imageUri = null, currentImagenId = null,
+                tiposState = State.Success(fakeTipos),
+                errors = emptyMap(), serverErrors = emptyMap(),
+                duplicateMatches = emptyList(), isEditMode = false,
+                onNombreChange = {}, onDescripcionChange = {}, onTipoChange = {},
+                onImageChange = {}, onCheckDuplicates = {}, onClearDuplicates = {}
+            )
+        }
     }
-    PreviewWrapper(darkTheme = false) { FormScrollWrapper(vm) }
 }
 
 @Preview(showBackground = true, name = "EntradaForm - Con tipos - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun EntradaFormConTiposDarkPreview() {
-    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
-    LaunchedEffect(Unit) {
-        vm.initForCreate()
-        vm.loadTiposEntrada()
+    PreviewWrapper(darkTheme = true) {
+        FormScrollWrapper {
+            EntradaFormContent(
+                nombre = TextFieldValue(), descripcion = TextFieldValue(),
+                tipoSeleccionado = null, imageUri = null, currentImagenId = null,
+                tiposState = State.Success(fakeTipos),
+                errors = emptyMap(), serverErrors = emptyMap(),
+                duplicateMatches = emptyList(), isEditMode = false,
+                onNombreChange = {}, onDescripcionChange = {}, onTipoChange = {},
+                onImageChange = {}, onCheckDuplicates = {}, onClearDuplicates = {}
+            )
+        }
     }
-    PreviewWrapper(darkTheme = true) { FormScrollWrapper(vm) }
 }
 
 // Estado 3: Con datos (modo editar)
@@ -534,23 +578,41 @@ private fun EntradaFormConTiposDarkPreview() {
 @Preview(showBackground = true, name = "EntradaForm - Con datos - Claro")
 @Composable
 private fun EntradaFormConDatosPreview() {
-    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
-    LaunchedEffect(Unit) {
-        vm.initForEdit(fakeEntrada)
-        vm.loadTiposEntrada()
+    PreviewWrapper(darkTheme = false) {
+        FormScrollWrapper {
+            EntradaFormContent(
+                nombre = TextFieldValue("Ceviche Clásico"),
+                descripcion = TextFieldValue("Fresco, ligero y con toque de limón"),
+                tipoSeleccionado = TipoEntrada(2, "Caliente"),
+                imageUri = null, currentImagenId = null,
+                tiposState = State.Success(fakeTipos),
+                errors = emptyMap(), serverErrors = emptyMap(),
+                duplicateMatches = emptyList(), isEditMode = true,
+                onNombreChange = {}, onDescripcionChange = {}, onTipoChange = {},
+                onImageChange = {}, onCheckDuplicates = {}, onClearDuplicates = {}
+            )
+        }
     }
-    PreviewWrapper(darkTheme = false) { FormScrollWrapper(vm) }
 }
 
 @Preview(showBackground = true, name = "EntradaForm - Con datos - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun EntradaFormConDatosDarkPreview() {
-    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
-    LaunchedEffect(Unit) {
-        vm.initForEdit(fakeEntrada)
-        vm.loadTiposEntrada()
+    PreviewWrapper(darkTheme = true) {
+        FormScrollWrapper {
+            EntradaFormContent(
+                nombre = TextFieldValue("Ceviche Clásico"),
+                descripcion = TextFieldValue("Fresco, ligero y con toque de limón"),
+                tipoSeleccionado = TipoEntrada(2, "Caliente"),
+                imageUri = null, currentImagenId = null,
+                tiposState = State.Success(fakeTipos),
+                errors = emptyMap(), serverErrors = emptyMap(),
+                duplicateMatches = emptyList(), isEditMode = true,
+                onNombreChange = {}, onDescripcionChange = {}, onTipoChange = {},
+                onImageChange = {}, onCheckDuplicates = {}, onClearDuplicates = {}
+            )
+        }
     }
-    PreviewWrapper(darkTheme = true) { FormScrollWrapper(vm) }
 }
 
 // Estado 4: Con errores de validación
@@ -558,23 +620,43 @@ private fun EntradaFormConDatosDarkPreview() {
 @Preview(showBackground = true, name = "EntradaForm - Con errores - Claro")
 @Composable
 private fun EntradaFormConErroresPreview() {
-    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
-    LaunchedEffect(Unit) {
-        vm.initForCreate()
-        vm.loadTiposEntrada()
-        vm.validate()
+    PreviewWrapper(darkTheme = false) {
+        FormScrollWrapper {
+            EntradaFormContent(
+                nombre = TextFieldValue(), descripcion = TextFieldValue(),
+                tipoSeleccionado = null, imageUri = null, currentImagenId = null,
+                tiposState = State.Success(fakeTipos),
+                errors = mapOf(
+                    "entnom"    to R.string.error_entrada_nombre_vacio,
+                    "codtipent" to R.string.error_entrada_tipo_vacio
+                ),
+                serverErrors = emptyMap(),
+                duplicateMatches = emptyList(), isEditMode = false,
+                onNombreChange = {}, onDescripcionChange = {}, onTipoChange = {},
+                onImageChange = {}, onCheckDuplicates = {}, onClearDuplicates = {}
+            )
+        }
     }
-    PreviewWrapper(darkTheme = false) { FormScrollWrapper(vm) }
 }
 
 @Preview(showBackground = true, name = "EntradaForm - Con errores - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun EntradaFormConErroresDarkPreview() {
-    val vm = remember { EntradaViewModel(FakeEntradaRepository()) }
-    LaunchedEffect(Unit) {
-        vm.initForCreate()
-        vm.loadTiposEntrada()
-        vm.validate()
+    PreviewWrapper(darkTheme = true) {
+        FormScrollWrapper {
+            EntradaFormContent(
+                nombre = TextFieldValue(), descripcion = TextFieldValue(),
+                tipoSeleccionado = null, imageUri = null, currentImagenId = null,
+                tiposState = State.Success(fakeTipos),
+                errors = mapOf(
+                    "entnom"    to R.string.error_entrada_nombre_vacio,
+                    "codtipent" to R.string.error_entrada_tipo_vacio
+                ),
+                serverErrors = emptyMap(),
+                duplicateMatches = emptyList(), isEditMode = false,
+                onNombreChange = {}, onDescripcionChange = {}, onTipoChange = {},
+                onImageChange = {}, onCheckDuplicates = {}, onClearDuplicates = {}
+            )
+        }
     }
-    PreviewWrapper(darkTheme = true) { FormScrollWrapper(vm) }
 }
