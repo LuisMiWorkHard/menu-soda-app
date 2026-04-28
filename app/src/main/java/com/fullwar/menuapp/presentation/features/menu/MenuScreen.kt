@@ -89,6 +89,8 @@ fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
     val seleccionPlatosFondoViewModel: SeleccionPlatosFondoViewModel = koinViewModel()
     val pasoEstiloViewModel: SeleccionEstiloViewModel = koinViewModel()
 
+    var isExpanded by remember { mutableStateOf(false) }
+
     val currentStep = when (currentRoute) {
         MenuRoute.Entradas.route -> 1
         MenuRoute.PlatosFondo.route -> 2
@@ -121,6 +123,8 @@ fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
         stepTitle = stepTitle,
         selectedCount = currentSelectedSize,
         isSiguienteEnabled = isSiguienteEnabled,
+        isExpanded = isExpanded,
+        onExpandedChange = { isExpanded = it },
         onAnterior = { navController.popBackStack() },
         onSiguiente = {
             when (currentStep) {
@@ -192,13 +196,13 @@ private fun MenuScreenContent(
     stepTitle: String,
     selectedCount: Int,
     isSiguienteEnabled: Boolean = true,
+    isExpanded: Boolean = false,
+    onExpandedChange: (Boolean) -> Unit = {},
     onAnterior: () -> Unit,
     onSiguiente: () -> Unit,
     bottomSheetContent: @Composable () -> Unit = {},
     content: @Composable () -> Unit
 ) {
-    var isExpanded by remember { mutableStateOf(false) }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -241,7 +245,7 @@ private fun MenuScreenContent(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { isExpanded = !isExpanded }
+                                .clickable { onExpandedChange(!isExpanded) }
                                 .padding(horizontal = SpacingLarge, vertical = SpacingMedium),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -445,5 +449,99 @@ private fun MenuScreenStep2DarkPreview() {
             onAnterior = {},
             onSiguiente = {}
         ) {}
+    }
+}
+
+@Preview(showBackground = true, name = "MenuScreen - Selección Expandida Claro")
+@Composable
+private fun MenuScreenSelectionPreview() {
+    val mockEntradas = listOf(
+        com.fullwar.menuapp.data.model.EntradaResponseDto(
+            id = 1,
+            nombre = "Sopa de Mote",
+            estadoId = 1,
+            tipoEntradaId = 1,
+            fechaRegistro = "",
+            usuarioRegistro = ""
+        ),
+        com.fullwar.menuapp.data.model.EntradaResponseDto(
+            id = 2,
+            nombre = "Ensalada Rusa",
+            estadoId = 1,
+            tipoEntradaId = 1,
+            fechaRegistro = "",
+            usuarioRegistro = ""
+        )
+    )
+
+    MenuAppTheme(darkTheme = false) {
+        MenuScreenContent(
+            currentStep = 1,
+            stepTitle = "Entradas",
+            selectedCount = mockEntradas.size,
+            isExpanded = true,
+            onAnterior = {},
+            onSiguiente = {},
+            bottomSheetContent = {
+                SelectedEntradasBottomSheetContent(
+                    entradas = mockEntradas,
+                    imagenesMap = emptyMap(),
+                    onRemove = {},
+                    onMove = { _, _ -> }
+                )
+            }
+        ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = "Contenido de la pantalla")
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "MenuScreen - Selección Expandida Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun MenuScreenSelectionDarkPreview() {
+    val mockEntradas = listOf(
+        com.fullwar.menuapp.data.model.EntradaResponseDto(
+            id = 1,
+            nombre = "Sopa de Mote",
+            descripcion = "Una sopita bien rica",
+            estadoId = 1,
+            tipoEntradaId = 1,
+            fechaRegistro = "",
+            usuarioRegistro = ""
+        ),
+        com.fullwar.menuapp.data.model.EntradaResponseDto(
+            id = 2,
+            nombre = "Ensalada Rusa",
+            descripcion = "Ensalda en base de veterraga",
+            estadoId = 1,
+            tipoEntradaId = 1,
+            fechaRegistro = "",
+            usuarioRegistro = ""
+        )
+    )
+
+    MenuAppTheme(darkTheme = true) {
+        MenuScreenContent(
+            currentStep = 1,
+            stepTitle = "Entradas",
+            selectedCount = mockEntradas.size,
+            isExpanded = true,
+            onAnterior = {},
+            onSiguiente = {},
+            bottomSheetContent = {
+                SelectedEntradasBottomSheetContent(
+                    entradas = mockEntradas,
+                    imagenesMap = emptyMap(),
+                    onRemove = {},
+                    onMove = { _, _ -> }
+                )
+            }
+        ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = "Contenido de la pantalla")
+            }
+        }
     }
 }

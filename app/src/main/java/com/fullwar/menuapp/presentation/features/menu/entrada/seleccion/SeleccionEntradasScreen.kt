@@ -403,7 +403,7 @@ fun SelectedEntradasBottomSheetContent(
                         Text(
                             text = entrada.descripcion.toSmartUpperCase(),
                             fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
