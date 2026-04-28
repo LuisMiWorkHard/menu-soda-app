@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.DrawableImage
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.presentation.navigation.AppScreens
 import org.koin.compose.viewmodel.koinViewModel
@@ -72,11 +73,11 @@ fun SplashScreen(
                 .padding(bottom = 100.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Filled.RoomService,
+            Image(
+                painter = painterResource(R.drawable.logo_splash),
                 contentDescription = "App Logo",
-                modifier = Modifier.size(120.dp),
-                tint = Color.White
+                modifier = Modifier.fillMaxWidth(0.65f),
+                contentScale = ContentScale.Fit
             )
             
             Spacer(modifier = Modifier.height(24.dp))
