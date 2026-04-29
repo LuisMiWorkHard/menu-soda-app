@@ -32,6 +32,7 @@ val ButtonHeightMedium = 48.dp
 val ButtonHeightLarge = 56.dp
 
 // Text Sizes
+val TextSizeXXSmall = 10.sp
 val TextSizeXSmall = 12.sp
 val TextSizeSmall = 14.sp
 val TextSizeMedium = 16.sp

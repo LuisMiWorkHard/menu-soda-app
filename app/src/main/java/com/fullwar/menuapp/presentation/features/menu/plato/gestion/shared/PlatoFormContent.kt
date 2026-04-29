@@ -132,7 +132,7 @@ fun PlatoFormContent(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp)
+            .heightIn(min = 160.dp)
             .clip(RoundedCornerShape(CornerRadiusMedium))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .then(

@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MenuApp" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Tema asignado en el Manifest. Hereda de Theme.SplashScreen para que la API funcione.
+         postSplashScreenTheme restaura el tema real de la app tras el primer frame. -->
+    <style name="Theme.MenuApp" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#1A1A1A</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="windowSplashScreenIconBackgroundColor">#1A1A1A</item>
+        <item name="postSplashScreenTheme">@style/Theme.MenuApp.App</item>
+    </style>
+
+    <!-- Tema de la app en ejecución (equivalente al Theme.MenuApp original) -->
+    <style name="Theme.MenuApp.App" parent="android:Theme.Material.Light.NoActionBar" />
+
 </resources>

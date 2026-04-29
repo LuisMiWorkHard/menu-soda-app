@@ -19,6 +19,7 @@ datastore = "1.2.1"
 tink = "1.21.0"
 coil = "3.4.0"
 lottie = "6.7.1"
+coreSplashscreen = "1.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +53,7 @@ tink-android = { group = "com.google.crypto.tink", name = "tink-android", versio
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

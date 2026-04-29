@@ -6,18 +6,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.fullwar.menuapp.presentation.features.splash.SplashViewModel
+import com.fullwar.menuapp.presentation.navigation.AppScreens
 import com.fullwar.menuapp.presentation.navigation.SetupNavigation
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+
+    private val splashViewModel: SplashViewModel by viewModel()
 
     override fun attachBaseContext(newBase: Context) {
         val locale = Locale.forLanguageTag("es-ES")
@@ -28,11 +27,22 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        splashScreen.setKeepOnScreenCondition { !splashViewModel.isInitialized }
+
         enableEdgeToEdge()
         setContent {
             MenuAppTheme {
-                SetupNavigation()
+                if (splashViewModel.isInitialized) {
+                    val startDestination = if (splashViewModel.hasValidToken)
+                        AppScreens.HomeScreen.route
+                    else
+                        AppScreens.LoginScreen.route
+
+                    SetupNavigation(startDestination = startDestination)
+                }
             }
         }
     }

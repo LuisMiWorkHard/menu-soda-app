@@ -375,13 +375,13 @@ fun SelectedPlatosFondoBottomSheetContent(
                         Text(
                             text = plato.nombre.toSmartUpperCase(),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
+                            fontSize = TextSizeXSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = plato.descripcion.toSmartUpperCase(),
-                            fontSize = 10.sp,
+                            fontSize = TextSizeXXSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -464,19 +464,19 @@ fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = item.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium, color = MaterialTheme.colorScheme.onBackground)
-                Text(text = item.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurface)
-                Spacer(modifier = Modifier.height(SpacingXSmall))
+                Text(text = item.nombre, fontWeight = FontWeight.Bold, fontSize = TextSizeMedium, color = MaterialTheme.colorScheme.onBackground, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(text = item.descripcion, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Spacer(modifier = Modifier.weight(1f))
                 Button(
                     onClick = onAdd,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(CornerRadiusSmall),
                     contentPadding = PaddingValues(horizontal = SpacingSmall, vertical = 0.dp),
-                    modifier = Modifier.height(32.dp)
+                    modifier = Modifier.heightIn(min = 32.dp)
                 ) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(IconSizeSmall))
                     Spacer(modifier = Modifier.width(SpacingXSmall))
-                    Text(text = stringResource(id = R.string.platos_fondo_anadir), fontSize = TextSizeSmall, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(id = R.string.platos_fondo_anadir), fontSize = TextSizeSmall, fontWeight = FontWeight.Bold, maxLines = 1)
                 }
             }
             Spacer(modifier = Modifier.width(SpacingSmall))
@@ -509,8 +509,8 @@ fun PlatoDisponibleCard(plato: PlatoResponseDto, imageUrl: String?, isSelected: 
             CustomImageView(imageUrl = imageUrl, sizeDp = 60, defaultImageRes = R.drawable.default_image_menu)
             Spacer(modifier = Modifier.width(SpacingMedium))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = plato.nombre.toSmartUpperCase(), fontWeight = FontWeight.Bold, fontSize = TextSizeMedium)
-                Text(text = plato.descripcion.toSmartUpperCase(), fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = plato.nombre.toSmartUpperCase(), fontWeight = FontWeight.Bold, fontSize = TextSizeMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(text = plato.descripcion.toSmartUpperCase(), fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Checkbox(
                 checked = isSelected,

@@ -23,7 +23,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -301,8 +303,8 @@ private fun CerrarButton(
             .clip(shape)
             .border(1.dp, White.copy(alpha = 0.7f), shape)
             .clickable(onClick = onClick)
-            .height(40.dp)
-            .width(140.dp),
+            .heightIn(min = 40.dp)
+            .widthIn(min = 140.dp),
         contentAlignment = Alignment.Center
     ) {
         // Capa 1 – fondo completo tenue (zona de tiempo transcurrido)
