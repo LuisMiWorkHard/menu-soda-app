@@ -673,7 +673,7 @@ fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
                 ) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(IconSizeSmall))
                     Spacer(modifier = Modifier.width(SpacingXSmall))
-                    Text(text = stringResource(id = R.string.platos_fondo_anadir), fontSize = TextSizeSmall, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text(text = stringResource(id = R.string.platos_fondo_anadir), fontSize = TextSizeSmall, lineHeight = TextSizeSmall, fontWeight = FontWeight.Bold, maxLines = 1)
                 }
             }
             Spacer(modifier = Modifier.width(SpacingSmall))

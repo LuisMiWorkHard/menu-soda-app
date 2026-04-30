@@ -4,9 +4,9 @@
     <!-- Tema asignado en el Manifest. Hereda de Theme.SplashScreen para que la API funcione.
          postSplashScreenTheme restaura el tema real de la app tras el primer frame. -->
     <style name="Theme.MenuApp" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#1A1A1A</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
-        <item name="windowSplashScreenIconBackgroundColor">#1A1A1A</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/splash_background</item>
         <item name="postSplashScreenTheme">@style/Theme.MenuApp.App</item>
     </style>
 

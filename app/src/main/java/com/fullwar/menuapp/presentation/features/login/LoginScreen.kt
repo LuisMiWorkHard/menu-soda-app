@@ -33,11 +33,11 @@ import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Dining
-import androidx.compose.material.icons.filled.RoomService
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,17 +54,16 @@ import com.fullwar.menuapp.ui.theme.ButtonHeightLarge
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.ui.theme.SetNavigationBarColor
 import com.fullwar.menuapp.ui.theme.ButtonHeightMedium
-import com.fullwar.menuapp.ui.theme.CornerRadiusLarge
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
 import com.fullwar.menuapp.ui.theme.HeavyGray
-import com.fullwar.menuapp.ui.theme.IconSize3XLarge
 import com.fullwar.menuapp.ui.theme.IconSizeSmall
 import com.fullwar.menuapp.ui.theme.SpacingMedium
 import com.fullwar.menuapp.ui.theme.SpacingSmall
 import com.fullwar.menuapp.ui.theme.SpacingXLarge
 import com.fullwar.menuapp.ui.theme.SpacingXSmall
 import com.fullwar.menuapp.ui.theme.Spacing3XLarge
+import com.fullwar.menuapp.ui.theme.SpacingLarge
 import com.fullwar.menuapp.ui.theme.TextSizeLarge
 import com.fullwar.menuapp.ui.theme.TextSizeMedium
 import com.fullwar.menuapp.ui.theme.TextSizeSmall
@@ -210,15 +209,16 @@ private fun LoginScreenContent(
             Spacer(modifier = Modifier.height(Spacing3XLarge))
 
             // Icon Header
-            Surface(
-                modifier = Modifier.size(IconSize3XLarge),
-                shape = RoundedCornerShape(CornerRadiusLarge),
-                color = MaterialTheme.colorScheme.background
-            ) {
-                Icon(imageVector = Icons.Filled.RoomService, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.menu_soda_logo),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .fillMaxWidth(fraction = 0.75f)
+                    .aspectRatio(3f / 2f)
+            )
 
-            Spacer(modifier = Modifier.height(SpacingXLarge))
+            Spacer(modifier = Modifier.height(SpacingSmall))
 
             // Title and Subtitle
             Text(

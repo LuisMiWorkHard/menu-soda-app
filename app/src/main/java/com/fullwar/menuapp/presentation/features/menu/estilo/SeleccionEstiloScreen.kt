@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,6 +73,7 @@ import androidx.core.content.FileProvider
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.utils.fontFamilyFromString
 import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -292,6 +294,9 @@ fun MenuPreviewCard(
     val density = LocalDensity.current
     val context = LocalContext.current
 
+    CompositionLocalProvider(
+        LocalDensity provides Density(density = density.density, fontScale = 1f)
+    ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -422,6 +427,7 @@ fun MenuPreviewCard(
                 }
             }
         }
+    }
     }
 }
 
