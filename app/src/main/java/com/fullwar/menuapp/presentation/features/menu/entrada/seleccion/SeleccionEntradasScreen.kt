@@ -48,6 +48,8 @@ import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo.NuevaEntradaBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import com.fullwar.menuapp.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -67,6 +69,8 @@ fun SeleccionEntradasScreen(
     var searchQuery by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
     var pendingAutoSelectNombre by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val toastElementosNoDisponibles = stringResource(R.string.toast_elementos_no_disponibles)
 
     // Cargar entradas al inicio
     LaunchedEffect(Unit) {
@@ -85,15 +89,21 @@ fun SeleccionEntradasScreen(
 
     val entradasState = seleccionViewModel.entradasState
 
-    // Auto-seleccionar elemento recién creado cuando la lista se refresca
     LaunchedEffect(entradasState) {
-        val nombre = pendingAutoSelectNombre ?: return@LaunchedEffect
-        if (entradasState is State.Success) {
+        if (entradasState !is State.Success) return@LaunchedEffect
+        val nombre = pendingAutoSelectNombre
+        if (nombre != null) {
             val dto = entradasState.data.find { it.nombre == nombre }
             dto?.let {
                 menuViewModel.updateEntradas(menuViewModel.selectedEntradas + it)
                 pendingAutoSelectNombre = null
             }
+        }
+        val newIds = entradasState.data.map { it.id }.toSet()
+        val removed = menuViewModel.selectedEntradas.filter { it.id !in newIds }
+        if (removed.isNotEmpty()) {
+            menuViewModel.updateEntradas(menuViewModel.selectedEntradas - removed.toSet())
+            Toast.makeText(context, toastElementosNoDisponibles, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -113,11 +123,8 @@ fun SeleccionEntradasScreen(
     }
 
     val searchResults = seleccionViewModel.searchResults
-    
-    // Filtrar para mostrar solo los NO seleccionados en la lista principal
-    val noSeleccionadasFiltradas = searchResults.filter { e -> selectedEntradas.none { s -> s.id == e.id } }
 
-    val sinResultados = searchQuery.isNotBlank() && noSeleccionadasFiltradas.isEmpty()
+    val sinResultados = searchQuery.isNotBlank() && searchResults.isEmpty()
 
     // Bottom sheet para añadir nueva entrada
     if (showBottomSheet) {
@@ -281,7 +288,8 @@ fun SeleccionEntradasScreen(
                     item {
                         ErrorBanner(
                             message = entradasState.message,
-                            modifier = Modifier.padding(vertical = SpacingSmall)
+                            modifier = Modifier.padding(vertical = SpacingSmall),
+                            onRetry = { seleccionViewModel.loadEntradas() }
                         )
                     }
                 }
@@ -300,15 +308,16 @@ fun SeleccionEntradasScreen(
                         }
                     }
 
-                    // Sólo mostramos las NO seleccionadas (las seleccionadas están en el BottomSheet)
-                    items(noSeleccionadasFiltradas, key = { it.id }) { entrada ->
+                    items(searchResults, key = { it.id }) { entrada ->
                         EntradaListItem(
                             entrada = entrada,
                             imageUrl = seleccionViewModel.imagenesMap[entrada.imagenId],
-                            isSelected = false,
+                            isSelected = selectedEntradas.any { it.id == entrada.id },
                             onToggle = { checked ->
                                 if (checked) {
                                     menuViewModel.updateEntradas(selectedEntradas + entrada)
+                                } else {
+                                    menuViewModel.updateEntradas(selectedEntradas - entrada)
                                 }
                             }
                         )
@@ -478,7 +487,7 @@ private fun EntradaListItem(
 ) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = if (isSelected) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onToggle(!isSelected) }

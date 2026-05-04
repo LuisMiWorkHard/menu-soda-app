@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -18,7 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.R
-import com.fullwar.menuapp.presentation.features.home.tabs.HistorialTab
+import com.fullwar.menuapp.presentation.features.home.tabs.historial.HistorialTab
 import com.fullwar.menuapp.presentation.features.home.tabs.PerfilTab
 import com.fullwar.menuapp.ui.theme.SetNavigationBarColor
 

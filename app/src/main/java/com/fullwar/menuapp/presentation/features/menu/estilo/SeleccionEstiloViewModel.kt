@@ -43,6 +43,10 @@ class SeleccionEstiloViewModel(
         selectedImagenId = id
     }
 
+    fun clearSelectedImagen() {
+        selectedImagenId = null
+    }
+
     fun loadImagenes() {
         viewModelScope.launch {
             imagenesState = State.Loading

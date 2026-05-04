@@ -5,7 +5,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -29,25 +31,30 @@ import com.fullwar.menuapp.ui.theme.HeavyGray
 fun CustomImageView(
     imageUrl: String?,
     sizeDp: Int = 60,
+    heightDp: Int = sizeDp,
     @DrawableRes defaultImageRes: Int = R.drawable.default_image_meal,
+    contentScale: ContentScale = ContentScale.Crop,
     modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(CornerRadiusSmall)
     val context = LocalContext.current
-    val px = with(LocalDensity.current) { sizeDp.dp.toPx() }.toInt()
+    val pxW = with(LocalDensity.current) { sizeDp.dp.toPx() }.toInt()
+    val pxH = with(LocalDensity.current) { heightDp.dp.toPx() }.toInt()
 
     if (imageUrl != null) {
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(context)
                 .data(imageUrl)
-                .size(px, px)
+                .size(pxW, pxH)
                 .crossfade(true)
                 .build(),
             contentDescription = null,
             modifier = modifier
-                .size(sizeDp.dp)
-                .clip(shape),
-            contentScale = ContentScale.Crop,
+                .width(sizeDp.dp)
+                .height(heightDp.dp)
+                .clip(shape)
+                .background(HeavyGray, shape),
+            contentScale = contentScale,
             loading = {
                 Box(
                     modifier = Modifier
@@ -63,10 +70,14 @@ fun CustomImageView(
                 }
             },
             error = {
-                Box(
+                Image(
+                    painter = painterResource(id = defaultImageRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(HeavyGray)
+                        .width(sizeDp.dp)
+                        .height(heightDp.dp)
+                        .clip(shape)
                 )
             }
         )
@@ -76,7 +87,8 @@ fun CustomImageView(
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = modifier
-                .size(sizeDp.dp)
+                .width(sizeDp.dp)
+                .height(heightDp.dp)
                 .clip(shape)
                 .background(HeavyGray, shape)
         )

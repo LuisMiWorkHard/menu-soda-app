@@ -33,7 +33,7 @@
 
     <!-- Historial Screen -->
     <string name="historial_titulo">Historial de Menús</string>
-    <string name="historial_buscar">Buscar platos o palabras clave</string>
+    <string name="historial_buscar">Buscar platos</string>
     <string name="historial_recientes">MENÚS RECIENTES</string>
     <string name="historial_nuevo_menu">Nuevo Menú</string>
     <string name="calendar_single_date">Fecha</string>
@@ -124,4 +124,8 @@
 
     <!-- Paso Estilo -->
     <string name="paso_estilo_resumen_desc">Has seleccionado %1$d entradas y %2$d segundos.</string>
+
+    <!-- Toast: elementos no disponibles tras refresco -->
+    <string name="toast_elementos_no_disponibles">Algunos elementos seleccionados ya no están disponibles</string>
+    <string name="toast_imagen_no_disponible">La imagen seleccionada ya no está disponible</string>
 </resources>

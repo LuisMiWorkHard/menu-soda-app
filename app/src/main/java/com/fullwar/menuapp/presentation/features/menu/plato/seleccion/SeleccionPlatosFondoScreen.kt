@@ -48,6 +48,8 @@ import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.nuevo.NuevoPlatoBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import com.fullwar.menuapp.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -67,6 +69,8 @@ fun SeleccionPlatosFondoScreen(
     var searchQuery by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
     var pendingAutoSelectNombre by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val toastElementosNoDisponibles = stringResource(R.string.toast_elementos_no_disponibles)
 
     // Cargar platos al inicio
     LaunchedEffect(Unit) {
@@ -85,15 +89,21 @@ fun SeleccionPlatosFondoScreen(
 
     val platosState = seleccionViewModel.platosState
 
-    // Auto-seleccionar elemento recién creado cuando la lista se refresca
     LaunchedEffect(platosState) {
-        val nombre = pendingAutoSelectNombre ?: return@LaunchedEffect
-        if (platosState is State.Success) {
+        if (platosState !is State.Success) return@LaunchedEffect
+        val nombre = pendingAutoSelectNombre
+        if (nombre != null) {
             val dto = platosState.data.find { it.nombre == nombre }
             dto?.let {
                 menuViewModel.updatePlatosFuertes(menuViewModel.selectedPlatosFuertes + it)
                 pendingAutoSelectNombre = null
             }
+        }
+        val newIds = platosState.data.map { it.id }.toSet()
+        val removed = menuViewModel.selectedPlatosFuertes.filter { it.id !in newIds }
+        if (removed.isNotEmpty()) {
+            menuViewModel.updatePlatosFuertes(menuViewModel.selectedPlatosFuertes - removed.toSet())
+            Toast.makeText(context, toastElementosNoDisponibles, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -119,11 +129,8 @@ fun SeleccionPlatosFondoScreen(
     }
 
     val searchResults = seleccionViewModel.searchResults
-    
-    // Filtrar para mostrar solo los NO seleccionados en la lista principal
-    val noSeleccionadosFiltrados = searchResults.filter { p -> selectedPlatos.none { s -> s.id == p.id } }
 
-    val sinResultados = searchQuery.isNotBlank() && noSeleccionadosFiltrados.isEmpty()
+    val sinResultados = searchQuery.isNotBlank() && searchResults.isEmpty()
 
     val listState = rememberLazyListState()
     val canScrollDown by remember { derivedStateOf { listState.canScrollForward } }
@@ -261,7 +268,8 @@ fun SeleccionPlatosFondoScreen(
                     item {
                         ErrorBanner(
                             message = platosState.message,
-                            modifier = Modifier.padding(vertical = SpacingSmall)
+                            modifier = Modifier.padding(vertical = SpacingSmall),
+                            onRetry = { seleccionViewModel.loadPlatos() }
                         )
                     }
                 }
@@ -280,15 +288,16 @@ fun SeleccionPlatosFondoScreen(
                         }
                     }
 
-                    // Sólo mostramos los NO seleccionados (los seleccionados están en el BottomSheet)
-                    items(noSeleccionadosFiltrados, key = { it.id }) { plato ->
+                    items(searchResults, key = { it.id }) { plato ->
                         PlatoDisponibleCard(
                             plato = plato,
                             imageUrl = seleccionViewModel.imagenesMap[plato.imagenId],
-                            isSelected = false,
+                            isSelected = selectedPlatos.any { it.id == plato.id },
                             onToggle = { checked ->
                                 if (checked) {
                                     menuViewModel.updatePlatosFuertes(selectedPlatos + plato)
+                                } else {
+                                    menuViewModel.updatePlatosFuertes(selectedPlatos - plato)
                                 }
                             }
                         )
@@ -497,7 +506,7 @@ fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
 fun PlatoDisponibleCard(plato: PlatoResponseDto, imageUrl: String?, isSelected: Boolean, onToggle: (Boolean) -> Unit) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
-        color = if (isSelected) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onToggle(!isSelected) }

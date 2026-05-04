@@ -32,11 +32,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.fullwar.menuapp.presentation.common.utils.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -91,6 +94,7 @@ fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
     val pasoEstiloViewModel: SeleccionEstiloViewModel = koinViewModel()
 
     var isExpanded by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
 
     val currentStep = when (currentRoute) {
         MenuRoute.Entradas.route -> 1
@@ -113,6 +117,31 @@ fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
         else -> 0
     }
 
+    LaunchedEffect(
+        currentStep,
+        seleccionEntradasViewModel.entradasState,
+        seleccionPlatosFondoViewModel.platosState,
+        pasoEstiloViewModel.imagenesState
+    ) {
+        if (!isRefreshing) return@LaunchedEffect
+        val done = when (currentStep) {
+            1 -> seleccionEntradasViewModel.entradasState.let { it !is State.Loading && it !is State.Initial }
+            2 -> seleccionPlatosFondoViewModel.platosState.let { it !is State.Loading && it !is State.Initial }
+            3 -> pasoEstiloViewModel.imagenesState.let { it !is State.Loading && it !is State.Initial }
+            else -> true
+        }
+        if (done) isRefreshing = false
+    }
+
+    val onRefresh: () -> Unit = {
+        isRefreshing = true
+        when (currentStep) {
+            1 -> seleccionEntradasViewModel.loadEntradas()
+            2 -> seleccionPlatosFondoViewModel.loadPlatos()
+            3 -> pasoEstiloViewModel.loadImagenes()
+        }
+    }
+
     val isSiguienteEnabled = when (currentStep) {
         3 -> pasoEstiloViewModel.selectedImagenId != null &&
                 pasoEstiloViewModel.saveState !is SaveUiState.Loading
@@ -125,6 +154,8 @@ fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
         selectedCount = currentSelectedSize,
         isSiguienteEnabled = isSiguienteEnabled,
         isExpanded = isExpanded,
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
         onExpandedChange = { isExpanded = it },
         onAnterior = { navController.popBackStack() },
         onSiguiente = {
@@ -198,6 +229,8 @@ private fun MenuScreenContent(
     selectedCount: Int,
     isSiguienteEnabled: Boolean = true,
     isExpanded: Boolean = false,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
     onExpandedChange: (Boolean) -> Unit = {},
     onAnterior: () -> Unit,
     onSiguiente: () -> Unit,
@@ -310,19 +343,24 @@ private fun MenuScreenContent(
             }
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background)
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            ProgressHeader(
-                currentStep = currentStep,
-                totalSteps = totalSteps,
-                stepTitle = stepTitle,
-                selectedCount = selectedCount
-            )
-            content()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                ProgressHeader(
+                    currentStep = currentStep,
+                    totalSteps = totalSteps,
+                    stepTitle = stepTitle,
+                    selectedCount = selectedCount
+                )
+                content()
+            }
         }
     }
 }

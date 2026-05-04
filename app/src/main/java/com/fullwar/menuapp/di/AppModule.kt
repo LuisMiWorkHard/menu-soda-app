@@ -29,6 +29,7 @@ import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.Seleccio
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoViewModel
 import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloViewModel
+import com.fullwar.menuapp.presentation.features.home.tabs.historial.HistorialViewModel
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import com.fullwar.menuapp.presentation.features.splash.SplashViewModel
@@ -43,6 +44,7 @@ val appModule = module {
     viewModelOf(::SharedViewModel)
     viewModelOf(::SplashViewModel)
     viewModelOf(::LoginViewModel)
+    viewModelOf(::HistorialViewModel)
     viewModelOf(::MenuViewModel)
     viewModelOf(::EntradaViewModel)
     viewModelOf(::SeleccionEntradasViewModel)

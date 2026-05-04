@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.RoomService
 import androidx.compose.material.icons.filled.ZoomIn
+import android.widget.Toast
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -71,6 +72,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.em
 import androidx.core.content.FileProvider
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
+import com.fullwar.menuapp.presentation.common.components.ImagenFondoPreviewDialog
 import com.fullwar.menuapp.presentation.common.utils.fontFamilyFromString
 import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import androidx.compose.ui.unit.Density
@@ -124,8 +126,19 @@ fun SeleccionEstiloScreen(
 
     val context = LocalContext.current
     val graphicsLayer = rememberGraphicsLayer()
+    val toastImagenNoDisponible = stringResource(R.string.toast_imagen_no_disponible)
 
     LaunchedEffect(Unit) { pasoEstiloViewModel.loadImagenes() }
+
+    LaunchedEffect(imagenesState) {
+        if (imagenesState !is State.Success) return@LaunchedEffect
+        val newIds = imagenesState.data.map { it.id }.toSet()
+        val currentId = pasoEstiloViewModel.selectedImagenId
+        if (currentId != null && currentId !in newIds) {
+            pasoEstiloViewModel.clearSelectedImagen()
+            Toast.makeText(context, toastImagenNoDisponible, Toast.LENGTH_LONG).show()
+        }
+    }
 
     LaunchedEffect(triggerCapture) {
         if (!triggerCapture) return@LaunchedEffect
@@ -641,67 +654,6 @@ fun ImagenFondoCard(
     }
 }
 
-@Composable
-private fun ImagenFondoPreviewDialog(
-    imagenUrl: String,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .wrapContentHeight()
-                .clip(RoundedCornerShape(CornerRadiusMedium))
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .background(Brush.verticalGradient(listOf(Shadow, DeepCharcoal)))
-            )
-
-            SubcomposeAsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(imagenUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                contentScale = ContentScale.Fit,
-                loading = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().height(240.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = White, strokeWidth = 2.dp)
-                    }
-                }
-            )
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(SpacingSmall)
-                    .size(32.dp)
-                    .background(RichBlack.copy(alpha = 0.6f), CircleShape)
-                    .clickable { onDismiss() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = "Cerrar",
-                    tint = White,
-                    modifier = Modifier.size(IconSizeSmall)
-                )
-            }
-        }
-    }
-}
 
 private fun saveBitmapToCache(context: android.content.Context, bitmap: Bitmap): File? {
     return try {
@@ -939,20 +891,3 @@ private fun ImagenFondoCardDarkPreview() {
     }
 }
 
-// --- Previews: ImagenFondoPreviewDialog ---
-
-@Preview(showBackground = true, name = "ImagenFondoPreviewDialog - Claro")
-@Composable
-private fun ImagenFondoPreviewDialogPreview() {
-    MenuAppTheme(darkTheme = false) {
-        ImagenFondoPreviewDialog(imagenUrl = "", onDismiss = {})
-    }
-}
-
-@Preview(showBackground = true, name = "ImagenFondoPreviewDialog - Oscuro", uiMode = UI_MODE_NIGHT_YES)
-@Composable
-private fun ImagenFondoPreviewDialogDarkPreview() {
-    MenuAppTheme(darkTheme = true) {
-        ImagenFondoPreviewDialog(imagenUrl = "", onDismiss = {})
-    }
-}

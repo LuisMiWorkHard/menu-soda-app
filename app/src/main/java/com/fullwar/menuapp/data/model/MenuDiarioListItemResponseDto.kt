@@ -10,7 +10,7 @@ data class MenuDiarioListItemResponseDto(
     @SerialName("fecha")
     val fecha: String,
     @SerialName("descripcionFecha")
-    val descripcionFecha: String,
+    val descripcionFecha: String = "",
     @SerialName("estadoId")
     val estadoId: Int,
     @SerialName("cantidadEntradas")
@@ -18,5 +18,9 @@ data class MenuDiarioListItemResponseDto(
     @SerialName("cantidadPlatos")
     val cantidadPlatos: List<TipoPlatoCountDto>,
     @SerialName("tiempoTranscurrido")
-    val tiempoTranscurrido: String
+    val tiempoTranscurrido: String,
+    @SerialName("imagenUrl")
+    val imagenUrl: String? = null,
+    @SerialName("coincidencias")
+    val coincidencias: List<CoincidenciaDto>? = null
 )

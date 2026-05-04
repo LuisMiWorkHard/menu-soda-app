@@ -2,6 +2,7 @@ package com.fullwar.menuapp.data.repository
 
 import com.fullwar.menuapp.data.datasource.remote.MenuDiarioService
 import com.fullwar.menuapp.data.model.MenuDiarioCreateRequestDto
+import com.fullwar.menuapp.data.model.MenuDiarioListItemResponseDto
 import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -12,4 +13,7 @@ class MenuDiarioRepositoryImpl(
 ) : IMenuDiarioRepository {
     override suspend fun createMenuDiario(request: MenuDiarioCreateRequestDto, imagenFile: File?): Int =
         withContext(Dispatchers.IO) { menuDiarioService.createMenuDiario(request, imagenFile) }
+
+    override suspend fun getMenusDiarios(busqueda: String?): List<MenuDiarioListItemResponseDto> =
+        withContext(Dispatchers.IO) { menuDiarioService.getMenusDiarios(busqueda) }
 }

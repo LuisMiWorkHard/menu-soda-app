@@ -2,10 +2,13 @@ package com.fullwar.menuapp.data.datasource.remote
 
 import android.util.Log
 import com.fullwar.menuapp.data.model.MenuDiarioCreateRequestDto
+import com.fullwar.menuapp.data.model.MenuDiarioListItemResponseDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import kotlinx.serialization.json.JsonObject
@@ -42,4 +45,9 @@ class MenuDiarioService(private val httpClient: HttpClient) {
         Log.d(TAG, "createMenuDiario() - Status: ${response.status.value}")
         return response.body<JsonObject>()["id"]?.jsonPrimitive?.int ?: 0
     }
+
+    suspend fun getMenusDiarios(busqueda: String?): List<MenuDiarioListItemResponseDto> =
+        httpClient.get("api/menu-diario") {
+            busqueda?.let { parameter("busqueda", it) }
+        }.body()
 }
