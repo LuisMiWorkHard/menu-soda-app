@@ -29,7 +29,7 @@ enum class HomeTab(val route: String, val labelRes: Int, val icon: ImageVector) 
 
 @Composable
 fun HomeScreen(
-    onNuevoMenuClick: () -> Unit = {},
+    onNuevoMenuClick: (dateMillis: Long, conflictoMenuId: Int?) -> Unit = { _, _ -> },
     onEditarMenuClick: (Int) -> Unit = {}
 ) {
     SetNavigationBarColor(MaterialTheme.colorScheme.surface)

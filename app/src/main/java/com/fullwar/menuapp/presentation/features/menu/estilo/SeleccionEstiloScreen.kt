@@ -161,7 +161,14 @@ fun SeleccionEstiloScreen(
                 imagenFile = imagenFile
             )
         } else {
-            pasoEstiloViewModel.guardarMenuDiario(entradas, platos, imagenFile, selectedImagenId)
+            pasoEstiloViewModel.guardarMenuDiario(
+                entradas       = entradas,
+                platos         = platos,
+                imagenFile     = imagenFile,
+                menuImagenId   = selectedImagenId,
+                fechaMillis    = menuViewModel.selectedDateMillis,
+                menuToDeleteId = menuViewModel.conflictoMenuId
+            )
         }
         pasoEstiloViewModel.onCaptureHandled()
     }

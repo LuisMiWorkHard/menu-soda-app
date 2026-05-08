@@ -9,6 +9,8 @@ import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.data.model.PlatoResponseDto
 import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class MenuViewModel(private val repo: IMenuDiarioRepository) : ViewModel() {
 
@@ -46,6 +48,18 @@ class MenuViewModel(private val repo: IMenuDiarioRepository) : ViewModel() {
     var menuDetailError by mutableStateOf<String?>(null)
         private set
 
+    var selectedDateMillis by mutableStateOf<Long?>(null)
+        private set
+
+    var conflictoMenuId by mutableStateOf<Int?>(null)
+        private set
+
+    var menuDateLabel by mutableStateOf<String?>(null)
+        private set
+
+    fun setSelectedDate(millis: Long) { selectedDateMillis = millis }
+    fun setConflictoMenuId(id: Int) { conflictoMenuId = id }
+
     fun initEditMode(id: Int) {
         if (menuId == id) return
         menuId = id
@@ -72,6 +86,11 @@ class MenuViewModel(private val repo: IMenuDiarioRepository) : ViewModel() {
                     preSelectedImagenId = detail.imagen?.menuImagenId
                     preSelectedEntradasIds = detail.entradas.map { it.entradaId }.toSet()
                     preSelectedPlatosIds = detail.platos.map { it.platoId }.toSet()
+                    menuDateLabel = runCatching {
+                        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                        val display = SimpleDateFormat("EEEE, dd MMM", Locale("es"))
+                        display.format(sdf.parse(detail.fecha)!!).replaceFirstChar { it.uppercase() }
+                    }.getOrNull()
                     isLoadingMenuDetail = false
                 }
                 .onFailure { e ->

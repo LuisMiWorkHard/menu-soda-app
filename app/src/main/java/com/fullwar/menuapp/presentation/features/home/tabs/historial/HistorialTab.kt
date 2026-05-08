@@ -51,7 +51,7 @@ import java.util.TimeZone
 @Composable
 fun HistorialTab(
     modifier: Modifier = Modifier,
-    onNuevoMenuClick: () -> Unit = {},
+    onNuevoMenuClick: (dateMillis: Long, conflictoMenuId: Int?) -> Unit = { _, _ -> },
     onEditarMenuClick: (Int) -> Unit = {},
     viewModel: HistorialViewModel = koinViewModel()
 ) {
@@ -75,7 +75,7 @@ fun HistorialTab(
 @Composable
 fun HistorialTabContent(
     modifier: Modifier = Modifier,
-    onNuevoMenuClick: () -> Unit = {},
+    onNuevoMenuClick: (dateMillis: Long, conflictoMenuId: Int?) -> Unit = { _, _ -> },
     onEliminarMenu: (Int) -> Unit = {},
     onEditarMenu: (Int) -> Unit = {},
     menusState: State<List<MenuDiarioListItemResponseDto>>,
@@ -95,6 +95,10 @@ fun HistorialTabContent(
     var selectedDateMillis by remember { mutableStateOf<Long?>(null) }
     var selectedStartDateMillis by remember { mutableStateOf<Long?>(null) }
     var selectedEndDateMillis by remember { mutableStateOf<Long?>(null) }
+
+    var showNuevoMenuPicker by remember { mutableStateOf(false) }
+    var pendingNuevoDateMillis by remember { mutableStateOf<Long?>(null) }
+    var conflictoMenu by remember { mutableStateOf<MenuDiarioListItemResponseDto?>(null) }
 
     val todayUtcMillis = remember {
         val localCal = Calendar.getInstance()
@@ -202,7 +206,7 @@ fun HistorialTabContent(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = onNuevoMenuClick,
+                onClick = { showNuevoMenuPicker = true },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
                 shape = RoundedCornerShape(CornerRadiusLarge)
@@ -214,6 +218,43 @@ fun HistorialTabContent(
         },
         floatingActionButtonPosition = FabPosition.Center
     ) { innerPadding ->
+        if (showNuevoMenuPicker) {
+            MenuFechaPickerDialog(
+                onConfirm = { dateMillis ->
+                    showNuevoMenuPicker = false
+                    val existente = displayMenus.firstOrNull { isSameDayUtc(it.fecha, dateMillis) }
+                    if (existente != null) {
+                        pendingNuevoDateMillis = dateMillis
+                        conflictoMenu = existente
+                    } else {
+                        onNuevoMenuClick(dateMillis, null)
+                    }
+                },
+                onDismiss = { showNuevoMenuPicker = false }
+            )
+        }
+
+        conflictoMenu?.let { menu ->
+            MenuConflictoDialog(
+                menu = menu,
+                onEditar = {
+                    conflictoMenu = null
+                    pendingNuevoDateMillis = null
+                    onEditarMenu(menu.id)
+                },
+                onCrearNuevo = {
+                    val dateMillis = pendingNuevoDateMillis!!
+                    val conflictoId = menu.id
+                    conflictoMenu = null
+                    pendingNuevoDateMillis = null
+                    onNuevoMenuClick(dateMillis, conflictoId)
+                },
+                onCancelar = {
+                    conflictoMenu = null
+                    pendingNuevoDateMillis = null
+                }
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -811,6 +852,162 @@ private fun PreviewWrapper(darkTheme: Boolean, content: @Composable () -> Unit) 
         else content()
     }
 }
+
+// --- Helpers y composables para creación de menú con fecha ---
+
+private fun isSameDayUtc(fechaDDMMYYYY: String, utcMillis: Long): Boolean =
+    try {
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        sdf.parse(fechaDDMMYYYY)?.time == utcMillis
+    } catch (e: Exception) { false }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MenuFechaPickerDialog(
+    onConfirm: (Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val todayUtcMillis = remember {
+        val localCal = Calendar.getInstance()
+        val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        utcCal.clear()
+        utcCal.set(localCal.get(Calendar.YEAR), localCal.get(Calendar.MONTH),
+                   localCal.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
+        utcCal.timeInMillis
+    }
+    val maxUtcMillis = remember { todayUtcMillis + 365L * 24 * 60 * 60 * 1000 }
+    val currentYear  = remember { Calendar.getInstance().get(Calendar.YEAR) }
+
+    val selectableDates = remember {
+        object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) =
+                utcTimeMillis in todayUtcMillis..maxUtcMillis
+            override fun isSelectableYear(year: Int) = year in currentYear..(currentYear + 1)
+        }
+    }
+    val state = rememberDatePickerState(
+        initialSelectedDateMillis = todayUtcMillis,
+        selectableDates = selectableDates
+    )
+
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        androidx.compose.material3.Surface(
+            modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.85f),
+            shape = RoundedCornerShape(com.fullwar.menuapp.ui.theme.CornerRadiusLarge),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = com.fullwar.menuapp.ui.theme.SpacingLarge,
+                                 end = com.fullwar.menuapp.ui.theme.SpacingSmall,
+                                 top = com.fullwar.menuapp.ui.theme.SpacingMedium),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.nuevo_menu_fecha_titulo),
+                         fontWeight = FontWeight.Bold,
+                         fontSize = com.fullwar.menuapp.ui.theme.TextSizeXLarge)
+                    IconButton(onClick = onDismiss) {
+                        Icon(imageVector = Icons.Filled.Close, contentDescription = null,
+                             tint = HeavyGray)
+                    }
+                }
+
+                DatePicker(
+                    state = state,
+                    modifier = Modifier.weight(1f).fillMaxWidth()
+                        .padding(horizontal = com.fullwar.menuapp.ui.theme.SpacingSmall),
+                    title = null, headline = null, showModeToggle = false,
+                    colors = DatePickerDefaults.colors(
+                        navigationContentColor = MaterialTheme.colorScheme.onSurface,
+                        todayContentColor = MaterialTheme.colorScheme.onBackground,
+                        todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
+                        selectedDayContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        selectedDayContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(com.fullwar.menuapp.ui.theme.SpacingLarge),
+                    horizontalArrangement = Arrangement.spacedBy(com.fullwar.menuapp.ui.theme.SpacingMedium)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(com.fullwar.menuapp.ui.theme.CornerRadiusMedium)
+                    ) {
+                        Text(text = stringResource(id = R.string.calendar_cancel),
+                             color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    Button(
+                        onClick = { state.selectedDateMillis?.let { onConfirm(it) } },
+                        enabled = state.selectedDateMillis != null,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(com.fullwar.menuapp.ui.theme.CornerRadiusMedium)
+                    ) {
+                        Text(text = stringResource(R.string.nuevo_menu_fecha_continuar),
+                             color = MaterialTheme.colorScheme.onPrimary)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MenuConflictoDialog(
+    menu: MenuDiarioListItemResponseDto,
+    onEditar: () -> Unit,
+    onCrearNuevo: () -> Unit,
+    onCancelar: () -> Unit
+) {
+    val platosTotal = menu.cantidadPlatos.sumOf { it.cantidad }
+    AlertDialog(
+        onDismissRequest = onCancelar,
+        title = { Text(stringResource(R.string.nuevo_menu_conflicto_titulo)) },
+        text = {
+            Text(stringResource(R.string.nuevo_menu_conflicto_desc,
+                 menu.descripcionFecha, menu.cantidadEntradas, platosTotal))
+        },
+        confirmButton = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(com.fullwar.menuapp.ui.theme.SpacingSmall)
+            ) {
+                Button(onClick = onEditar, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.nuevo_menu_conflicto_editar))
+                }
+                OutlinedButton(
+                    onClick = onCrearNuevo,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text(stringResource(R.string.nuevo_menu_conflicto_crear))
+                }
+                TextButton(
+                    onClick = onCancelar,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.calendar_cancel))
+                }
+            }
+        }
+    )
+}
+
+// --- Previews ---
 
 private val previewMenu = MenuDiarioListItemResponseDto(
     id = 1,

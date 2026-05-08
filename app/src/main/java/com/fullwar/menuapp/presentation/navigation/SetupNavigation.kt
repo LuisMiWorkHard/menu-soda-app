@@ -44,8 +44,8 @@ fun SetupNavigation(startDestination: String) {
         }
         composable(route = AppScreens.HomeScreen.route) {
             HomeScreen(
-                onNuevoMenuClick = {
-                    navController.navigate(AppScreens.MenuScreen.route)
+                onNuevoMenuClick = { dateMillis, conflictoId ->
+                    navController.navigate(AppScreens.MenuScreen.withDate(dateMillis, conflictoId))
                 },
                 onEditarMenuClick = { menuId ->
                     navController.navigate(AppScreens.MenuScreen.withId(menuId))
@@ -54,15 +54,20 @@ fun SetupNavigation(startDestination: String) {
         }
         composable(
             route = AppScreens.MenuScreen.route,
-            arguments = listOf(navArgument("menuId") {
-                type = NavType.IntType
-                defaultValue = -1
-            })
+            arguments = listOf(
+                navArgument("menuId") { type = NavType.IntType; defaultValue = -1 },
+                navArgument("selectedDate") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("conflictoId") { type = NavType.IntType; defaultValue = -1 }
+            )
         ) { backStackEntry ->
-            val menuId = backStackEntry.arguments?.getInt("menuId")?.takeIf { it > 0 }
+            val menuId       = backStackEntry.arguments?.getInt("menuId")?.takeIf { it > 0 }
+            val selectedDate = backStackEntry.arguments?.getLong("selectedDate")?.takeIf { it > 0 }
+            val conflictoId  = backStackEntry.arguments?.getInt("conflictoId")?.takeIf { it > 0 }
             MenuScreen(
-                menuId = menuId,
-                onMenuGuardado = {
+                menuId          = menuId,
+                selectedDate    = selectedDate,
+                conflictoMenuId = conflictoId,
+                onMenuGuardado  = {
                     navController.popBackStack(
                         route = AppScreens.HomeScreen.route,
                         inclusive = false

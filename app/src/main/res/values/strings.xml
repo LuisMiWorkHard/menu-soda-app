@@ -128,4 +128,16 @@
     <!-- Toast: elementos no disponibles tras refresco -->
     <string name="toast_elementos_no_disponibles">Algunos elementos seleccionados ya no están disponibles</string>
     <string name="toast_imagen_no_disponible">La imagen seleccionada ya no está disponible</string>
+
+    <!-- MenuScreen Titles -->
+    <string name="menu_crear_titulo">Crear Menú Diario</string>
+    <string name="menu_editar_titulo">Editar Menú Diario</string>
+
+    <!-- Nuevo Menú - Selección de Fecha -->
+    <string name="nuevo_menu_fecha_titulo">¿Para qué día es el menú?</string>
+    <string name="nuevo_menu_fecha_continuar">Continuar</string>
+    <string name="nuevo_menu_conflicto_titulo">Ya existe un menú</string>
+    <string name="nuevo_menu_conflicto_desc">%1$s ya tiene un menú registrado con %2$d entrada(s) y %3$d plato(s). ¿Qué deseas hacer?</string>
+    <string name="nuevo_menu_conflicto_editar">Editar existente</string>
+    <string name="nuevo_menu_conflicto_crear">Crear nuevo</string>
 </resources>

@@ -74,13 +74,22 @@ class SeleccionEstiloViewModel(
         entradas: List<EntradaResponseDto>,
         platos: List<PlatoResponseDto>,
         imagenFile: File?,
-        menuImagenId: Int? = null
+        menuImagenId: Int? = null,
+        fechaMillis: Long? = null,
+        menuToDeleteId: Int? = null
     ) {
         viewModelScope.launch {
             saveState = SaveUiState.Loading
             try {
+                menuToDeleteId?.let { menuDiarioRepository.deleteMenuDiario(it) }
+
+                val fecha = fechaMillis
+                    ?.let { java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneOffset.UTC)
+                                .toLocalDate().toString() }
+                    ?: LocalDate.now().toString()
+
                 val request = MenuDiarioCreateRequestDto(
-                    fecha        = LocalDate.now().toString(),
+                    fecha        = fecha,
                     entradasIds  = entradas.map { it.id },
                     platos       = platos.map { MenuDiarioPlatoRequestDto(platoId = it.id) },
                     menuImagenId = menuImagenId

@@ -79,6 +79,14 @@ import com.fullwar.menuapp.ui.theme.TextSizeSmall
 import com.fullwar.menuapp.ui.theme.TextSizeXLarge
 import org.koin.androidx.compose.koinViewModel
 
+private fun formatMenuFechaLabel(millis: Long): String {
+    val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
+    cal.timeInMillis = millis
+    val sdf = java.text.SimpleDateFormat("EEEE, dd MMM", java.util.Locale("es"))
+    sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+    return sdf.format(cal.time).replaceFirstChar { it.uppercase() }
+}
+
 sealed class MenuRoute(val route: String) {
     object Entradas : MenuRoute("paso_entradas")
     object PlatosFondo : MenuRoute("paso_platos_fondo")
@@ -86,7 +94,12 @@ sealed class MenuRoute(val route: String) {
 }
 
 @Composable
-fun MenuScreen(menuId: Int? = null, onMenuGuardado: () -> Unit = {}) {
+fun MenuScreen(
+    menuId: Int? = null,
+    selectedDate: Long? = null,
+    conflictoMenuId: Int? = null,
+    onMenuGuardado: () -> Unit = {}
+) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val menuViewModel: MenuViewModel = koinViewModel()
@@ -103,6 +116,9 @@ fun MenuScreen(menuId: Int? = null, onMenuGuardado: () -> Unit = {}) {
             pasoEstiloViewModel.clearSelectedImagen()
         }
     }
+
+    LaunchedEffect(selectedDate) { selectedDate?.let { menuViewModel.setSelectedDate(it) } }
+    LaunchedEffect(conflictoMenuId) { conflictoMenuId?.let { menuViewModel.setConflictoMenuId(it) } }
 
     // Pre-selección centralizada para modo edición
     LaunchedEffect(seleccionEntradasViewModel.entradasState, menuViewModel.preSelectedEntradasIds) {
@@ -186,9 +202,13 @@ fun MenuScreen(menuId: Int? = null, onMenuGuardado: () -> Unit = {}) {
         else -> true
     }
 
+    val fechaLabel = menuViewModel.menuDateLabel
+        ?: menuViewModel.selectedDateMillis?.let { formatMenuFechaLabel(it) }
+
     MenuScreenContent(
         currentStep = currentStep,
-        screenTitle = if (menuViewModel.isEditMode) "Editar Menú Diario" else "Crear Menú Diario",
+        screenTitle = if (menuViewModel.isEditMode) stringResource(R.string.menu_editar_titulo) else stringResource(R.string.menu_crear_titulo),
+        fechaLabel = fechaLabel,
         stepTitle = stepTitle,
         selectedCount = currentSelectedSize,
         isSiguienteEnabled = isSiguienteEnabled,
@@ -298,6 +318,7 @@ private fun MenuScreenContent(
     currentStep: Int,
     totalSteps: Int = 3,
     screenTitle: String = "Crear Menú Diario",
+    fechaLabel: String? = null,
     stepTitle: String,
     selectedCount: Int,
     isSiguienteEnabled: Boolean = true,
@@ -314,12 +335,26 @@ private fun MenuScreenContent(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = screenTitle,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = TextSizeLarge,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = screenTitle,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = TextSizeLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        if (fechaLabel != null) {
+                            Text(
+                                text = fechaLabel,
+                                fontSize = TextSizeSmall,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                                color = HeavyGray
+                            )
+                        }
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
