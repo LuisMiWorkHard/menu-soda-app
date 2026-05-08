@@ -91,6 +91,14 @@ class HistorialViewModel(private val repo: IMenuDiarioRepository) : ViewModel() 
         applyDateFilter()
     }
 
+    fun eliminarMenu(id: Int) {
+        viewModelScope.launch {
+            runCatching { repo.deleteMenuDiario(id) }
+                .onSuccess { loadMenus() }
+                .onFailure { /* el error se maneja silenciosamente; el refresh fallido no cambia el estado */ }
+        }
+    }
+
     private fun applyDateFilter() {
         displayMenus = when (val f = currentDateFilter) {
             is DateFilter.None -> allMenus

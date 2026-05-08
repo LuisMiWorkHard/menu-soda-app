@@ -51,7 +51,7 @@
     <string name="nuevo_progreso_label">Progreso del menú diario</string>
     <string name="nuevo_progreso_de">%1$d DE %2$d</string>
     <string name="nuevo_sugerencias">Sugerencias inteligentes</string>
-    <string name="nuevo_finalizar">Finalizar menú</string>
+    <string name="nuevo_finalizar">Grabar</string>
     <string name="nuevo_proximamente">Próximamente</string>
     <string name="nuevo_anterior">Anterior</string>
     <string name="nuevo_siguiente">Siguiente ❯</string>

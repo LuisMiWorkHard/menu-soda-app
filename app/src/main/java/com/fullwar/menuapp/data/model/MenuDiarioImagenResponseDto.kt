@@ -9,6 +9,8 @@ data class MenuDiarioImagenResponseDto(
     val id: Int,
     @SerialName("imagenId")
     val imagenId: Int,
+    @SerialName("menuImagenId")
+    val menuImagenId: Int? = null,
     @SerialName("ruta")
     val ruta: String,
     @SerialName("nombre")

@@ -28,7 +28,10 @@ enum class HomeTab(val route: String, val labelRes: Int, val icon: ImageVector) 
 }
 
 @Composable
-fun HomeScreen(onNuevoMenuClick: () -> Unit = {}) {
+fun HomeScreen(
+    onNuevoMenuClick: () -> Unit = {},
+    onEditarMenuClick: (Int) -> Unit = {}
+) {
     SetNavigationBarColor(MaterialTheme.colorScheme.surface)
 
     val navController = rememberNavController()
@@ -74,7 +77,10 @@ fun HomeScreen(onNuevoMenuClick: () -> Unit = {}) {
                 .background(MaterialTheme.colorScheme.background)
         ) {
             composable(HomeTab.HISTORIAL.route) {
-                HistorialTab(onNuevoMenuClick = onNuevoMenuClick)
+                HistorialTab(
+                    onNuevoMenuClick = onNuevoMenuClick,
+                    onEditarMenuClick = onEditarMenuClick
+                )
             }
             composable(HomeTab.PERFIL.route) { PerfilTab() }
         }

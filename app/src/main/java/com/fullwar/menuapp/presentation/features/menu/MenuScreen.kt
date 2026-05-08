@@ -39,6 +39,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.lazy.LazyColumn
+import com.fullwar.menuapp.presentation.common.components.ErrorBanner
+import com.fullwar.menuapp.presentation.common.components.ItemListSkeleton
 import com.fullwar.menuapp.presentation.common.utils.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,15 +86,50 @@ sealed class MenuRoute(val route: String) {
 }
 
 @Composable
-fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
+fun MenuScreen(menuId: Int? = null, onMenuGuardado: () -> Unit = {}) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val menuViewModel: MenuViewModel = koinViewModel()
+
     val entradaViewModel: EntradaViewModel = koinViewModel()
     val seleccionEntradasViewModel: SeleccionEntradasViewModel = koinViewModel()
     val platoViewModel: PlatoViewModel = koinViewModel()
     val seleccionPlatosFondoViewModel: SeleccionPlatosFondoViewModel = koinViewModel()
     val pasoEstiloViewModel: SeleccionEstiloViewModel = koinViewModel()
+
+    LaunchedEffect(menuId) {
+        menuId?.let {
+            menuViewModel.initEditMode(it)
+            pasoEstiloViewModel.clearSelectedImagen()
+        }
+    }
+
+    // Pre-selección centralizada para modo edición
+    LaunchedEffect(seleccionEntradasViewModel.entradasState, menuViewModel.preSelectedEntradasIds) {
+        val state = seleccionEntradasViewModel.entradasState
+        if (state !is State.Success) return@LaunchedEffect
+        val ids = menuViewModel.preSelectedEntradasIds
+        if (ids.isEmpty() || menuViewModel.selectedEntradas.isNotEmpty()) return@LaunchedEffect
+        state.data.filter { it.id in ids }.takeIf { it.isNotEmpty() }
+            ?.let { menuViewModel.updateEntradas(it) }
+    }
+
+    LaunchedEffect(seleccionPlatosFondoViewModel.platosState, menuViewModel.preSelectedPlatosIds) {
+        val state = seleccionPlatosFondoViewModel.platosState
+        if (state !is State.Success) return@LaunchedEffect
+        val ids = menuViewModel.preSelectedPlatosIds
+        if (ids.isEmpty() || menuViewModel.selectedPlatosFuertes.isNotEmpty()) return@LaunchedEffect
+        state.data.filter { it.id in ids }.takeIf { it.isNotEmpty() }
+            ?.let { menuViewModel.updatePlatosFuertes(it) }
+    }
+
+    LaunchedEffect(pasoEstiloViewModel.imagenesState, menuViewModel.preSelectedImagenId) {
+        val state = pasoEstiloViewModel.imagenesState
+        if (state !is State.Success) return@LaunchedEffect
+        val preId = menuViewModel.preSelectedImagenId ?: return@LaunchedEffect
+        if (pasoEstiloViewModel.selectedImagenId != null) return@LaunchedEffect
+        if (state.data.any { it.id == preId }) pasoEstiloViewModel.selectImagen(preId)
+    }
 
     var isExpanded by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
@@ -150,6 +188,7 @@ fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
 
     MenuScreenContent(
         currentStep = currentStep,
+        screenTitle = if (menuViewModel.isEditMode) "Editar Menú Diario" else "Crear Menú Diario",
         stepTitle = stepTitle,
         selectedCount = currentSelectedSize,
         isSiguienteEnabled = isSiguienteEnabled,
@@ -196,25 +235,58 @@ fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
             modifier = Modifier.fillMaxSize()
         ) {
             composable(MenuRoute.Entradas.route) {
-                SeleccionEntradasScreen(
-                    menuViewModel = menuViewModel,
-                    entradaViewModel = entradaViewModel,
-                    seleccionViewModel = seleccionEntradasViewModel
-                )
+                val detailError = menuViewModel.menuDetailError
+                when {
+                    menuViewModel.isEditMode && menuViewModel.isLoadingMenuDetail ->
+                        MenuDetailLoadingSkeleton()
+                    menuViewModel.isEditMode && detailError != null ->
+                        ErrorBanner(
+                            message = detailError,
+                            modifier = Modifier.padding(SpacingLarge),
+                            onRetry = menuViewModel::retryLoadMenuDetail
+                        )
+                    else -> SeleccionEntradasScreen(
+                        menuViewModel = menuViewModel,
+                        entradaViewModel = entradaViewModel,
+                        seleccionViewModel = seleccionEntradasViewModel
+                    )
+                }
             }
             composable(MenuRoute.PlatosFondo.route) {
-                SeleccionPlatosFondoScreen(
-                    menuViewModel = menuViewModel,
-                    platoViewModel = platoViewModel,
-                    seleccionViewModel = seleccionPlatosFondoViewModel
-                )
+                val detailError = menuViewModel.menuDetailError
+                when {
+                    menuViewModel.isEditMode && menuViewModel.isLoadingMenuDetail ->
+                        MenuDetailLoadingSkeleton()
+                    menuViewModel.isEditMode && detailError != null ->
+                        ErrorBanner(
+                            message = detailError,
+                            modifier = Modifier.padding(SpacingLarge),
+                            onRetry = menuViewModel::retryLoadMenuDetail
+                        )
+                    else -> SeleccionPlatosFondoScreen(
+                        menuViewModel = menuViewModel,
+                        platoViewModel = platoViewModel,
+                        seleccionViewModel = seleccionPlatosFondoViewModel
+                    )
+                }
             }
             composable(MenuRoute.Estilo.route) {
-                SeleccionEstiloScreen(
-                    menuViewModel = menuViewModel,
-                    pasoEstiloViewModel = pasoEstiloViewModel,
-                    onMenuGuardado = onMenuGuardado
-                )
+                val detailError = menuViewModel.menuDetailError
+                when {
+                    menuViewModel.isEditMode && menuViewModel.isLoadingMenuDetail ->
+                        MenuDetailLoadingSkeleton()
+                    menuViewModel.isEditMode && detailError != null ->
+                        ErrorBanner(
+                            message = detailError,
+                            modifier = Modifier.padding(SpacingLarge),
+                            onRetry = menuViewModel::retryLoadMenuDetail
+                        )
+                    else -> SeleccionEstiloScreen(
+                        menuViewModel = menuViewModel,
+                        pasoEstiloViewModel = pasoEstiloViewModel,
+                        onMenuGuardado = onMenuGuardado
+                    )
+                }
             }
         }
     }
@@ -225,6 +297,7 @@ fun MenuScreen(onMenuGuardado: () -> Unit = {}) {
 private fun MenuScreenContent(
     currentStep: Int,
     totalSteps: Int = 3,
+    screenTitle: String = "Crear Menú Diario",
     stepTitle: String,
     selectedCount: Int,
     isSiguienteEnabled: Boolean = true,
@@ -242,7 +315,7 @@ private fun MenuScreenContent(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Crear Menú Diario",
+                        text = screenTitle,
                         fontWeight = FontWeight.Bold,
                         fontSize = TextSizeLarge,
                         color = MaterialTheme.colorScheme.onBackground
@@ -410,6 +483,19 @@ fun ProgressHeader(currentStep: Int, totalSteps: Int, stepTitle: String, selecte
             trackColor = HeavyGray,
             strokeCap = StrokeCap.Round
         )
+    }
+}
+
+@Composable
+private fun MenuDetailLoadingSkeleton() {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = SpacingLarge),
+        verticalArrangement = Arrangement.spacedBy(SpacingMedium)
+    ) {
+        item { Spacer(modifier = Modifier.height(SpacingMedium)) }
+        repeat(6) { item { ItemListSkeleton() } }
     }
 }
 

@@ -7,8 +7,6 @@ import kotlinx.serialization.Serializable
 data class MenuDiarioUpdateRequestDto(
     @SerialName("id")
     val id: Int,
-    @SerialName("fecha")
-    val fecha: String,
     @SerialName("estadoId")
     val estadoId: Int,
     @SerialName("entradasIds")
@@ -16,5 +14,7 @@ data class MenuDiarioUpdateRequestDto(
     @SerialName("platos")
     val platos: List<MenuDiarioPlatoRequestDto>,
     @SerialName("imagenId")
-    val imagenId: Int? = null
+    val imagenId: Int? = null,
+    @SerialName("menuImagenId")
+    val menuImagenId: Int? = null
 )

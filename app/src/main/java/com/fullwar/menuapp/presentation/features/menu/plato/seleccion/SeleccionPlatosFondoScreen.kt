@@ -39,10 +39,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.*
+import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
 import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.domain.repository.IPlatoRepository
 import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
+import com.fullwar.menuapp.presentation.common.components.ItemListSkeleton
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
@@ -253,15 +255,8 @@ fun SeleccionPlatosFondoScreen(
             // Estado de carga
             when (platosState) {
                 is State.Loading -> {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = SpacingXLarge),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        }
+                    items(5) {
+                        ItemListSkeleton()
                     }
                 }
                 is State.Error -> {
@@ -565,6 +560,14 @@ private fun AnadirNuevoListItem(onClick: () -> Unit) {
 
 // --- Previews ---
 
+private class FakeMenuDiarioRepository : IMenuDiarioRepository {
+    override suspend fun createMenuDiario(request: com.fullwar.menuapp.data.model.MenuDiarioCreateRequestDto, imagenFile: java.io.File?) = 0
+    override suspend fun getMenusDiarios(busqueda: String?) = emptyList<com.fullwar.menuapp.data.model.MenuDiarioListItemResponseDto>()
+    override suspend fun getMenuDiarioById(id: Int) = throw NotImplementedError()
+    override suspend fun updateMenuDiario(id: Int, request: com.fullwar.menuapp.data.model.MenuDiarioUpdateRequestDto, imagenFile: java.io.File?) = false
+    override suspend fun deleteMenuDiario(id: Int) {}
+}
+
 private class FakeMenuImagenRepository : IMenuImagenRepository {
     override suspend fun getMenuImagenes(): List<MenuImagenResponseDto> = emptyList()
 }
@@ -602,7 +605,7 @@ private val fakeSugerenciaPlato = SugerenciaPlatoItem(
 @Preview(showBackground = true, name = "PasoPlatosFondo - Claro")
 @Composable
 private fun SeleccionPlatosFondoScreenPreview() {
-    val menuVm = remember { MenuViewModel() }
+    val menuVm = remember { MenuViewModel(FakeMenuDiarioRepository()) }
     val platoVm = remember { PlatoViewModel(FakePlatoRepository()) }
     val seleccionVm = remember { SeleccionPlatosFondoViewModel(FakePlatoRepository(), FakeMenuImagenRepository()) }
     MenuAppTheme(darkTheme = false) {
@@ -613,7 +616,7 @@ private fun SeleccionPlatosFondoScreenPreview() {
 @Preview(showBackground = true, name = "PasoPlatosFondo - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun SeleccionPlatosFondoScreenDarkPreview() {
-    val menuVm = remember { MenuViewModel() }
+    val menuVm = remember { MenuViewModel(FakeMenuDiarioRepository()) }
     val platoVm = remember { PlatoViewModel(FakePlatoRepository()) }
     val seleccionVm = remember { SeleccionPlatosFondoViewModel(FakePlatoRepository(), FakeMenuImagenRepository()) }
     MenuAppTheme(darkTheme = true) {

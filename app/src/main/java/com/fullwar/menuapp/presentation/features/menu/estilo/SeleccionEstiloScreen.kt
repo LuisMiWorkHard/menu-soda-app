@@ -82,9 +82,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
 import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImageContent
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.fullwar.menuapp.presentation.common.components.ShimmerBox
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.data.model.MenuImagenResponseDto
@@ -146,7 +152,17 @@ fun SeleccionEstiloScreen(
         val imagenFile = withContext(Dispatchers.IO) {
             saveBitmapToCache(context, bitmap.asAndroidBitmap())
         }
-        pasoEstiloViewModel.guardarMenuDiario(entradas, platos, imagenFile)
+        if (menuViewModel.isEditMode && menuViewModel.menuId != null) {
+            pasoEstiloViewModel.actualizarMenuDiario(
+                menuId = menuViewModel.menuId!!,
+                entradas = entradas,
+                platos = platos,
+                imagenId = selectedImagenId,
+                imagenFile = imagenFile
+            )
+        } else {
+            pasoEstiloViewModel.guardarMenuDiario(entradas, platos, imagenFile, selectedImagenId)
+        }
         pasoEstiloViewModel.onCaptureHandled()
     }
 
@@ -185,11 +201,9 @@ fun SeleccionEstiloScreen(
             onCompartir = { file ->
                 compartirImagen(context, file)
                 onMenuGuardado()
-                pasoEstiloViewModel.resetSaveState()
             },
             onMenuGuardado = {
                 onMenuGuardado()
-                pasoEstiloViewModel.resetSaveState()
             }
         )
     }
@@ -208,6 +222,8 @@ private fun SeleccionEstiloContent(
 ) {
     val selectedImagen = (imagenesState as? State.Success)
         ?.data?.firstOrNull { it.id == selectedImagenId }
+
+    var isPreviewReady by remember(selectedImagenId) { mutableStateOf(false) }
 
     LazyColumn(
         modifier = modifier
@@ -228,12 +244,28 @@ private fun SeleccionEstiloContent(
 
         if (selectedImagenId != null && selectedImagen != null) {
             item {
-                Box(modifier = Modifier.clip(RoundedCornerShape(CornerRadiusMedium))) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(CornerRadiusMedium))
+                ) {
                     Box(modifier = previewCaptureModifier) {
                         MenuPreviewCard(
                             imagen = selectedImagen,
                             entradas = entradas,
-                            platos = platos
+                            platos = platos,
+                            onImagenLoaded = { isPreviewReady = true }
+                        )
+                    }
+                    AnimatedVisibility(
+                        visible = !isPreviewReady,
+                        enter = EnterTransition.None,
+                        exit = fadeOut(animationSpec = tween(400))
+                    ) {
+                        ShimmerBox(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp)
                         )
                     }
                 }
@@ -255,13 +287,8 @@ private fun SeleccionEstiloContent(
 
         when (imagenesState) {
             is State.Initial, is State.Loading -> {
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
+                items(2) {
+                    ImagenFondoCardSkeletonRow()
                 }
             }
             is State.Error -> {
@@ -301,9 +328,11 @@ private fun SeleccionEstiloContent(
 fun MenuPreviewCard(
     imagen: MenuImagenResponseDto,
     entradas: List<EntradaResponseDto>,
-    platos: List<PlatoResponseDto>
+    platos: List<PlatoResponseDto>,
+    onImagenLoaded: () -> Unit = {}
 ) {
     var cardSizePx by remember { mutableStateOf(IntSize.Zero) }
+    var isImageReady by remember(imagen.id) { mutableStateOf(false) }
     val density = LocalDensity.current
     val context = LocalContext.current
 
@@ -334,6 +363,13 @@ fun MenuPreviewCard(
                     CircularProgressIndicator(color = White, strokeWidth = 2.dp)
                 }
             },
+            success = {
+                LaunchedEffect(Unit) {
+                    isImageReady = true
+                    onImagenLoaded()
+                }
+                SubcomposeAsyncImageContent()
+            },
             error = {
                 Box(
                     modifier = Modifier
@@ -344,7 +380,7 @@ fun MenuPreviewCard(
             }
         )
 
-        if (cardSizePx != IntSize.Zero) {
+        if (cardSizePx != IntSize.Zero && isImageReady) {
             val cardH = with(density) { cardSizePx.height.toDp() }
 
             // Capa 2: Secciones de texto con SubcomposeLayout para distribución exacta de alturas

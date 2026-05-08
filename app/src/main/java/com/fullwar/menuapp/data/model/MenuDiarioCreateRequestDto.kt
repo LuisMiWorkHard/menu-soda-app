@@ -10,5 +10,7 @@ data class MenuDiarioCreateRequestDto(
     @SerialName("entradasIds")
     val entradasIds: List<Int>,
     @SerialName("platos")
-    val platos: List<MenuDiarioPlatoRequestDto>
+    val platos: List<MenuDiarioPlatoRequestDto>,
+    @SerialName("menuImagenId")
+    val menuImagenId: Int? = null
 )

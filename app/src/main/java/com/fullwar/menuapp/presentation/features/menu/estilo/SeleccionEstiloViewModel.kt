@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.data.model.MenuDiarioCreateRequestDto
 import com.fullwar.menuapp.data.model.MenuDiarioPlatoRequestDto
+import com.fullwar.menuapp.data.model.MenuDiarioUpdateRequestDto
 import com.fullwar.menuapp.data.model.MenuImagenResponseDto
 import com.fullwar.menuapp.data.model.PlatoResponseDto
 import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
@@ -72,20 +73,50 @@ class SeleccionEstiloViewModel(
     fun guardarMenuDiario(
         entradas: List<EntradaResponseDto>,
         platos: List<PlatoResponseDto>,
-        imagenFile: File?
+        imagenFile: File?,
+        menuImagenId: Int? = null
     ) {
         viewModelScope.launch {
             saveState = SaveUiState.Loading
             try {
                 val request = MenuDiarioCreateRequestDto(
-                    fecha = LocalDate.now().toString(),
-                    entradasIds = entradas.map { it.id },
-                    platos = platos.map { MenuDiarioPlatoRequestDto(platoId = it.id) }
+                    fecha        = LocalDate.now().toString(),
+                    entradasIds  = entradas.map { it.id },
+                    platos       = platos.map { MenuDiarioPlatoRequestDto(platoId = it.id) },
+                    menuImagenId = menuImagenId
                 )
                 val id = menuDiarioRepository.createMenuDiario(request, imagenFile)
                 saveState = SaveUiState.Success(id, imagenFile)
             } catch (e: Exception) {
                 Log.e(TAG, "Error saving menu diario", e)
+                saveState = SaveUiState.Error(e.message ?: "Error guardando el menú")
+            }
+        }
+    }
+
+    fun actualizarMenuDiario(
+        menuId: Int,
+        entradas: List<EntradaResponseDto>,
+        platos: List<PlatoResponseDto>,
+        imagenId: Int?,
+        imagenFile: File?
+    ) {
+        viewModelScope.launch {
+            saveState = SaveUiState.Loading
+            try {
+                val request = MenuDiarioUpdateRequestDto(
+                    id           = menuId,
+                    estadoId     = 1,
+                    entradasIds  = entradas.map { it.id },
+                    platos       = platos.map { MenuDiarioPlatoRequestDto(platoId = it.id) },
+                    imagenId     = imagenId,
+                    menuImagenId = imagenId
+                )
+                val success = menuDiarioRepository.updateMenuDiario(menuId, request, imagenFile)
+                saveState = if (success) SaveUiState.Success(menuId, imagenFile)
+                            else SaveUiState.Error("Error al actualizar el menú")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating menu diario", e)
                 saveState = SaveUiState.Error(e.message ?: "Error guardando el menú")
             }
         }

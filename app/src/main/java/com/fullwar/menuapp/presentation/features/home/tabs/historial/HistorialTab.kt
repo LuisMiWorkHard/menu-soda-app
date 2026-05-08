@@ -1,7 +1,12 @@
 package com.fullwar.menuapp.presentation.features.home.tabs.historial
 
+import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
+import androidx.core.content.FileProvider
+import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,7 +38,9 @@ import com.fullwar.menuapp.presentation.common.components.ImagenFondoPreviewDial
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.home.tabs.historial.HistorialViewModel
 import com.fullwar.menuapp.ui.theme.*
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -45,11 +52,14 @@ import java.util.TimeZone
 fun HistorialTab(
     modifier: Modifier = Modifier,
     onNuevoMenuClick: () -> Unit = {},
+    onEditarMenuClick: (Int) -> Unit = {},
     viewModel: HistorialViewModel = koinViewModel()
 ) {
     HistorialTabContent(
         modifier = modifier,
         onNuevoMenuClick = onNuevoMenuClick,
+        onEliminarMenu = viewModel::eliminarMenu,
+        onEditarMenu = onEditarMenuClick,
         menusState = viewModel.menusState,
         displayMenus = viewModel.displayMenus,
         onLoadMenus = viewModel::loadMenus,
@@ -66,6 +76,8 @@ fun HistorialTab(
 fun HistorialTabContent(
     modifier: Modifier = Modifier,
     onNuevoMenuClick: () -> Unit = {},
+    onEliminarMenu: (Int) -> Unit = {},
+    onEditarMenu: (Int) -> Unit = {},
     menusState: State<List<MenuDiarioListItemResponseDto>>,
     displayMenus: List<MenuDiarioListItemResponseDto>,
     onLoadMenus: () -> Unit,
@@ -100,7 +112,10 @@ fun HistorialTabContent(
     //val filters = listOf("Hoy", "Última Semana", "Platos Principales")
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("es")) }
 
-    LaunchedEffect(Unit) { onLoadMenus() }
+    LifecycleResumeEffect(Unit) {
+        onLoadMenus()
+        onPauseOrDispose { }
+    }
 
     LaunchedEffect(searchQuery) {
         if (searchQuery.isBlank()) {
@@ -327,8 +342,11 @@ fun HistorialTabContent(
 
             when (menusState) {
                 is State.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(SpacingMedium)) {
+                        items(5) {
+                            MenuHistorialCardSkeleton()
+                        }
+                        item { Spacer(modifier = Modifier.height(80.dp)) }
                     }
                 }
                 is State.Error -> {
@@ -353,7 +371,11 @@ fun HistorialTabContent(
                     } else {
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(SpacingMedium)) {
                             items(displayMenus, key = { it.id }) { menu ->
-                                MenuHistorialCard(menu)
+                                MenuHistorialCard(
+                                    menu = menu,
+                                    onEliminarMenu = { onEliminarMenu(menu.id) },
+                                    onEditarMenu = { onEditarMenu(menu.id) }
+                                )
                             }
                             item { Spacer(modifier = Modifier.height(80.dp)) }
                         }
@@ -368,12 +390,14 @@ fun HistorialTabContent(
 @Composable
 fun MenuHistorialCard(
     menu: MenuDiarioListItemResponseDto,
-    onVerDetalle: (MenuDiarioListItemResponseDto) -> Unit = {},
-    onCompartir: (MenuDiarioListItemResponseDto) -> Unit = {},
-    onEliminar: (MenuDiarioListItemResponseDto) -> Unit = {}
+    onEliminarMenu: () -> Unit = {},
+    onEditarMenu: () -> Unit = {}
 ) {
     var showOpcionesSheet by remember { mutableStateOf(false) }
     var showImagenPreview by remember { mutableStateOf(false) }
+    var showConfirmEliminar by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     val platosResumen = menu.cantidadPlatos
         .filter { it.cantidad > 0 }
@@ -463,9 +487,38 @@ fun MenuHistorialCard(
         MenuHistorialOpcionesSheet(
             menu = menu,
             onDismiss = { showOpcionesSheet = false },
-            onVerDetalle = { onVerDetalle(menu) },
-            onCompartir = { onCompartir(menu) },
-            onEliminar = { onEliminar(menu) }
+            onVerCarta = { showImagenPreview = true },
+            onEditarMenu = { onEditarMenu() },
+            onCompartir = {
+                menu.imagenUrl?.let { url ->
+                    scope.launch {
+                        val file = descargarImagenACache(context, url)
+                        if (file != null) compartirImagen(context, file)
+                    }
+                }
+            },
+            onEliminar = { showConfirmEliminar = true }
+        )
+    }
+
+    if (showConfirmEliminar) {
+        AlertDialog(
+            onDismissRequest = { showConfirmEliminar = false },
+            title = { Text("Eliminar menú") },
+            text = { Text("¿Estás seguro de que deseas eliminar el menú del ${menu.descripcionFecha}? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showConfirmEliminar = false
+                    onEliminarMenu()
+                }) {
+                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmEliminar = false }) {
+                    Text("Cancelar")
+                }
+            }
         )
     }
 
@@ -502,7 +555,8 @@ private fun OpcionItem(
 private fun MenuHistorialOpcionesSheet(
     menu: MenuDiarioListItemResponseDto,
     onDismiss: () -> Unit,
-    onVerDetalle: () -> Unit,
+    onVerCarta: () -> Unit,
+    onEditarMenu: () -> Unit,
     onCompartir: () -> Unit,
     onEliminar: () -> Unit
 ) {
@@ -521,11 +575,34 @@ private fun MenuHistorialOpcionesSheet(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = SpacingLarge).padding(bottom = SpacingMedium)
             )
             HorizontalDivider(color = HeavyGray)
-            OpcionItem(icono = Icons.Filled.Visibility, texto = "Ver detalle", onClick = { onVerDetalle(); onDismiss() })
+            OpcionItem(icono = Icons.Filled.MenuBook, texto = "Ver Carta", onClick = { onVerCarta(); onDismiss() })
+            OpcionItem(icono = Icons.Filled.Edit, texto = "Editar Menú", onClick = { onEditarMenu(); onDismiss() })
             OpcionItem(icono = Icons.Filled.Share, texto = "Compartir", onClick = { onCompartir(); onDismiss() })
             OpcionItem(icono = Icons.Filled.Delete, texto = "Eliminar", onClick = { onEliminar(); onDismiss() }, tintColor = MaterialTheme.colorScheme.error)
         }
     }
+}
+
+private suspend fun descargarImagenACache(context: android.content.Context, url: String): File? =
+    withContext(Dispatchers.IO) {
+        try {
+            val dir = File(context.cacheDir, "menu_images").also { it.mkdirs() }
+            val file = File(dir, "menu_share_${System.currentTimeMillis()}.jpg")
+            java.net.URL(url).openStream().use { input ->
+                file.outputStream().use { output -> input.copyTo(output) }
+            }
+            file
+        } catch (_: Exception) { null }
+    }
+
+private fun compartirImagen(context: android.content.Context, file: File) {
+    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "image/jpeg"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(intent, "Compartir menú"))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -886,7 +963,7 @@ private fun OpcionItemOscuroPreview() {
 @Composable
 private fun MenuHistorialOpcionesSheetClaroPreview() {
     PreviewWrapper(darkTheme = false) {
-        MenuHistorialOpcionesSheet(menu = previewMenu, onDismiss = {}, onVerDetalle = {}, onCompartir = {}, onEliminar = {})
+        MenuHistorialOpcionesSheet(menu = previewMenu, onDismiss = {}, onVerCarta = {}, onEditarMenu = {}, onCompartir = {}, onEliminar = {})
     }
 }
 
@@ -895,7 +972,7 @@ private fun MenuHistorialOpcionesSheetClaroPreview() {
 @Composable
 private fun MenuHistorialOpcionesSheetOscuroPreview() {
     PreviewWrapper(darkTheme = true) {
-        MenuHistorialOpcionesSheet(menu = previewMenu, onDismiss = {}, onVerDetalle = {}, onCompartir = {}, onEliminar = {})
+        MenuHistorialOpcionesSheet(menu = previewMenu, onDismiss = {}, onVerCarta = {}, onEditarMenu = {}, onCompartir = {}, onEliminar = {})
     }
 }
 

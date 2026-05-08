@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.features.menu.estilo
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -25,12 +26,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +54,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -58,8 +65,10 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.IconSize3XLarge
+import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.ui.theme.SpacingLarge
 import com.fullwar.menuapp.ui.theme.SpacingMedium
+import com.fullwar.menuapp.ui.theme.SpacingSmall
 import com.fullwar.menuapp.ui.theme.SpacingXLarge
 import com.fullwar.menuapp.ui.theme.TextSizeMedium
 import com.fullwar.menuapp.ui.theme.TextSizeXXLarge
@@ -86,77 +95,90 @@ fun GuardarMenuOverlay(
             decorFitsSystemWindows = false
         )
     ) {
-        val isDarkTheme = isSystemInDarkTheme()
-        val fondoColor = if (isDarkTheme) {
-            Color.Black.copy(alpha = 0.55f)
-        } else {
-            Color.White.copy(alpha = 0.85f)
-        }
-        val textoColor = if (isDarkTheme) White else Color(0xFF1A1A1A)
+        GuardarMenuOverlayContent(
+            saveState = saveState,
+            onCompartir = onCompartir,
+            onMenuGuardado = onMenuGuardado
+        )
+    }
+}
 
-        val isSuccess = saveState is SaveUiState.Success
-        val revealRadius = remember { Animatable(0f) }
-        val checkProgress = remember { Animatable(0f) }
-        val cuentaRegresiva = remember { Animatable(1f) }
+@Composable
+fun GuardarMenuOverlayContent(
+    saveState: SaveUiState,
+    onCompartir: (File) -> Unit,
+    onMenuGuardado: () -> Unit
+) {
+    val isDarkTheme = isSystemInDarkTheme()
+    val fondoColor = if (isDarkTheme) {
+        Color.Black.copy(alpha = 0.55f)
+    } else {
+        Color.White.copy(alpha = 0.85f)
+    }
+    val textoColor = if (isDarkTheme) White else Color(0xFF1A1A1A)
 
-        LaunchedEffect(isSuccess) {
-            if (isSuccess) {
-                revealRadius.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
-                cuentaRegresiva.animateTo(
-                    targetValue = 0f,
-                    animationSpec = tween(
-                        durationMillis = AUTO_REDIRECT_MS.toInt(),
-                        easing = LinearEasing
-                    )
+    val isSuccess = saveState is SaveUiState.Success
+    val revealRadius = remember { Animatable(0f) }
+    val checkProgress = remember { Animatable(0f) }
+    val cuentaRegresiva = remember { Animatable(1f) }
+
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            revealRadius.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
+            cuentaRegresiva.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(
+                    durationMillis = AUTO_REDIRECT_MS.toInt(),
+                    easing = LinearEasing
                 )
-                onMenuGuardado()
-            }
+            )
+            onMenuGuardado()
+        }
+    }
+
+    val showContent = revealRadius.value > 0.85f
+
+    LaunchedEffect(showContent) {
+        if (showContent) {
+            checkProgress.animateTo(1f, tween(450, easing = LinearOutSlowInEasing))
+        }
+    }
+
+    val segundosRestantes = (cuentaRegresiva.value * AUTO_REDIRECT_SEGUNDOS).toInt() + 1
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(fondoColor),
+        contentAlignment = Alignment.Center
+    ) {
+        if (!showContent) {
+            LoadingContent(textoColor = textoColor)
         }
 
-        val showContent = revealRadius.value > 0.85f
-
-        LaunchedEffect(showContent) {
-            if (showContent) {
-                checkProgress.animateTo(1f, tween(450, easing = LinearOutSlowInEasing))
-            }
-        }
-
-        val segundosRestantes = (cuentaRegresiva.value * AUTO_REDIRECT_SEGUNDOS).toInt() + 1
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(fondoColor),
-            contentAlignment = Alignment.Center
-        ) {
-            if (!showContent) {
-                LoadingContent(textoColor = textoColor)
-            }
-
-            if (isSuccess) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val maxRadius = sqrt(
-                        (size.width / 2f) * (size.width / 2f) +
-                            (size.height / 2f) * (size.height / 2f)
-                    )
-                    drawCircle(
-                        color = WhatsAppGreen,
-                        radius = revealRadius.value * maxRadius,
-                        center = Offset(size.width / 2f, size.height / 2f)
-                    )
-                }
-            }
-
-            if (showContent) {
-                SuccessContent(
-                    imagenFile = (saveState as? SaveUiState.Success)?.imagenFile,
-                    checkProgress = checkProgress.value,
-                    progresoRestante = cuentaRegresiva.value,
-                    segundosRestantes = segundosRestantes,
-                    onMenuGuardado = onMenuGuardado,
-                    onCompartir = onCompartir
+        if (isSuccess) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val maxRadius = sqrt(
+                    (size.width / 2f) * (size.width / 2f) +
+                        (size.height / 2f) * (size.height / 2f)
+                )
+                drawCircle(
+                    color = WhatsAppGreen,
+                    radius = revealRadius.value * maxRadius,
+                    center = Offset(size.width / 2f, size.height / 2f)
                 )
             }
+        }
+
+        if (showContent) {
+            SuccessContent(
+                imagenFile = (saveState as? SaveUiState.Success)?.imagenFile,
+                checkProgress = checkProgress.value,
+                progresoRestante = cuentaRegresiva.value,
+                segundosRestantes = segundosRestantes,
+                onMenuGuardado = onMenuGuardado,
+                onCompartir = onCompartir
+            )
         }
     }
 }
@@ -265,17 +287,20 @@ private fun SuccessContent(
             enter = fadeIn(tween(300, delayMillis = 180))
         ) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(SpacingMedium),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CerrarButton(
                     progresoRestante = progresoRestante,
                     segundosRestantes = segundosRestantes,
-                    onClick = onMenuGuardado
+                    onClick = onMenuGuardado,
+                    modifier = Modifier.weight(1f)
                 )
                 if (imagenFile != null) {
                     Button(
                         onClick = { onCompartir(imagenFile) },
+                        modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = White,
                             contentColor = WhatsAppGreen
@@ -283,6 +308,7 @@ private fun SuccessContent(
                         shape = RoundedCornerShape(CornerRadiusMedium)
                     ) {
                         Text("Compartir", fontWeight = FontWeight.Bold)
+                        Icon(imageVector = Icons.Default.Share, modifier = Modifier.padding(SpacingSmall,0.dp,0.dp,0.dp), contentDescription = null)
                     }
                 }
             }
@@ -294,17 +320,17 @@ private fun SuccessContent(
 private fun CerrarButton(
     progresoRestante: Float,
     segundosRestantes: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(CornerRadiusMedium)
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .clip(shape)
             .border(1.dp, White.copy(alpha = 0.7f), shape)
             .clickable(onClick = onClick)
-            .heightIn(min = 40.dp)
-            .widthIn(min = 140.dp),
+            .heightIn(min = 48.dp, max = 48.dp),
         contentAlignment = Alignment.Center
     ) {
         // Capa 1 – fondo completo tenue (zona de tiempo transcurrido)
@@ -330,5 +356,177 @@ private fun CerrarButton(
             fontWeight = FontWeight.Medium,
             fontSize = TextSizeMedium
         )
+    }
+}
+
+// --- Previews ---
+
+// GuardarMenuOverlayContent
+
+@Preview(showBackground = true, name = "GuardarMenuOverlay - Loading Claro")
+@Composable
+private fun GuardarMenuOverlayLoadingClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        GuardarMenuOverlayContent(
+            saveState = SaveUiState.Loading,
+            onCompartir = {},
+            onMenuGuardado = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "GuardarMenuOverlay - Loading Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun GuardarMenuOverlayLoadingOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        GuardarMenuOverlayContent(
+            saveState = SaveUiState.Loading,
+            onCompartir = {},
+            onMenuGuardado = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "GuardarMenuOverlay - Success Claro")
+@Composable
+private fun GuardarMenuOverlaySuccessClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        GuardarMenuOverlayContent(
+            saveState = SaveUiState.Success(menuId = 1, imagenFile = null),
+            onCompartir = {},
+            onMenuGuardado = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "GuardarMenuOverlay - Success Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun GuardarMenuOverlaySuccessOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        GuardarMenuOverlayContent(
+            saveState = SaveUiState.Success(menuId = 1, imagenFile = null),
+            onCompartir = {},
+            onMenuGuardado = {}
+        )
+    }
+}
+
+// LoadingContent
+
+@Preview(showBackground = true, name = "LoadingContent - Claro")
+@Composable
+private fun LoadingContentClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White.copy(alpha = 0.85f)),
+            contentAlignment = Alignment.Center
+        ) {
+            LoadingContent(textoColor = Color(0xFF1A1A1A))
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "LoadingContent - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun LoadingContentOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.55f)),
+            contentAlignment = Alignment.Center
+        ) {
+            LoadingContent(textoColor = White)
+        }
+    }
+}
+
+// SuccessContent
+
+@Preview(showBackground = true, name = "SuccessContent - Claro")
+@Composable
+private fun SuccessContentClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(WhatsAppGreen),
+            contentAlignment = Alignment.Center
+        ) {
+            SuccessContent(
+                imagenFile = File("fake.jpg"),
+                checkProgress = 1f,
+                progresoRestante = 0.7f,
+                segundosRestantes = 21,
+                onMenuGuardado = {},
+                onCompartir = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "SuccessContent - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun SuccessContentOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(WhatsAppGreen),
+            contentAlignment = Alignment.Center
+        ) {
+            SuccessContent(
+                imagenFile = File("fake.jpg"),
+                checkProgress = 1f,
+                progresoRestante = 0.7f,
+                segundosRestantes = 21,
+                onMenuGuardado = {},
+                onCompartir = {}
+            )
+        }
+    }
+}
+
+// CerrarButton
+
+@Preview(showBackground = true, name = "CerrarButton - Claro")
+@Composable
+private fun CerrarButtonClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(WhatsAppGreen)
+                .padding(SpacingLarge),
+            contentAlignment = Alignment.Center
+        ) {
+            CerrarButton(
+                progresoRestante = 0.7f,
+                segundosRestantes = 21,
+                onClick = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "CerrarButton - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun CerrarButtonOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(WhatsAppGreen)
+                .padding(SpacingLarge),
+            contentAlignment = Alignment.Center
+        ) {
+            CerrarButton(
+                progresoRestante = 0.7f,
+                segundosRestantes = 21,
+                onClick = {}
+            )
+        }
     }
 }

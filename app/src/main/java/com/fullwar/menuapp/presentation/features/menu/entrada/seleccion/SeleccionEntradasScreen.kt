@@ -40,9 +40,11 @@ import androidx.compose.ui.zIndex
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.*
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
+import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
 import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
+import com.fullwar.menuapp.presentation.common.components.ItemListSkeleton
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
@@ -273,15 +275,8 @@ fun SeleccionEntradasScreen(
             // Estado de carga
             when (entradasState) {
                 is State.Loading -> {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = SpacingXLarge),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        }
+                    items(5) {
+                        ItemListSkeleton()
                     }
                 }
                 is State.Error -> {
@@ -546,6 +541,14 @@ private fun AnadirNuevaListItem(onClick: () -> Unit) {
 
 // --- Previews ---
 
+private class FakeMenuDiarioRepository : IMenuDiarioRepository {
+    override suspend fun createMenuDiario(request: com.fullwar.menuapp.data.model.MenuDiarioCreateRequestDto, imagenFile: java.io.File?) = 0
+    override suspend fun getMenusDiarios(busqueda: String?) = emptyList<com.fullwar.menuapp.data.model.MenuDiarioListItemResponseDto>()
+    override suspend fun getMenuDiarioById(id: Int) = throw NotImplementedError()
+    override suspend fun updateMenuDiario(id: Int, request: com.fullwar.menuapp.data.model.MenuDiarioUpdateRequestDto, imagenFile: java.io.File?) = false
+    override suspend fun deleteMenuDiario(id: Int) {}
+}
+
 private class FakeMenuImagenRepository : IMenuImagenRepository {
     override suspend fun getMenuImagenes(): List<MenuImagenResponseDto> = emptyList()
 }
@@ -579,7 +582,7 @@ private val fakeSugerencia = SugerenciaItem(
 @Preview(showBackground = true, name = "PasoEntradas - Claro")
 @Composable
 private fun SeleccionEntradasScreenPreview() {
-    val menuVm = remember { MenuViewModel() }
+    val menuVm = remember { MenuViewModel(FakeMenuDiarioRepository()) }
     val entradaVm = remember { EntradaViewModel(FakeEntradaRepository()) }
     val seleccionVm = remember { SeleccionEntradasViewModel(FakeEntradaRepository(), FakeMenuImagenRepository()) }
     MenuAppTheme(darkTheme = false) {
@@ -590,7 +593,7 @@ private fun SeleccionEntradasScreenPreview() {
 @Preview(showBackground = true, name = "PasoEntradas - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun SeleccionEntradasScreenDarkPreview() {
-    val menuVm = remember { MenuViewModel() }
+    val menuVm = remember { MenuViewModel(FakeMenuDiarioRepository()) }
     val entradaVm = remember { EntradaViewModel(FakeEntradaRepository()) }
     val seleccionVm = remember { SeleccionEntradasViewModel(FakeEntradaRepository(), FakeMenuImagenRepository()) }
     MenuAppTheme(darkTheme = true) {

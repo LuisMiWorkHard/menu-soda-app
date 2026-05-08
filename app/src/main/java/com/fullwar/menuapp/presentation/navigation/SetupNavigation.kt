@@ -4,9 +4,11 @@ import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.fullwar.menuapp.data.util.AuthEventBus
 import com.fullwar.menuapp.presentation.features.home.HomeScreen
 import com.fullwar.menuapp.presentation.features.login.LoginScreen
@@ -44,11 +46,22 @@ fun SetupNavigation(startDestination: String) {
             HomeScreen(
                 onNuevoMenuClick = {
                     navController.navigate(AppScreens.MenuScreen.route)
+                },
+                onEditarMenuClick = { menuId ->
+                    navController.navigate(AppScreens.MenuScreen.withId(menuId))
                 }
             )
         }
-        composable(route = AppScreens.MenuScreen.route) {
+        composable(
+            route = AppScreens.MenuScreen.route,
+            arguments = listOf(navArgument("menuId") {
+                type = NavType.IntType
+                defaultValue = -1
+            })
+        ) { backStackEntry ->
+            val menuId = backStackEntry.arguments?.getInt("menuId")?.takeIf { it > 0 }
             MenuScreen(
+                menuId = menuId,
                 onMenuGuardado = {
                     navController.popBackStack(
                         route = AppScreens.HomeScreen.route,
