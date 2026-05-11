@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -401,6 +402,9 @@ fun MenuPreviewCard(
             val maxFontSize       = imagen.maxFontSize.sp
             val fontFamilyEtiqueta  = FontFamily(Font(R.font.rubik_microbe_regular))
             val fontFamilyContenido = fontFamilyFromString(imagen.fontFamily)
+            val sharedFontSizeState = remember(entradasText, platosText, maxFontSize) {
+                mutableStateOf(maxFontSize)
+            }
 
             SubcomposeLayout(
                 modifier = Modifier
@@ -454,7 +458,8 @@ fun MenuPreviewCard(
                         fontFamilyEtiqueta = fontFamilyEtiqueta,
                         fontFamily = fontFamilyContenido,
                         fillAvailableHeight = false,
-                        resetKey = entradasH
+                        resetKey = entradasH,
+                        fontSizeState = sharedFontSizeState
                     )
                 }[0].measure(Constraints(
                     minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth,
@@ -470,7 +475,8 @@ fun MenuPreviewCard(
                         maxFontSize = maxFontSize,
                         fontFamilyEtiqueta = fontFamilyEtiqueta,
                         fontFamily = fontFamilyContenido,
-                        resetKey = actualPlatosH
+                        resetKey = actualPlatosH,
+                        fontSizeState = sharedFontSizeState
                     )
                 }[0].measure(Constraints(
                     minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth,
@@ -496,7 +502,8 @@ private fun SeccionMenu(
     fontFamilyEtiqueta: FontFamily = FontFamily.Default,
     fontFamily: FontFamily = FontFamily.Default,
     fillAvailableHeight: Boolean = true,
-    resetKey: Any = Unit
+    resetKey: Any = Unit,
+    fontSizeState: MutableState<TextUnit>? = null
 ) {
     Column(
         modifier = modifier
@@ -524,7 +531,8 @@ private fun SeccionMenu(
             resetKey = resetKey,
             modifier = textModifier,
             maxFontSize = maxFontSize,
-            fontFamily = fontFamily
+            fontFamily = fontFamily,
+            fontSizeState = fontSizeState
         )
     }
 }
@@ -539,9 +547,11 @@ private fun AutoSizeText(
     color: Color = White,
     fontWeight: FontWeight = FontWeight.Bold,
     fontFamily: FontFamily = FontFamily.Default,
-    textAlign: TextAlign = TextAlign.Start
+    textAlign: TextAlign = TextAlign.Start,
+    fontSizeState: MutableState<TextUnit>? = null
 ) {
-    var fontSize by remember(text, maxFontSize, resetKey) { mutableStateOf(maxFontSize) }
+    val sizeState = fontSizeState ?: remember(text, maxFontSize, resetKey) { mutableStateOf(maxFontSize) }
+    var fontSize by sizeState
 
     Text(
         text = text,
@@ -566,7 +576,7 @@ private fun buildMenuText(items: List<String>): AnnotatedString =
     } else {
         buildAnnotatedString {
             items.forEachIndexed { index, item ->
-                withStyle(ParagraphStyle(textIndent = TextIndent(restLine = 0.85.em))) {
+                withStyle(ParagraphStyle(textIndent = TextIndent(restLine = 0.85.em), lineHeight = 1.2.em)) {
                     append("· $item")
                 }
             }
