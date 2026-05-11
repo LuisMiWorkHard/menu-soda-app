@@ -75,7 +75,7 @@ fun ItemListSkeleton(
             // Checkbox placeholder
             ShimmerBox(
                 modifier = Modifier
-                    .size(20.dp)
+                    .size(IconSizeSmall)
                     .clip(lineShape)
             )
         }

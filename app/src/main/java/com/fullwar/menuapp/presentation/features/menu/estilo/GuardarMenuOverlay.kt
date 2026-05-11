@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -63,9 +64,16 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.fullwar.menuapp.R
+import com.fullwar.menuapp.ui.theme.Black
+import com.fullwar.menuapp.ui.theme.ButtonHeightMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
+import com.fullwar.menuapp.ui.theme.DarkOverlayText
 import com.fullwar.menuapp.ui.theme.IconSize3XLarge
+import com.fullwar.menuapp.ui.theme.IconSizeLarge
+import com.fullwar.menuapp.ui.theme.IconSizeMedium
+import com.fullwar.menuapp.ui.theme.LogoSize
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
+import com.fullwar.menuapp.ui.theme.StrokeWidthThin
 import com.fullwar.menuapp.ui.theme.SpacingLarge
 import com.fullwar.menuapp.ui.theme.SpacingMedium
 import com.fullwar.menuapp.ui.theme.SpacingSmall
@@ -111,11 +119,11 @@ fun GuardarMenuOverlayContent(
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     val fondoColor = if (isDarkTheme) {
-        Color.Black.copy(alpha = 0.55f)
+        Black.copy(alpha = 0.55f)
     } else {
-        Color.White.copy(alpha = 0.85f)
+        White.copy(alpha = 0.85f)
     }
-    val textoColor = if (isDarkTheme) White else Color(0xFF1A1A1A)
+    val textoColor = if (isDarkTheme) White else DarkOverlayText
 
     val isSuccess = saveState is SaveUiState.Success
     val revealRadius = remember { Animatable(0f) }
@@ -196,7 +204,7 @@ private fun LoadingContent(textoColor: Color) {
         LottieAnimation(
             composition = lottieComposition,
             iterations = LottieConstants.IterateForever,
-            modifier = Modifier.size(120.dp)
+            modifier = Modifier.size(LogoSize)
         )
         Spacer(Modifier.height(SpacingLarge))
         Text(
@@ -307,8 +315,13 @@ private fun SuccessContent(
                         ),
                         shape = RoundedCornerShape(CornerRadiusMedium)
                     ) {
-                        Text("Compartir", fontWeight = FontWeight.Bold)
-                        Icon(imageVector = Icons.Default.Share, modifier = Modifier.padding(SpacingSmall,0.dp,0.dp,0.dp), contentDescription = null)
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = null,
+                            modifier = Modifier.size(IconSizeMedium)
+                        )
+                        Spacer(modifier = Modifier.width(SpacingSmall))
+                        Text(stringResource(R.string.guardar_menu_compartir), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -328,9 +341,9 @@ private fun CerrarButton(
     Box(
         modifier = modifier
             .clip(shape)
-            .border(1.dp, White.copy(alpha = 0.7f), shape)
+            .border(StrokeWidthThin, White.copy(alpha = 0.7f), shape)
             .clickable(onClick = onClick)
-            .heightIn(min = 48.dp, max = 48.dp),
+            .heightIn(min = ButtonHeightMedium, max = ButtonHeightMedium),
         contentAlignment = Alignment.Center
     ) {
         // Capa 1 – fondo completo tenue (zona de tiempo transcurrido)
@@ -420,10 +433,10 @@ private fun LoadingContentClaroPreview() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White.copy(alpha = 0.85f)),
+                .background(White.copy(alpha = 0.85f)),
             contentAlignment = Alignment.Center
         ) {
-            LoadingContent(textoColor = Color(0xFF1A1A1A))
+            LoadingContent(textoColor = DarkOverlayText)
         }
     }
 }
@@ -435,7 +448,7 @@ private fun LoadingContentOscuroPreview() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.55f)),
+                .background(Black.copy(alpha = 0.55f)),
             contentAlignment = Alignment.Center
         ) {
             LoadingContent(textoColor = White)

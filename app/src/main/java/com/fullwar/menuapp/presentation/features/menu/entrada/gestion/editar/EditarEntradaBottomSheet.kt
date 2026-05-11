@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.presentation.common.components.GestionBottomSheet
@@ -18,6 +17,7 @@ import com.fullwar.menuapp.presentation.common.components.GestionBottomSheetCont
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaForm
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
+import com.fullwar.menuapp.ui.theme.BottomSheetPlaceholderHeight
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
 
 @Composable
@@ -66,7 +66,7 @@ private fun EditarEntradaNormalClaroPreview() {
             onSave = {},
             onDismiss = {}
         ) {
-            Spacer(modifier = Modifier.height(200.dp))
+            Spacer(modifier = Modifier.height(BottomSheetPlaceholderHeight))
         }
     }
 }
@@ -85,7 +85,7 @@ private fun EditarEntradaNormalOscuroPreview() {
                 onSave = {},
                 onDismiss = {}
             ) {
-                Spacer(modifier = Modifier.height(200.dp))
+                Spacer(modifier = Modifier.height(BottomSheetPlaceholderHeight))
             }
         }
     }
@@ -104,7 +104,7 @@ private fun EditarEntradaCargandoClaroPreview() {
             onSave = {},
             onDismiss = {}
         ) {
-            Spacer(modifier = Modifier.height(200.dp))
+            Spacer(modifier = Modifier.height(BottomSheetPlaceholderHeight))
         }
     }
 }
@@ -122,7 +122,7 @@ private fun EditarEntradaErrorClaroPreview() {
             onSave = {},
             onDismiss = {}
         ) {
-            Spacer(modifier = Modifier.height(200.dp))
+            Spacer(modifier = Modifier.height(BottomSheetPlaceholderHeight))
         }
     }
 }

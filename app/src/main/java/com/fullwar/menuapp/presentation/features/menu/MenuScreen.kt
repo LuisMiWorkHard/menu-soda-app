@@ -66,9 +66,14 @@ import com.fullwar.menuapp.presentation.features.menu.entrada.seleccion.Seleccio
 import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloScreen
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SelectedPlatosFondoBottomSheetContent
+import com.fullwar.menuapp.ui.theme.ButtonHeightMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
+import com.fullwar.menuapp.ui.theme.CornerRadiusXXSmall
+import com.fullwar.menuapp.ui.theme.ElevationSmall
 import com.fullwar.menuapp.ui.theme.HeavyGray
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
+import com.fullwar.menuapp.ui.theme.Spacing3XLarge
+import com.fullwar.menuapp.ui.theme.StrokeWidthMedium
 import com.fullwar.menuapp.ui.theme.SpacingLarge
 import com.fullwar.menuapp.ui.theme.SpacingMedium
 import com.fullwar.menuapp.ui.theme.SpacingSmall
@@ -362,7 +367,7 @@ private fun MenuScreenContent(
         bottomBar = {
             Surface(
                 color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 8.dp,
+                shadowElevation = SpacingSmall,
                 shape = RoundedCornerShape(topStart = CornerRadiusMedium, topEnd = CornerRadiusMedium)
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -377,9 +382,9 @@ private fun MenuScreenContent(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .width(40.dp)
-                                    .height(4.dp)
-                                    .background(HeavyGray, RoundedCornerShape(2.dp))
+                                    .width(Spacing3XLarge)
+                                    .height(SpacingXSmall)
+                                    .background(HeavyGray, RoundedCornerShape(CornerRadiusXXSmall))
                             )
                         }
 
@@ -421,7 +426,7 @@ private fun MenuScreenContent(
                         if (currentStep > 1) {
                             OutlinedButton(
                                 onClick = onAnterior,
-                                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                                modifier = Modifier.weight(1f).heightIn(min = ButtonHeightMedium),
                                 shape = RoundedCornerShape(CornerRadiusMedium),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
                             ) {
@@ -434,7 +439,7 @@ private fun MenuScreenContent(
                         Button(
                             onClick = onSiguiente,
                             enabled = isSiguienteEnabled,
-                            modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = ButtonHeightMedium),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             shape = RoundedCornerShape(CornerRadiusMedium)
                         ) {

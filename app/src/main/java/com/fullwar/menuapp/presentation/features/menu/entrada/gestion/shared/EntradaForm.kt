@@ -44,6 +44,7 @@ import com.fullwar.menuapp.di.Constants
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.domain.model.TipoEntrada
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
+import com.fullwar.menuapp.presentation.common.components.FotoOrigenDialog
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.ui.theme.*
 import java.io.File
@@ -135,26 +136,13 @@ fun EntradaFormContent(
     var showPhotoSourceDialog by remember { mutableStateOf(false) }
 
     if (showPhotoSourceDialog) {
-        AlertDialog(
+        FotoOrigenDialog(
             onDismissRequest = { showPhotoSourceDialog = false },
-            title = { Text(stringResource(R.string.entrada_foto_source_title)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showPhotoSourceDialog = false
-                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                }) {
-                    Text(stringResource(R.string.entrada_foto_camara), color = MaterialTheme.colorScheme.primary)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showPhotoSourceDialog = false
-                    galleryLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
-                }) {
-                    Text(stringResource(R.string.entrada_foto_galeria), color = MaterialTheme.colorScheme.primary)
-                }
+            onCamara = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
+            onGaleria = {
+                galleryLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
             }
         )
     }
@@ -163,13 +151,13 @@ fun EntradaFormContent(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 160.dp)
+            .heightIn(min = FormFieldMinHeight)
             .clip(RoundedCornerShape(CornerRadiusMedium))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .then(
                 if (imageUri == null && currentImagenId == null) {
                     Modifier.border(
-                        BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+                        BorderStroke(StrokeWidthMedium, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
                         RoundedCornerShape(CornerRadiusMedium)
                     )
                 } else Modifier
@@ -263,7 +251,7 @@ fun EntradaFormContent(
             when {
                 errorRes != null -> Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error)
                 serverError != null -> Text(serverError, color = MaterialTheme.colorScheme.error)
-                else -> Text("${nombre.text.length}/200", color = HeavyGray, fontSize = TextSizeXSmall)
+                else -> Text(stringResource(R.string.campo_max_caracteres, nombre.text.length, 200), color = HeavyGray, fontSize = TextSizeXSmall)
             }
         }
     )
@@ -274,7 +262,7 @@ fun EntradaFormContent(
             color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
             shape = RoundedCornerShape(CornerRadiusMedium),
             modifier = Modifier.fillMaxWidth(),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+            border = BorderStroke(StrokeWidthThin, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
         ) {
             Column(modifier = Modifier.padding(SpacingMedium)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -308,7 +296,7 @@ fun EntradaFormContent(
                                     model = "${Constants.BASE_URL}/api/imagen/${dto.imagenId}/contenido",
                                     contentDescription = null,
                                     modifier = Modifier
-                                        .size(36.dp)
+                                        .size(IconSizeXLarge)
                                         .clip(RoundedCornerShape(CornerRadiusSmall)),
                                     contentScale = ContentScale.Crop
                                 )
@@ -390,7 +378,7 @@ fun EntradaFormContent(
             when {
                 errorRes != null -> Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error)
                 serverError != null -> Text(serverError, color = MaterialTheme.colorScheme.error)
-                else -> Text("${descripcion.text.length}/1000", color = HeavyGray, fontSize = TextSizeXSmall)
+                else -> Text(stringResource(R.string.campo_max_caracteres, descripcion.text.length, 1000), color = HeavyGray, fontSize = TextSizeXSmall)
             }
         }
     )

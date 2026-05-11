@@ -25,16 +25,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.RoomService
 import androidx.compose.material.icons.filled.ZoomIn
 import android.widget.Toast
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -73,6 +72,8 @@ import androidx.compose.ui.unit.em
 import androidx.core.content.FileProvider
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.components.ImagenFondoPreviewDialog
+import com.fullwar.menuapp.presentation.common.components.MenuSodaDialog
+import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
 import com.fullwar.menuapp.presentation.common.utils.fontFamilyFromString
 import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import androidx.compose.ui.unit.Density
@@ -190,15 +191,14 @@ fun SeleccionEstiloScreen(
     }
 
     if (saveState is SaveUiState.Error) {
-        AlertDialog(
+        MenuSodaDialog(
+            title = stringResource(R.string.dialog_error_guardar_titulo),
+            message = saveState.message,
             onDismissRequest = { pasoEstiloViewModel.resetSaveState() },
-            title = { Text("Error al guardar") },
-            text = { Text(saveState.message) },
-            confirmButton = {
-                TextButton(onClick = { pasoEstiloViewModel.resetSaveState() }) {
-                    Text("Aceptar")
-                }
-            }
+            confirmLabel = stringResource(R.string.dialog_error_guardar_confirmar),
+            onConfirm = { pasoEstiloViewModel.resetSaveState() },
+            icon = Icons.Filled.ErrorOutline,
+            variant = MenuSodaDialogVariant.Error
         )
     }
 

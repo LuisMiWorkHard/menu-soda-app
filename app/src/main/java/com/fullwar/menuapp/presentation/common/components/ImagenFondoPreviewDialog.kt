@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.common.components
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -29,10 +33,14 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.DeepCharcoal
+import com.fullwar.menuapp.ui.theme.IconSizeLarge
 import com.fullwar.menuapp.ui.theme.IconSizeSmall
+import com.fullwar.menuapp.ui.theme.ImagePreviewHeight
+import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.ui.theme.RichBlack
 import com.fullwar.menuapp.ui.theme.Shadow
 import com.fullwar.menuapp.ui.theme.SpacingSmall
+import com.fullwar.menuapp.ui.theme.StrokeWidthMedium
 import com.fullwar.menuapp.ui.theme.White
 
 @Composable
@@ -69,10 +77,10 @@ fun ImagenFondoPreviewDialog(
                 contentScale = ContentScale.Fit,
                 loading = {
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(240.dp),
+                        modifier = Modifier.fillMaxWidth().height(ImagePreviewHeight),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = White, strokeWidth = 2.dp)
+                        CircularProgressIndicator(color = White, strokeWidth = StrokeWidthMedium)
                     }
                 }
             )
@@ -81,7 +89,7 @@ fun ImagenFondoPreviewDialog(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(SpacingSmall)
-                    .size(32.dp)
+                    .size(IconSizeLarge)
                     .background(RichBlack.copy(alpha = 0.6f), CircleShape)
                     .clickable { onDismiss() },
                 contentAlignment = Alignment.Center
@@ -93,6 +101,32 @@ fun ImagenFondoPreviewDialog(
                     modifier = Modifier.size(IconSizeSmall)
                 )
             }
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "ImagenFondoPreviewDialog - Claro")
+@Composable
+private fun ImagenFondoPreviewDialogClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ImagenFondoPreviewDialog(
+                imagenUrl = "",
+                onDismiss = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "ImagenFondoPreviewDialog - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun ImagenFondoPreviewDialogOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ImagenFondoPreviewDialog(
+                imagenUrl = "",
+                onDismiss = {}
+            )
         }
     }
 }

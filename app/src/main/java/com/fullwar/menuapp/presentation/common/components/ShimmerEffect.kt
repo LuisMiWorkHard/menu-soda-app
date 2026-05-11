@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.common.components
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -8,12 +9,17 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.fullwar.menuapp.ui.theme.MenuAppTheme
 
 /**
  * Composable base que aplica un efecto de brillo horizontal animado (shimmer)
@@ -53,4 +59,22 @@ fun ShimmerBox(
     Box(
         modifier = modifier.background(brush)
     )
+}
+
+@Preview(showBackground = true, name = "ShimmerBox - Claro")
+@Composable
+private fun ShimmerBoxClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        ShimmerBox(modifier = Modifier.size(200.dp, 80.dp))
+    }
+}
+
+@Preview(showBackground = true, name = "ShimmerBox - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun ShimmerBoxOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ShimmerBox(modifier = Modifier.size(200.dp, 80.dp))
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.common.components
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.R
 import coil3.compose.SubcomposeAsyncImage
@@ -26,6 +29,9 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
 import com.fullwar.menuapp.ui.theme.HeavyGray
+import com.fullwar.menuapp.ui.theme.IconSizeMedium
+import com.fullwar.menuapp.ui.theme.MenuAppTheme
+import com.fullwar.menuapp.ui.theme.StrokeWidthMedium
 
 @Composable
 fun CustomImageView(
@@ -63,9 +69,9 @@ fun CustomImageView(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(IconSizeMedium),
                         color = MaterialTheme.colorScheme.primary,
-                        strokeWidth = 2.dp
+                        strokeWidth = StrokeWidthMedium
                     )
                 }
             },
@@ -92,5 +98,59 @@ fun CustomImageView(
                 .clip(shape)
                 .background(HeavyGray, shape)
         )
+    }
+}
+
+@Preview(showBackground = true, name = "CustomImageView - Sin URL - Claro")
+@Composable
+private fun CustomImageViewSinUrlClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        CustomImageView(imageUrl = null)
+    }
+}
+
+@Preview(showBackground = true, name = "CustomImageView - Sin URL - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun CustomImageViewSinUrlOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            CustomImageView(imageUrl = null)
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "CustomImageView - Con URL - Claro")
+@Composable
+private fun CustomImageViewConUrlClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        CustomImageView(imageUrl = "https://example.com/imagen.jpg")
+    }
+}
+
+@Preview(showBackground = true, name = "CustomImageView - Con URL - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun CustomImageViewConUrlOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            CustomImageView(imageUrl = "https://example.com/imagen.jpg")
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "CustomImageView - Rectangular - Claro")
+@Composable
+private fun CustomImageViewRectangularClaroPreview() {
+    MenuAppTheme(darkTheme = false) {
+        CustomImageView(imageUrl = null, sizeDp = 120, heightDp = 60)
+    }
+}
+
+@Preview(showBackground = true, name = "CustomImageView - Rectangular - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun CustomImageViewRectangularOscuroPreview() {
+    MenuAppTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            CustomImageView(imageUrl = null, sizeDp = 120, heightDp = 60)
+        }
     }
 }

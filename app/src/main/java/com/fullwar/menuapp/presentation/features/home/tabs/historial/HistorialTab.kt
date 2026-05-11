@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -22,8 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -35,6 +36,8 @@ import com.fullwar.menuapp.data.model.TipoPlatoCountDto
 import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.components.ImagenFondoPreviewDialog
+import com.fullwar.menuapp.presentation.common.components.MenuSodaDialog
+import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.home.tabs.historial.HistorialViewModel
 import com.fullwar.menuapp.ui.theme.*
@@ -55,6 +58,11 @@ fun HistorialTab(
     onEditarMenuClick: (Int) -> Unit = {},
     viewModel: HistorialViewModel = koinViewModel()
 ) {
+    LifecycleResumeEffect(Unit) {
+        viewModel.loadMenus()
+        onPauseOrDispose { }
+    }
+
     HistorialTabContent(
         modifier = modifier,
         onNuevoMenuClick = onNuevoMenuClick,
@@ -115,11 +123,6 @@ fun HistorialTabContent(
 
     //val filters = listOf("Hoy", "Última Semana", "Platos Principales")
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("es")) }
-
-    LifecycleResumeEffect(Unit) {
-        onLoadMenus()
-        onPauseOrDispose { }
-    }
 
     LaunchedEffect(searchQuery) {
         if (searchQuery.isBlank()) {
@@ -208,7 +211,7 @@ fun HistorialTabContent(
             ExtendedFloatingActionButton(
                 onClick = { showNuevoMenuPicker = true },
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White,
+                contentColor = White,
                 shape = RoundedCornerShape(CornerRadiusLarge)
             ) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = null)
@@ -363,9 +366,9 @@ fun HistorialTabContent(
                     },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = Color.White,
-                        selectedLeadingIconColor = Color.White,
-                        selectedTrailingIconColor = Color.White
+                        selectedLabelColor = White,
+                        selectedLeadingIconColor = White,
+                        selectedTrailingIconColor = White
                     )
                 )
             }
@@ -387,7 +390,7 @@ fun HistorialTabContent(
                         items(5) {
                             MenuHistorialCardSkeleton()
                         }
-                        item { Spacer(modifier = Modifier.height(80.dp)) }
+                        item { Spacer(modifier = Modifier.height(IconSize3XLarge)) }
                     }
                 }
                 is State.Error -> {
@@ -418,7 +421,7 @@ fun HistorialTabContent(
                                     onEditarMenu = { onEditarMenu(menu.id) }
                                 )
                             }
-                            item { Spacer(modifier = Modifier.height(80.dp)) }
+                            item { Spacer(modifier = Modifier.height(IconSize3XLarge)) }
                         }
                     }
                 }
@@ -498,7 +501,7 @@ fun MenuHistorialCard(
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.padding(
                                     horizontal = SpacingSmall,
-                                    vertical = 2.dp
+                                    vertical = StrokeWidthMedium
                                 )
                             )
                         }
@@ -543,23 +546,19 @@ fun MenuHistorialCard(
     }
 
     if (showConfirmEliminar) {
-        AlertDialog(
+        MenuSodaDialog(
+            title = stringResource(R.string.dialog_eliminar_menu_titulo),
+            message = stringResource(R.string.dialog_eliminar_menu_mensaje, menu.descripcionFecha),
             onDismissRequest = { showConfirmEliminar = false },
-            title = { Text("Eliminar menú") },
-            text = { Text("¿Estás seguro de que deseas eliminar el menú del ${menu.descripcionFecha}? Esta acción no se puede deshacer.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showConfirmEliminar = false
-                    onEliminarMenu()
-                }) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
-                }
+            confirmLabel = stringResource(R.string.dialog_eliminar_confirmar),
+            onConfirm = {
+                showConfirmEliminar = false
+                onEliminarMenu()
             },
-            dismissButton = {
-                TextButton(onClick = { showConfirmEliminar = false }) {
-                    Text("Cancelar")
-                }
-            }
+            dismissLabel = stringResource(R.string.calendar_cancel),
+            onDismiss = { showConfirmEliminar = false },
+            icon = Icons.Filled.Delete,
+            variant = MenuSodaDialogVariant.Warning
         )
     }
 
@@ -591,6 +590,31 @@ private fun OpcionItem(
     }
 }
 
+@Composable
+private fun MenuHistorialOpcionesSheetContent(
+    menu: MenuDiarioListItemResponseDto,
+    onDismiss: () -> Unit,
+    onVerCarta: () -> Unit,
+    onEditarMenu: () -> Unit,
+    onCompartir: () -> Unit,
+    onEliminar: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(bottom = SpacingXLarge)) {
+        Text(
+            text = menu.descripcionFecha,
+            fontWeight = FontWeight.Bold,
+            fontSize = TextSizeMedium,
+            color = HeavyGray,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = SpacingLarge).padding(bottom = SpacingMedium)
+        )
+        HorizontalDivider(color = HeavyGray)
+        OpcionItem(icono = Icons.Filled.MenuBook, texto = "Ver Carta", onClick = { onVerCarta(); onDismiss() })
+        OpcionItem(icono = Icons.Filled.Edit, texto = "Editar Menú", onClick = { onEditarMenu(); onDismiss() })
+        OpcionItem(icono = Icons.Filled.Share, texto = "Compartir", onClick = { onCompartir(); onDismiss() })
+        OpcionItem(icono = Icons.Filled.Delete, texto = "Eliminar", onClick = { onEliminar(); onDismiss() }, tintColor = MaterialTheme.colorScheme.error)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MenuHistorialOpcionesSheet(
@@ -607,20 +631,14 @@ private fun MenuHistorialOpcionesSheet(
         containerColor = MaterialTheme.colorScheme.background,
         shape = RoundedCornerShape(topStart = CornerRadiusLarge, topEnd = CornerRadiusLarge)
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(bottom = SpacingXLarge)) {
-            Text(
-                text = menu.descripcionFecha,
-                fontWeight = FontWeight.Bold,
-                fontSize = TextSizeMedium,
-                color = HeavyGray,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = SpacingLarge).padding(bottom = SpacingMedium)
-            )
-            HorizontalDivider(color = HeavyGray)
-            OpcionItem(icono = Icons.Filled.MenuBook, texto = "Ver Carta", onClick = { onVerCarta(); onDismiss() })
-            OpcionItem(icono = Icons.Filled.Edit, texto = "Editar Menú", onClick = { onEditarMenu(); onDismiss() })
-            OpcionItem(icono = Icons.Filled.Share, texto = "Compartir", onClick = { onCompartir(); onDismiss() })
-            OpcionItem(icono = Icons.Filled.Delete, texto = "Eliminar", onClick = { onEliminar(); onDismiss() }, tintColor = MaterialTheme.colorScheme.error)
-        }
+        MenuHistorialOpcionesSheetContent(
+            menu = menu,
+            onDismiss = onDismiss,
+            onVerCarta = onVerCarta,
+            onEditarMenu = onEditarMenu,
+            onCompartir = onCompartir,
+            onEliminar = onEliminar
+        )
     }
 }
 
@@ -648,7 +666,7 @@ private fun compartirImagen(context: android.content.Context, file: File) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerDialog(
+internal fun DatePickerDialogContent(
     isRangeMode: Boolean,
     onRangeModeChange: (Boolean) -> Unit,
     initialSelectedDateMillis: Long?,
@@ -708,138 +726,162 @@ fun DatePickerDialog(
         if (selected != null) dateFormat.format(Date(selected)) else "--/--/----"
     }
 
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.85f),
-            shape = RoundedCornerShape(CornerRadiusLarge),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = SpacingLarge, end = SpacingSmall, top = SpacingMedium),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = stringResource(id = R.string.calendar_title), fontWeight = FontWeight.Bold, fontSize = TextSizeXLarge)
-                    IconButton(onClick = onDismiss) {
-                        Icon(imageVector = Icons.Filled.Close, contentDescription = null, tint = HeavyGray)
-                    }
+    Surface(
+        modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.85f),
+        shape = RoundedCornerShape(CornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = ElevationSmall
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = SpacingLarge, end = SpacingSmall, top = SpacingMedium),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = stringResource(id = R.string.calendar_title), fontWeight = FontWeight.Bold, fontSize = TextSizeXLarge)
+                IconButton(onClick = onDismiss) {
+                    Icon(imageVector = Icons.Filled.Close, contentDescription = null, tint = HeavyGray)
                 }
+            }
 
-                Surface(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = SpacingLarge),
-                    shape = RoundedCornerShape(CornerRadiusMedium),
-                    color = MaterialTheme.colorScheme.surfaceVariant
-                ) {
-                    Column(modifier = Modifier.padding(SpacingMedium)) {
-                        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                            SegmentedButton(
-                                selected = !isRangeMode,
-                                onClick = { onRangeModeChange(false) },
-                                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                                colors = SegmentedButtonDefaults.colors(
-                                    activeContainerColor = MaterialTheme.colorScheme.primary,
-                                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
-                                    activeBorderColor = MaterialTheme.colorScheme.primary,
-                                    inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    inactiveBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            ) { Text(text = stringResource(id = R.string.calendar_single_date)) }
-                            SegmentedButton(
-                                selected = isRangeMode,
-                                onClick = { onRangeModeChange(true) },
-                                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                                colors = SegmentedButtonDefaults.colors(
-                                    activeContainerColor = MaterialTheme.colorScheme.primary,
-                                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
-                                    activeBorderColor = MaterialTheme.colorScheme.primary,
-                                    inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    inactiveBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            ) { Text(text = stringResource(id = R.string.calendar_date_range)) }
-                        }
-
-                        Spacer(modifier = Modifier.height(SpacingSmall))
-
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = SpacingSmall)) {
-                            Icon(imageVector = Icons.Filled.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(IconSizeMedium))
-                            Spacer(modifier = Modifier.width(SpacingSmall))
-                            Text(text = stringResource(id = R.string.calendar_selection_label), fontSize = TextSizeSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(modifier = Modifier.width(SpacingXSmall))
-                            Text(text = selectionText, fontSize = TextSizeSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+            Surface(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = SpacingLarge),
+                shape = RoundedCornerShape(CornerRadiusMedium),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Column(modifier = Modifier.padding(SpacingMedium)) {
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        SegmentedButton(
+                            selected = !isRangeMode,
+                            onClick = { onRangeModeChange(false) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = MaterialTheme.colorScheme.primary,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                                activeBorderColor = MaterialTheme.colorScheme.primary,
+                                inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                inactiveBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        ) { Text(text = stringResource(id = R.string.calendar_single_date)) }
+                        SegmentedButton(
+                            selected = isRangeMode,
+                            onClick = { onRangeModeChange(true) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = MaterialTheme.colorScheme.primary,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                                activeBorderColor = MaterialTheme.colorScheme.primary,
+                                inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                inactiveBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        ) { Text(text = stringResource(id = R.string.calendar_date_range)) }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(SpacingSmall))
-                HorizontalDivider(color = HeavyGray, modifier = Modifier.padding(horizontal = SpacingLarge))
+                    Spacer(modifier = Modifier.height(SpacingSmall))
 
-                if (isRangeMode) {
-                    DateRangePicker(
-                        state = dateRangePickerState,
-                        modifier = Modifier.weight(1f).fillMaxWidth(),
-                        title = null, headline = null, showModeToggle = false,
-                        colors = DatePickerDefaults.colors(
-                            navigationContentColor = MaterialTheme.colorScheme.onSurface,
-                            todayContentColor = MaterialTheme.colorScheme.onBackground,
-                            todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
-                            selectedDayContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            selectedDayContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            dayInSelectionRangeContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    )
-                } else {
-                    DatePicker(
-                        state = datePickerState,
-                        modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = SpacingSmall),
-                        title = null, headline = null, showModeToggle = false,
-                        colors = DatePickerDefaults.colors(
-                            navigationContentColor = MaterialTheme.colorScheme.onSurface,
-                            todayContentColor = MaterialTheme.colorScheme.onBackground,
-                            todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
-                            selectedDayContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            selectedDayContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                }
-
-                val hasSelection = if (isRangeMode) dateRangePickerState.selectedStartDateMillis != null
-                                   else datePickerState.selectedDateMillis != null
-
-                Row(modifier = Modifier.fillMaxWidth().padding(SpacingLarge), horizontalArrangement = Arrangement.spacedBy(SpacingMedium)) {
-                    OutlinedButton(
-                        onClick = if (hasSelection) {
-                            { datePickerState.selectedDateMillis = null; rangeClearKey++; onClear() }
-                        } else onDismiss,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(CornerRadiusMedium)
-                    ) {
-                        Text(
-                            text = stringResource(id = if (hasSelection) R.string.calendar_clear else R.string.calendar_cancel),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    Button(
-                        onClick = {
-                            if (isRangeMode) onApply(null, dateRangePickerState.selectedStartDateMillis, dateRangePickerState.selectedEndDateMillis)
-                            else onApply(datePickerState.selectedDateMillis, null, null)
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        shape = RoundedCornerShape(CornerRadiusMedium),
-                        enabled = if (isRangeMode)
-                            dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null
-                        else
-                            datePickerState.selectedDateMillis != null
-                    ) {
-                        Text(text = stringResource(id = R.string.calendar_apply), color = MaterialTheme.colorScheme.onPrimary)
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = SpacingSmall)) {
+                        Icon(imageVector = Icons.Filled.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(IconSizeMedium))
+                        Spacer(modifier = Modifier.width(SpacingSmall))
+                        Text(text = stringResource(id = R.string.calendar_selection_label), fontSize = TextSizeSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.width(SpacingXSmall))
+                        Text(text = selectionText, fontSize = TextSizeSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(SpacingSmall))
+            HorizontalDivider(color = HeavyGray, modifier = Modifier.padding(horizontal = SpacingLarge))
+
+            if (isRangeMode) {
+                DateRangePicker(
+                    state = dateRangePickerState,
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    title = null, headline = null, showModeToggle = false,
+                    colors = DatePickerDefaults.colors(
+                        navigationContentColor = MaterialTheme.colorScheme.onSurface,
+                        todayContentColor = MaterialTheme.colorScheme.onBackground,
+                        todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
+                        selectedDayContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        selectedDayContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        dayInSelectionRangeContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                )
+            } else {
+                DatePicker(
+                    state = datePickerState,
+                    modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = SpacingSmall),
+                    title = null, headline = null, showModeToggle = false,
+                    colors = DatePickerDefaults.colors(
+                        navigationContentColor = MaterialTheme.colorScheme.onSurface,
+                        todayContentColor = MaterialTheme.colorScheme.onBackground,
+                        todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
+                        selectedDayContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        selectedDayContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+
+            val hasSelection = if (isRangeMode) dateRangePickerState.selectedStartDateMillis != null
+                               else datePickerState.selectedDateMillis != null
+
+            Row(modifier = Modifier.fillMaxWidth().padding(SpacingLarge), horizontalArrangement = Arrangement.spacedBy(SpacingMedium)) {
+                OutlinedButton(
+                    onClick = if (hasSelection) {
+                        { datePickerState.selectedDateMillis = null; rangeClearKey++; onClear() }
+                    } else onDismiss,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(CornerRadiusMedium)
+                ) {
+                    Text(
+                        text = stringResource(id = if (hasSelection) R.string.calendar_clear else R.string.calendar_cancel),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Button(
+                    onClick = {
+                        if (isRangeMode) onApply(null, dateRangePickerState.selectedStartDateMillis, dateRangePickerState.selectedEndDateMillis)
+                        else onApply(datePickerState.selectedDateMillis, null, null)
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(CornerRadiusMedium),
+                    enabled = if (isRangeMode)
+                        dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null
+                    else
+                        datePickerState.selectedDateMillis != null
+                ) {
+                    Text(text = stringResource(id = R.string.calendar_apply), color = MaterialTheme.colorScheme.onPrimary)
+                }
+            }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerDialog(
+    isRangeMode: Boolean,
+    onRangeModeChange: (Boolean) -> Unit,
+    initialSelectedDateMillis: Long?,
+    initialStartDateMillis: Long?,
+    initialEndDateMillis: Long?,
+    onApply: (singleDate: Long?, startDate: Long?, endDate: Long?) -> Unit,
+    onClear: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        DatePickerDialogContent(
+            isRangeMode = isRangeMode,
+            onRangeModeChange = onRangeModeChange,
+            initialSelectedDateMillis = initialSelectedDateMillis,
+            initialStartDateMillis = initialStartDateMillis,
+            initialEndDateMillis = initialEndDateMillis,
+            onApply = onApply,
+            onClear = onClear,
+            onDismiss = onDismiss
+        )
     }
 }
 
@@ -900,7 +942,7 @@ fun MenuFechaPickerDialog(
             modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.85f),
             shape = RoundedCornerShape(com.fullwar.menuapp.ui.theme.CornerRadiusLarge),
             color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp
+            tonalElevation = ElevationSmall
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 Row(
@@ -965,46 +1007,151 @@ fun MenuFechaPickerDialog(
 }
 
 @Composable
-fun MenuConflictoDialog(
+internal fun MenuConflictoDialogContent(
     menu: MenuDiarioListItemResponseDto,
     onEditar: () -> Unit,
     onCrearNuevo: () -> Unit,
     onCancelar: () -> Unit
 ) {
     val platosTotal = menu.cantidadPlatos.sumOf { it.cantidad }
-    AlertDialog(
-        onDismissRequest = onCancelar,
-        title = { Text(stringResource(R.string.nuevo_menu_conflicto_titulo)) },
-        text = {
-            Text(stringResource(R.string.nuevo_menu_conflicto_desc,
-                 menu.descripcionFecha, menu.cantidadEntradas, platosTotal))
-        },
-        confirmButton = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(com.fullwar.menuapp.ui.theme.SpacingSmall)
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .wrapContentHeight(),
+        shape = RoundedCornerShape(CornerRadiusXLarge),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = ElevationSmall
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(SpacingXLarge),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(ImageSizeLarge)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Button(onClick = onEditar, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.nuevo_menu_conflicto_editar))
-                }
-                OutlinedButton(
-                    onClick = onCrearNuevo,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text(stringResource(R.string.nuevo_menu_conflicto_crear))
-                }
-                TextButton(
-                    onClick = onCancelar,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.calendar_cancel))
-                }
+                Icon(
+                    imageVector = Icons.Filled.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(IconSizeLarge)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(SpacingLarge))
+
+            Text(
+                text = stringResource(R.string.nuevo_menu_conflicto_titulo),
+                fontWeight = FontWeight.Bold,
+                fontSize = TextSizeXLarge,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(SpacingSmall))
+
+            Surface(
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(CornerRadiusSmall),
+                modifier = Modifier.wrapContentSize()
+            ) {
+                Text(
+                    text = stringResource(R.string.nuevo_menu_conflicto_fecha, menu.descripcionFecha),
+                    modifier = Modifier.padding(
+                        horizontal = SpacingMedium,
+                        vertical = SpacingXSmall
+                    ),
+                    fontSize = TextSizeXSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(SpacingSmall))
+
+            Text(
+                text = stringResource(
+                    R.string.nuevo_menu_conflicto_desc,
+                    menu.cantidadEntradas,
+                    platosTotal
+                ),
+                fontSize = TextSizeSmall,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+
+            Spacer(modifier = Modifier.height(SpacingXLarge))
+
+            Button(
+                onClick = onEditar,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(ButtonHeightMedium)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(CornerRadiusMedium))
+            ) {
+                Text(
+                    stringResource(R.string.nuevo_menu_conflicto_editar),
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(SpacingSmall))
+
+            OutlinedButton(
+                onClick = onCrearNuevo,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(ButtonHeightMedium),
+                shape = RoundedCornerShape(CornerRadiusMedium)
+            ) {
+                Text(
+                    stringResource(R.string.nuevo_menu_conflicto_crear),
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            TextButton(
+                onClick = onCancelar,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    stringResource(R.string.calendar_cancel),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
             }
         }
-    )
+    }
+}
+
+@Composable
+fun MenuConflictoDialog(
+    menu: MenuDiarioListItemResponseDto,
+    onEditar: () -> Unit,
+    onCrearNuevo: () -> Unit,
+    onCancelar: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onCancelar,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        MenuConflictoDialogContent(
+            menu = menu,
+            onEditar = onEditar,
+            onCrearNuevo = onCrearNuevo,
+            onCancelar = onCancelar
+        )
+    }
 }
 
 // --- Previews ---
@@ -1155,21 +1302,19 @@ private fun OpcionItemOscuroPreview() {
 
 // MenuHistorialOpcionesSheet
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "MenuHistorialOpcionesSheet - Claro")
 @Composable
 private fun MenuHistorialOpcionesSheetClaroPreview() {
     PreviewWrapper(darkTheme = false) {
-        MenuHistorialOpcionesSheet(menu = previewMenu, onDismiss = {}, onVerCarta = {}, onEditarMenu = {}, onCompartir = {}, onEliminar = {})
+        MenuHistorialOpcionesSheetContent(menu = previewMenu, onDismiss = {}, onVerCarta = {}, onEditarMenu = {}, onCompartir = {}, onEliminar = {})
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "MenuHistorialOpcionesSheet - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun MenuHistorialOpcionesSheetOscuroPreview() {
     PreviewWrapper(darkTheme = true) {
-        MenuHistorialOpcionesSheet(menu = previewMenu, onDismiss = {}, onVerCarta = {}, onEditarMenu = {}, onCompartir = {}, onEliminar = {})
+        MenuHistorialOpcionesSheetContent(menu = previewMenu, onDismiss = {}, onVerCarta = {}, onEditarMenu = {}, onCompartir = {}, onEliminar = {})
     }
 }
 
@@ -1180,7 +1325,7 @@ private fun MenuHistorialOpcionesSheetOscuroPreview() {
 @Composable
 private fun DatePickerDialogSimpleClaroPreview() {
     PreviewWrapper(darkTheme = false) {
-        DatePickerDialog(isRangeMode = false, onRangeModeChange = {}, initialSelectedDateMillis = null, initialStartDateMillis = null, initialEndDateMillis = null, onApply = { _, _, _ -> }, onClear = {}, onDismiss = {})
+        DatePickerDialogContent(isRangeMode = false, onRangeModeChange = {}, initialSelectedDateMillis = null, initialStartDateMillis = null, initialEndDateMillis = null, onApply = { _, _, _ -> }, onClear = {}, onDismiss = {})
     }
 }
 
@@ -1189,7 +1334,7 @@ private fun DatePickerDialogSimpleClaroPreview() {
 @Composable
 private fun DatePickerDialogSimpleOscuroPreview() {
     PreviewWrapper(darkTheme = true) {
-        DatePickerDialog(isRangeMode = false, onRangeModeChange = {}, initialSelectedDateMillis = null, initialStartDateMillis = null, initialEndDateMillis = null, onApply = { _, _, _ -> }, onClear = {}, onDismiss = {})
+        DatePickerDialogContent(isRangeMode = false, onRangeModeChange = {}, initialSelectedDateMillis = null, initialStartDateMillis = null, initialEndDateMillis = null, onApply = { _, _, _ -> }, onClear = {}, onDismiss = {})
     }
 }
 
@@ -1198,7 +1343,7 @@ private fun DatePickerDialogSimpleOscuroPreview() {
 @Composable
 private fun DatePickerDialogRangoClaroPreview() {
     PreviewWrapper(darkTheme = false) {
-        DatePickerDialog(isRangeMode = true, onRangeModeChange = {}, initialSelectedDateMillis = null, initialStartDateMillis = null, initialEndDateMillis = null, onApply = { _, _, _ -> }, onClear = {}, onDismiss = {})
+        DatePickerDialogContent(isRangeMode = true, onRangeModeChange = {}, initialSelectedDateMillis = null, initialStartDateMillis = null, initialEndDateMillis = null, onApply = { _, _, _ -> }, onClear = {}, onDismiss = {})
     }
 }
 
@@ -1207,6 +1352,34 @@ private fun DatePickerDialogRangoClaroPreview() {
 @Composable
 private fun DatePickerDialogRangoOscuroPreview() {
     PreviewWrapper(darkTheme = true) {
-        DatePickerDialog(isRangeMode = true, onRangeModeChange = {}, initialSelectedDateMillis = null, initialStartDateMillis = null, initialEndDateMillis = null, onApply = { _, _, _ -> }, onClear = {}, onDismiss = {})
+        DatePickerDialogContent(isRangeMode = true, onRangeModeChange = {}, initialSelectedDateMillis = null, initialStartDateMillis = null, initialEndDateMillis = null, onApply = { _, _, _ -> }, onClear = {}, onDismiss = {})
+    }
+}
+
+// MenuConflictoDialog
+
+@Preview(showBackground = true, name = "MenuConflictoDialog - Claro")
+@Composable
+private fun MenuConflictoDialogClaroPreview() {
+    PreviewWrapper(darkTheme = false) {
+        MenuConflictoDialogContent(
+            menu = previewMenu,
+            onEditar = {},
+            onCrearNuevo = {},
+            onCancelar = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "MenuConflictoDialog - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun MenuConflictoDialogOscuroPreview() {
+    PreviewWrapper(darkTheme = true) {
+        MenuConflictoDialogContent(
+            menu = previewMenu,
+            onEditar = {},
+            onCrearNuevo = {},
+            onCancelar = {}
+        )
     }
 }

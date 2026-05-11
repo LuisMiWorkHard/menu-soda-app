@@ -43,8 +43,8 @@ fun MenuHistorialCardSkeleton() {
         // Imagen placeholder (60×60, mismo tamaño que CustomImageView por defecto)
         ShimmerBox(
             modifier = Modifier
-                .width(60.dp)
-                .height(60.dp)
+                .width(SkeletonImageSize)
+                .height(SkeletonImageSize)
                 .clip(imageShape)
         )
 

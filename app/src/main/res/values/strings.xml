@@ -124,6 +124,10 @@
 
     <!-- Paso Estilo -->
     <string name="paso_estilo_resumen_desc">Has seleccionado %1$d entradas y %2$d segundos.</string>
+    <string name="guardar_menu_compartir">Compartir</string>
+
+    <!-- Campos de formulario -->
+    <string name="campo_max_caracteres">%1$d/%2$d</string>
 
     <!-- Toast: elementos no disponibles tras refresco -->
     <string name="toast_elementos_no_disponibles">Algunos elementos seleccionados ya no están disponibles</string>
@@ -137,7 +141,23 @@
     <string name="nuevo_menu_fecha_titulo">¿Para qué día es el menú?</string>
     <string name="nuevo_menu_fecha_continuar">Continuar</string>
     <string name="nuevo_menu_conflicto_titulo">Ya existe un menú</string>
-    <string name="nuevo_menu_conflicto_desc">%1$s ya tiene un menú registrado con %2$d entrada(s) y %3$d plato(s). ¿Qué deseas hacer?</string>
+    <string name="nuevo_menu_conflicto_fecha">Fecha: %1$s</string>
+    <string name="nuevo_menu_conflicto_desc">Ya tiene un menú registrado con %1$d entrada(s) y %2$d plato(s). ¿Qué deseas hacer?</string>
     <string name="nuevo_menu_conflicto_editar">Editar existente</string>
     <string name="nuevo_menu_conflicto_crear">Crear nuevo</string>
+
+    <!-- Diálogo origen de foto (compartido entre entradas y platos) -->
+    <string name="foto_origen_pregunta">¿Cómo deseas agregar la foto?</string>
+    <string name="foto_origen_galeria">Desde la galería</string>
+    <string name="foto_origen_galeria_subtitulo">Elegir imagen existente</string>
+    <string name="foto_origen_camara">Tomar foto</string>
+    <string name="foto_origen_camara_subtitulo">Abrir cámara</string>
+    <string name="foto_origen_cancelar_subtitulo">No agregar imagen</string>
+
+    <!-- Diálogos de confirmación e informativos -->
+    <string name="dialog_error_guardar_titulo">Error al guardar</string>
+    <string name="dialog_error_guardar_confirmar">Aceptar</string>
+    <string name="dialog_eliminar_menu_titulo">Eliminar menú</string>
+    <string name="dialog_eliminar_menu_mensaje">¿Estás seguro de que deseas eliminar el menú del %1$s? Esta acción no se puede deshacer.</string>
+    <string name="dialog_eliminar_confirmar">Eliminar</string>
 </resources>

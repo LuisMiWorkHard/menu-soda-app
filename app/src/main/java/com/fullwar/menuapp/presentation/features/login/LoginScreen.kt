@@ -51,7 +51,10 @@ import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import com.fullwar.menuapp.presentation.navigation.AppScreens
 import com.fullwar.menuapp.ui.theme.ButtonHeightLarge
+import com.fullwar.menuapp.ui.theme.IconSizeMedium
+import com.fullwar.menuapp.ui.theme.LoginMaxWidth
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
+import com.fullwar.menuapp.ui.theme.StrokeWidthMedium
 import com.fullwar.menuapp.ui.theme.SetNavigationBarColor
 import com.fullwar.menuapp.ui.theme.ButtonHeightMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
@@ -200,7 +203,7 @@ private fun LoginScreenContent(
     ) {
         Column(
             modifier = Modifier
-                .widthIn(max = 480.dp)
+                .widthIn(max = LoginMaxWidth)
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(SpacingXLarge),
@@ -315,9 +318,9 @@ private fun LoginScreenContent(
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
+                        modifier = Modifier.size(IconSizeMedium),
+                        color = White,
+                        strokeWidth = StrokeWidthMedium
                     )
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -393,7 +396,7 @@ fun SegmentedControl(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color = Color.White)
+                .background(color = White)
                 .padding(SpacingXSmall)
         ) {
             options.forEach { option ->

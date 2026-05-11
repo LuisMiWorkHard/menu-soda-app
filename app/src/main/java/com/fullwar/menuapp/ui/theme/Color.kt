@@ -86,7 +86,10 @@ val DarkOnSurfaceVariant = Gray
  */
 
 //Both
+val Black = Color(0xFF000000)
 val WhatsAppGreen = Color(0xFF25D366)
 val HeavyGray = Color(0xFF676767)
 val SoftGray = Color(0xFFF5F5F5)
 val YellowIdea = Color(0xFFFFE607)
+val DarkOverlayText = Color(0xFF1A1A1A)
+val ErrorSurface = Color(0xFFFCE4EC)

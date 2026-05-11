@@ -67,7 +67,7 @@ fun SeleccionEntradasScreen(
     seleccionViewModel: SeleccionEntradasViewModel
 ) {
     val selectedEntradas = menuViewModel.selectedEntradas
-    val showSugerencias = menuViewModel.showSugerencias
+    // val showSugerencias = menuViewModel.showSugerencias
     var searchQuery by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
     var pendingAutoSelectNombre by remember { mutableStateOf<String?>(null) }
@@ -109,6 +109,7 @@ fun SeleccionEntradasScreen(
         }
     }
 
+    /*
     val sugerencias = remember {
         listOf(
             SugerenciaItem("Carpaccio de Betabel", "No se ha servido en 15 días. ¡Es hora de volver!"),
@@ -118,6 +119,7 @@ fun SeleccionEntradasScreen(
             SugerenciaItem("Tabla de Quesos", "Ideal para compartir en la mesa.")
         )
     }
+    */
 
     val todasLasEntradas = when (entradasState) {
         is State.Success -> entradasState.data
@@ -165,7 +167,8 @@ fun SeleccionEntradasScreen(
             verticalArrangement = Arrangement.spacedBy(SpacingMedium)
         ) {
 
-            // Sugerencias inteligentes (sólo si el plato no está seleccionado)
+            // Sugerencias inteligentes — próximamente
+            /*
             if (showSugerencias) {
                 val sugerenciasVisibles = sugerencias.filter { sug -> selectedEntradas.none { it.nombre == sug.nombre } }
                 if (sugerenciasVisibles.isNotEmpty()) {
@@ -217,6 +220,7 @@ fun SeleccionEntradasScreen(
                     }
                 }
             }
+            */
 
             // Campo de búsqueda
             item {
@@ -335,7 +339,7 @@ fun SeleccionEntradasScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(ButtonHeightLarge)
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
@@ -361,7 +365,7 @@ fun SelectedEntradasBottomSheetContent(
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(max = 350.dp)
+            .heightIn(max = ListMaxHeight)
             .padding(horizontal = SpacingLarge),
         verticalArrangement = Arrangement.spacedBy(SpacingSmall)
     ) {
@@ -373,9 +377,9 @@ fun SelectedEntradasBottomSheetContent(
             Surface(
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 color = if (isDragging) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
-                tonalElevation = if (isDragging) 8.dp else 0.dp,
+                tonalElevation = if (isDragging) SpacingSmall else 0.dp,
                 border = androidx.compose.foundation.BorderStroke(
-                    1.dp, 
+                    StrokeWidthThin,
                     if (isDragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                 ),
                 modifier = Modifier
@@ -393,7 +397,7 @@ fun SelectedEntradasBottomSheetContent(
                 ) {
                     CustomImageView(
                         imageUrl = imagenesMap[entrada.imagenId],
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(Spacing3XLarge)
                     )
                     Spacer(modifier = Modifier.width(SpacingMedium))
                     Column(modifier = Modifier.weight(1f)) {
@@ -663,8 +667,8 @@ fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
 
     Surface(
         modifier = Modifier
-            .width(280.dp)
-            .height(120.dp),
+            .width(CardMaxWidth)
+            .height(CardImageHeight),
         shape = RoundedCornerShape(CornerRadiusMedium),
         color = MaterialTheme.colorScheme.surface
     ) {
@@ -681,7 +685,7 @@ fun SugerenciaCard(sugerencia: SugerenciaItem, onAdd: () -> Unit) {
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(CornerRadiusSmall),
                     contentPadding = PaddingValues(horizontal = SpacingSmall, vertical = 0.dp),
-                    modifier = Modifier.heightIn(min = 32.dp)
+                    modifier = Modifier.heightIn(min = SpacingXXLarge)
                 ) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(IconSizeSmall))
                     Spacer(modifier = Modifier.width(SpacingXSmall))

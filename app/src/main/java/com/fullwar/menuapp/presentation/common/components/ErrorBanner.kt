@@ -19,12 +19,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.IconSizeMedium
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.ui.theme.SpacingMedium
 import com.fullwar.menuapp.ui.theme.SpacingSmall
+import com.fullwar.menuapp.ui.theme.StrokeWidthThin
 import com.fullwar.menuapp.ui.theme.TextSizeSmall
 
 @Composable
@@ -37,7 +37,7 @@ fun ErrorBanner(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(CornerRadiusMedium),
         color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.4f))
+        border = BorderStroke(StrokeWidthThin, MaterialTheme.colorScheme.error.copy(alpha = 0.4f))
     ) {
         Row(
             modifier = Modifier.padding(SpacingMedium),

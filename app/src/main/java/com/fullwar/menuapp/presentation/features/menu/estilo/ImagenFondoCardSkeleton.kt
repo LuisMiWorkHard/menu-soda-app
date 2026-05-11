@@ -12,9 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.presentation.common.components.ShimmerBox
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
+import com.fullwar.menuapp.ui.theme.ImageCardHeight
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.ui.theme.SpacingMedium
 
@@ -35,13 +35,13 @@ fun ImagenFondoCardSkeletonRow() {
         ShimmerBox(
             modifier = Modifier
                 .weight(1f)
-                .height(140.dp)
+                .height(ImageCardHeight)
                 .clip(cardShape)
         )
         ShimmerBox(
             modifier = Modifier
                 .weight(1f)
-                .height(140.dp)
+                .height(ImageCardHeight)
                 .clip(cardShape)
         )
     }

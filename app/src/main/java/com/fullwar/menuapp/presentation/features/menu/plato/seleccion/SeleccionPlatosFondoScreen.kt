@@ -67,7 +67,7 @@ fun SeleccionPlatosFondoScreen(
     seleccionViewModel: SeleccionPlatosFondoViewModel
 ) {
     val selectedPlatos = menuViewModel.selectedPlatosFuertes
-    val showSugerencias = menuViewModel.showSugerencias
+    // val showSugerencias = menuViewModel.showSugerencias
     var searchQuery by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
     var pendingAutoSelectNombre by remember { mutableStateOf<String?>(null) }
@@ -109,6 +109,7 @@ fun SeleccionPlatosFondoScreen(
         }
     }
 
+    /*
     val sugerenciasMock = listOf(
         SugerenciaPlatoItem("Lomo Saltado", "Ideal con la Sopa del día."),
         SugerenciaPlatoItem("Ceviche", "Opción fresca para hoy."),
@@ -124,6 +125,7 @@ fun SeleccionPlatosFondoScreen(
         val selected = if (sugerenciasVisibles.isEmpty()) emptyList() else sugerenciasVisibles.subList(startIndex, end)
         if (selected.size < 3 && sugerenciasVisibles.size >= 3) (selected + sugerenciasVisibles.take(3 - selected.size)) else selected
     }
+    */
 
     val todosLosPlatos = when (platosState) {
         is State.Success -> platosState.data
@@ -170,7 +172,8 @@ fun SeleccionPlatosFondoScreen(
                 .padding(horizontal = SpacingLarge),
             verticalArrangement = Arrangement.spacedBy(SpacingMedium)
         ) {
-            // Sugerencias Inteligentes — solo si hay platos cargados y hay sugerencias visibles
+            // Sugerencias Inteligentes — próximamente
+            /*
             if (showSugerencias && todosLosPlatos.isNotEmpty() && sugerencias.isNotEmpty()) {
                 item {
                     Spacer(modifier = Modifier.height(SpacingSmall))
@@ -216,6 +219,7 @@ fun SeleccionPlatosFondoScreen(
                     }
                 }
             }
+            */
 
             // Buscador
             item {
@@ -314,7 +318,7 @@ fun SeleccionPlatosFondoScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(ButtonHeightLarge)
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
@@ -340,7 +344,7 @@ fun SelectedPlatosFondoBottomSheetContent(
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(max = 350.dp)
+            .heightIn(max = ListMaxHeight)
             .padding(horizontal = SpacingLarge),
         verticalArrangement = Arrangement.spacedBy(SpacingSmall)
     ) {
@@ -352,9 +356,9 @@ fun SelectedPlatosFondoBottomSheetContent(
             Surface(
                 shape = RoundedCornerShape(CornerRadiusMedium),
                 color = if (isDragging) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
-                tonalElevation = if (isDragging) 8.dp else 0.dp,
+                tonalElevation = if (isDragging) SpacingSmall else 0.dp,
                 border = androidx.compose.foundation.BorderStroke(
-                    1.dp, 
+                    StrokeWidthThin,
                     if (isDragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                 ),
                 modifier = Modifier
@@ -372,7 +376,7 @@ fun SelectedPlatosFondoBottomSheetContent(
                 ) {
                     CustomImageView(
                         imageUrl = imagenesMap[plato.imagenId],
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(Spacing3XLarge)
                     )
                     Spacer(modifier = Modifier.width(SpacingMedium))
                     Column(modifier = Modifier.weight(1f)) {
@@ -460,8 +464,8 @@ fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
         shape = RoundedCornerShape(CornerRadiusMedium),
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
-            .width(280.dp)
-            .height(120.dp)
+            .width(CardMaxWidth)
+            .height(CardImageHeight)
     ) {
         Row(
             modifier = Modifier.padding(SpacingMedium),
@@ -476,7 +480,7 @@ fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(CornerRadiusSmall),
                     contentPadding = PaddingValues(horizontal = SpacingSmall, vertical = 0.dp),
-                    modifier = Modifier.heightIn(min = 32.dp)
+                    modifier = Modifier.heightIn(min = SpacingXXLarge)
                 ) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(IconSizeSmall))
                     Spacer(modifier = Modifier.width(SpacingXSmall))
