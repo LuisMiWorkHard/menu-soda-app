@@ -65,6 +65,8 @@
 
     <!-- Segundos -->
     <string name="anadir_nuevo">Añadir nuevo</string>
+    <string name="ver_mas">Ver más</string>
+    <string name="ver_menos">Ver menos</string>
     <string name="platos_fondo_buscar">Buscar segundos…</string>
     <string name="platos_fondo_sugerencias">Sugerencias inteligentes</string>
     <string name="platos_fondo_disponibles">Platos Disponibles</string>

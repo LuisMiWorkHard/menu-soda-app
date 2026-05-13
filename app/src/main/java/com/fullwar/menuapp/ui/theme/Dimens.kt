@@ -72,3 +72,7 @@ val CardMaxWidth = 280.dp
 val EstiloContainerHeight = 300.dp
 val ListMaxHeight = 350.dp
 val LoginMaxWidth = 480.dp
+
+// Line Heights
+val LineHeightNombre = 18.sp
+val LineHeightDescripcion = 14.sp

@@ -2,6 +2,7 @@ package com.fullwar.menuapp.presentation.features.menu.entrada.seleccion
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -52,6 +53,7 @@ import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo.Nuev
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import com.fullwar.menuapp.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -164,6 +166,7 @@ fun SeleccionEntradasScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = SpacingLarge),
+            contentPadding = PaddingValues(bottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()),
             verticalArrangement = Arrangement.spacedBy(SpacingMedium)
         ) {
 
@@ -230,6 +233,7 @@ fun SeleccionEntradasScreen(
                     onValueChange = { searchQuery = it },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .defaultMinSize(minHeight = ButtonHeightLarge)
                         .background(
                             color = White,
                             shape = RoundedCornerShape(CornerRadiusMedium)
@@ -248,9 +252,7 @@ fun SeleccionEntradasScreen(
                         )
                     },
                     shape = RoundedCornerShape(CornerRadiusMedium),
-                    textStyle = TextStyle(
-                        color = MaterialTheme.colorScheme.primary
-                    ),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
@@ -484,22 +486,88 @@ private fun EntradaListItem(
     isSelected: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
+    var isExpanded by remember { mutableStateOf(false) }
+    var nombreOverflows by remember { mutableStateOf(false) }
+    var descripcionOverflows by remember { mutableStateOf(false) }
+    val hasOverflow = nombreOverflows || descripcionOverflows
+    val minTextColumnHeight = ((LineHeightNombre.value * 2 + LineHeightDescripcion.value) * LocalDensity.current.fontScale).dp
+
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
         modifier = Modifier
             .fillMaxWidth()
+            .animateContentSize()
             .clickable { onToggle(!isSelected) }
     ) {
         Row(
             modifier = Modifier.padding(SpacingMedium),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
-            CustomImageView(imageUrl = imageUrl)
+            CustomImageView(imageUrl = imageUrl, modifier = Modifier.align(Alignment.CenterVertically))
             Spacer(modifier = Modifier.width(SpacingMedium))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = entrada.nombre.toSmartUpperCase(), fontWeight = FontWeight.Bold, fontSize = TextSizeMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(text = entrada.descripcion.toSmartUpperCase(), fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Column(modifier = Modifier.weight(1f).heightIn(min = minTextColumnHeight).padding(end = SpacingSmall)) {
+                Text(
+                    text = entrada.nombre.toSmartUpperCase(),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = TextSizeMedium,
+                    lineHeight = LineHeightNombre,
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 2,
+                    overflow = if (isExpanded) TextOverflow.Visible else TextOverflow.Ellipsis,
+                    onTextLayout = { result ->
+                        if (!isExpanded) nombreOverflows = result.hasVisualOverflow
+                    }
+                )
+                if (!isExpanded) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = SpacingXSmall),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = entrada.descripcion.toSmartUpperCase(),
+                            fontSize = TextSizeXSmall,
+                            lineHeight = LineHeightDescripcion,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            onTextLayout = { result -> descripcionOverflows = result.hasVisualOverflow },
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (hasOverflow) {
+                            Text(
+                                text = stringResource(R.string.ver_mas),
+                                color = MaterialTheme.colorScheme.onBackground,
+                                fontSize = TextSizeXXSmall,
+                                lineHeight = LineHeightDescripcion,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier
+                                    .padding(start = SpacingXSmall)
+                                    .clickable(onClick = { isExpanded = true })
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        text = entrada.descripcion.toSmartUpperCase(),
+                        fontSize = TextSizeXSmall,
+                        lineHeight = LineHeightDescripcion,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = Int.MAX_VALUE,
+                        overflow = TextOverflow.Visible,
+                        modifier = Modifier.padding(top = SpacingXSmall)
+                    )
+                    if (hasOverflow) {
+                        Text(
+                            text = stringResource(R.string.ver_menos),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontSize = TextSizeXXSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .clickable(onClick = { isExpanded = false })
+                        )
+                    }
+                }
             }
             Checkbox(
                 checked = isSelected,
@@ -507,7 +575,8 @@ private fun EntradaListItem(
                 colors = CheckboxDefaults.colors(
                     checkedColor = MaterialTheme.colorScheme.primary,
                     uncheckedColor = HeavyGray
-                )
+                ),
+                modifier = Modifier.align(Alignment.CenterVertically)
             )
         }
     }
