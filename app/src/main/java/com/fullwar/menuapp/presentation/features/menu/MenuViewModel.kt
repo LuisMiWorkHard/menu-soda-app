@@ -88,8 +88,8 @@ class MenuViewModel(private val repo: IMenuDiarioRepository) : ViewModel() {
                     preSelectedPlatosIds = detail.platos.map { it.platoId }.toSet()
                     menuDateLabel = runCatching {
                         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                        val display = SimpleDateFormat("EEEE, dd MMM", Locale("es"))
-                        display.format(sdf.parse(detail.fecha)!!).replaceFirstChar { it.uppercase() }
+                        val display = SimpleDateFormat("EEE|dd|MMM", Locale("es"))
+                        display.format(sdf.parse(detail.fecha)!!).replace(".", "").uppercase()
                     }.getOrNull()
                     isLoadingMenuDetail = false
                 }

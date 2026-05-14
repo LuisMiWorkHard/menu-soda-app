@@ -233,7 +233,7 @@ fun SeleccionEntradasScreen(
                     onValueChange = { searchQuery = it },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .defaultMinSize(minHeight = ButtonHeightLarge)
+                        .height(ButtonHeightLarge)
                         .background(
                             color = White,
                             shape = RoundedCornerShape(CornerRadiusMedium)

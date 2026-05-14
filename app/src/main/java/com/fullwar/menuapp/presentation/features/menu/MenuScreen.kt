@@ -17,9 +17,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -68,12 +71,15 @@ import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.Plato
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SelectedPlatosFondoBottomSheetContent
 import com.fullwar.menuapp.ui.theme.ButtonHeightMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
+import com.fullwar.menuapp.ui.theme.CornerRadiusSmall
 import com.fullwar.menuapp.ui.theme.CornerRadiusXXSmall
 import com.fullwar.menuapp.ui.theme.ElevationSmall
 import com.fullwar.menuapp.ui.theme.HeavyGray
+import com.fullwar.menuapp.ui.theme.IconSizeSmall
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.ui.theme.Spacing3XLarge
 import com.fullwar.menuapp.ui.theme.StrokeWidthMedium
+import com.fullwar.menuapp.ui.theme.StrokeWidthThin
 import com.fullwar.menuapp.ui.theme.SpacingLarge
 import com.fullwar.menuapp.ui.theme.SpacingMedium
 import com.fullwar.menuapp.ui.theme.SpacingSmall
@@ -82,14 +88,15 @@ import com.fullwar.menuapp.ui.theme.TextSizeLarge
 import com.fullwar.menuapp.ui.theme.TextSizeMedium
 import com.fullwar.menuapp.ui.theme.TextSizeSmall
 import com.fullwar.menuapp.ui.theme.TextSizeXLarge
+import com.fullwar.menuapp.ui.theme.TextSizeXSmall
 import org.koin.androidx.compose.koinViewModel
 
 private fun formatMenuFechaLabel(millis: Long): String {
     val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
     cal.timeInMillis = millis
-    val sdf = java.text.SimpleDateFormat("EEEE, dd MMM", java.util.Locale("es"))
+    val sdf = java.text.SimpleDateFormat("EEE|dd|MMM", java.util.Locale("es"))
     sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
-    return sdf.format(cal.time).replaceFirstChar { it.uppercase() }
+    return sdf.format(cal.time).replace(".", "").uppercase()
 }
 
 sealed class MenuRoute(val route: String) {
@@ -317,6 +324,54 @@ fun MenuScreen(
     }
 }
 
+@Composable
+private fun FechaChip(fechaLabel: String, modifier: Modifier = Modifier) {
+    val parts = fechaLabel.split("|")
+    if (parts.size != 3) return
+    val diaSemana = parts[0]
+    val diaNro    = parts[1]
+    val mes       = parts[2]
+
+    Row(
+        modifier = modifier
+            .border(StrokeWidthThin, HeavyGray, RoundedCornerShape(CornerRadiusSmall))
+            .padding(horizontal = SpacingSmall, vertical = SpacingXSmall),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(SpacingXSmall)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.CalendarMonth,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.size(IconSizeSmall)
+        )
+        Text(
+            text = diaSemana,
+            fontSize = TextSizeXSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = HeavyGray
+        )
+        Box(
+            modifier = Modifier
+                .width(StrokeWidthThin)
+                .height(SpacingMedium)
+                .background(HeavyGray)
+        )
+        Text(
+            text = diaNro,
+            fontSize = TextSizeMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            text = mes,
+            fontSize = TextSizeXSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = HeavyGray
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MenuScreenContent(
@@ -352,11 +407,9 @@ private fun MenuScreenContent(
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         if (fechaLabel != null) {
-                            Text(
-                                text = fechaLabel,
-                                fontSize = TextSizeSmall,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-                                color = HeavyGray
+                            FechaChip(
+                                fechaLabel = fechaLabel,
+                                modifier = Modifier.padding(end = SpacingSmall)
                             )
                         }
                     }
