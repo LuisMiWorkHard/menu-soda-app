@@ -430,6 +430,7 @@ private class FakePlatoRepository : IPlatoRepository {
     override suspend fun findSimilarPlatos(nombre: String, excludeId: Int?): List<PlatoResponseDto> = emptyList()
     override suspend fun createPlato(request: PlatoCreateRequestDto): PlatoCreateResponseDto = throw NotImplementedError()
     override suspend fun updatePlato(id: Int, request: PlatoUpdateRequestDto) = throw NotImplementedError()
+    override suspend fun deletePlato(id: Int) {}
     override suspend fun getTiposPlato(): List<TipoPlatoResponseDto> = listOf(
         TipoPlatoResponseDto(1, "Carnes", 1, "01/01/2024", "admin"),
         TipoPlatoResponseDto(2, "Pescados", 1, "01/01/2024", "admin"),

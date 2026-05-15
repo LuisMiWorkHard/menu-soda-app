@@ -13,6 +13,7 @@ interface IPlatoRepository {
     suspend fun findSimilarPlatos(nombre: String, excludeId: Int? = null): List<PlatoResponseDto>
     suspend fun createPlato(request: PlatoCreateRequestDto): PlatoCreateResponseDto
     suspend fun updatePlato(id: Int, request: PlatoUpdateRequestDto)
+    suspend fun deletePlato(id: Int)
     suspend fun getTiposPlato(): List<TipoPlatoResponseDto>
     suspend fun uploadImage(imageBytes: ByteArray, fileName: String, extension: String): ImagenResponseDto
 }

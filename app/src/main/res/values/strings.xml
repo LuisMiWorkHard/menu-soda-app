@@ -162,4 +162,11 @@
     <string name="dialog_eliminar_menu_titulo">Eliminar menú</string>
     <string name="dialog_eliminar_menu_mensaje">¿Estás seguro de que deseas eliminar el menú del %1$s? Esta acción no se puede deshacer.</string>
     <string name="dialog_eliminar_confirmar">Eliminar</string>
+    <string name="dialog_eliminar_entrada_titulo">Eliminar entrada</string>
+    <string name="dialog_eliminar_entrada_mensaje">¿Deseas eliminar "%1$s"? Esta acción no se puede deshacer.</string>
+    <string name="dialog_eliminar_plato_titulo">Eliminar segundo</string>
+    <string name="dialog_eliminar_plato_mensaje">¿Deseas eliminar "%1$s"? Esta acción no se puede deshacer.</string>
+    <string name="dialog_validacion_menu_titulo">Elementos requeridos</string>
+    <string name="dialog_validacion_menu_mensaje">Para continuar debes seleccionar al menos una entrada y un segundo.</string>
+    <string name="dialog_validacion_menu_confirmar">Entendido</string>
 </resources>

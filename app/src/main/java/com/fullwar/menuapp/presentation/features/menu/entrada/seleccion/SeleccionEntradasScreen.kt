@@ -1,10 +1,7 @@
 package com.fullwar.menuapp.presentation.features.menu.entrada.seleccion
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,9 +43,13 @@ import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.components.ItemListSkeleton
+import com.fullwar.menuapp.presentation.common.components.MenuSodaDialog
+import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
+import com.fullwar.menuapp.presentation.common.components.SwipeableActionsContainer
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
+import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.editar.EditarEntradaBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.nuevo.NuevaEntradaBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.EntradaViewModel
 import android.widget.Toast
@@ -73,6 +74,9 @@ fun SeleccionEntradasScreen(
     var searchQuery by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
     var pendingAutoSelectNombre by remember { mutableStateOf<String?>(null) }
+    var openedEntradaId by remember { mutableStateOf<Int?>(null) }
+    var entradaToEdit by remember { mutableStateOf<EntradaResponseDto?>(null) }
+    var entradaToDelete by remember { mutableStateOf<EntradaResponseDto?>(null) }
     val context = LocalContext.current
     val toastElementosNoDisponibles = stringResource(R.string.toast_elementos_no_disponibles)
 
@@ -157,199 +161,192 @@ fun SeleccionEntradasScreen(
         )
     }
 
+    entradaToEdit?.let { entrada ->
+        EditarEntradaBottomSheet(
+            viewModel = entradaViewModel,
+            entrada = entrada,
+            onDismiss = {
+                entradaViewModel.resetForm()
+                entradaToEdit = null
+            },
+            onSuccess = {
+                entradaToEdit = null
+                seleccionViewModel.loadEntradas()
+            }
+        )
+    }
+
+    entradaToDelete?.let { entrada ->
+        MenuSodaDialog(
+            title = stringResource(R.string.dialog_eliminar_entrada_titulo),
+            message = stringResource(R.string.dialog_eliminar_entrada_mensaje, entrada.nombre),
+            onDismissRequest = { entradaToDelete = null },
+            confirmLabel = stringResource(R.string.dialog_eliminar_confirmar),
+            onConfirm = {
+                seleccionViewModel.deleteEntrada(entrada.id)
+                entradaToDelete = null
+            },
+            dismissLabel = stringResource(R.string.calendar_cancel),
+            onDismiss = { entradaToDelete = null },
+            icon = Icons.Filled.Delete,
+            variant = MenuSodaDialogVariant.Warning
+        )
+    }
+
     val listState = rememberLazyListState()
     val canScrollDown by remember { derivedStateOf { listState.canScrollForward } }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            state = listState,
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = SpacingLarge)
+    ) {
+        Spacer(modifier = Modifier.height(SpacingSmall))
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = SpacingLarge),
-            contentPadding = PaddingValues(bottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()),
-            verticalArrangement = Arrangement.spacedBy(SpacingMedium)
-        ) {
+                .fillMaxWidth()
+                .background(
+                    color = White,
+                    shape = RoundedCornerShape(CornerRadiusMedium)
+                ),
+            placeholder = {
+                Text(
+                    text = stringResource(id = R.string.nuevo_buscar_entradas),
+                    color = HeavyGray
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Search,
+                    contentDescription = null,
+                    tint = HeavyGray
+                )
+            },
+            shape = RoundedCornerShape(CornerRadiusMedium),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.primary,
+                unfocusedTextColor = MaterialTheme.colorScheme.primary,
+                focusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                cursorColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            singleLine = true
+        )
 
-            // Sugerencias inteligentes — próximamente
-            /*
-            if (showSugerencias) {
-                val sugerenciasVisibles = sugerencias.filter { sug -> selectedEntradas.none { it.nombre == sug.nombre } }
-                if (sugerenciasVisibles.isNotEmpty()) {
-                    item {
-                        Spacer(modifier = Modifier.height(SpacingSmall))
-                        Surface(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(CornerRadiusMedium),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(SpacingMedium)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = YellowIdea, modifier = Modifier.size(IconSizeSmall))
-                                        Spacer(modifier = Modifier.width(SpacingSmall))
-                                        Text(text = stringResource(id = R.string.nuevo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
-                                    IconButton(
-                                        onClick = { menuViewModel.hideSugerencias() },
-                                        modifier = Modifier.size(IconSizeSmall)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.Close,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                                LazyRow(
-                                    modifier = Modifier.padding(top = SpacingMedium),
-                                    horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
-                                ) {
-                                    items(sugerenciasVisibles) { sugerencia ->
-                                        SugerenciaCard(
-                                            sugerencia = sugerencia,
-                                            onAdd = {
-                                                val dto = todasLasEntradas.find { it.nombre == sugerencia.nombre }
-                                                dto?.let { menuViewModel.updateEntradas(menuViewModel.selectedEntradas + it) }
-                                            }
-                                        )
-                                    }
-                                }
-                            }
+        Spacer(modifier = Modifier.height(SpacingSmall))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.nuevo_listado_entradas),
+                fontWeight = FontWeight.Bold,
+                fontSize = TextSizeMedium
+            )
+        }
+
+        Box(modifier = Modifier.weight(1f)) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    top = SpacingMedium,
+                    bottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding() + SpacingLarge
+                ),
+                verticalArrangement = Arrangement.spacedBy(SpacingMedium)
+            ) {
+                when (entradasState) {
+                    is State.Loading -> {
+                        items(5) {
+                            ItemListSkeleton()
                         }
                     }
-                }
-            }
-            */
-
-            // Campo de búsqueda
-            item {
-                Spacer(modifier = Modifier.height(SpacingSmall))
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(ButtonHeightLarge)
-                        .background(
-                            color = White,
-                            shape = RoundedCornerShape(CornerRadiusMedium)
-                        ),
-                    placeholder = {
-                        Text(
-                            text = stringResource(id = R.string.nuevo_buscar_entradas),
-                            color = HeavyGray
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = null,
-                            tint = HeavyGray
-                        )
-                    },
-                    shape = RoundedCornerShape(CornerRadiusMedium),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        cursorColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    singleLine = true
-                )
-            }
-
-            // Listado de entradas - header
-            item {
-                Spacer(modifier = Modifier.height(SpacingSmall))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.nuevo_listado_entradas),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = TextSizeMedium
-                    )
-                }
-            }
-
-            // Estado de carga
-            when (entradasState) {
-                is State.Loading -> {
-                    items(5) {
-                        ItemListSkeleton()
-                    }
-                }
-                is State.Error -> {
-                    item {
-                        ErrorBanner(
-                            message = entradasState.message,
-                            modifier = Modifier.padding(vertical = SpacingSmall),
-                            onRetry = { seleccionViewModel.loadEntradas() }
-                        )
-                    }
-                }
-                is State.Success -> {
-                    // Añadir nueva solo si no hay resultados en ninguna de las dos listas
-                    if (sinResultados) {
+                    is State.Error -> {
                         item {
-                            AnadirNuevaListItem(
-                                onClick = {
-                                    entradaViewModel.loadTiposEntrada()
-                                    entradaViewModel.initForCreate()
-                                    entradaViewModel.updateField("entnom", TextFieldValue(searchQuery))
-                                    showBottomSheet = true
-                                }
+                            ErrorBanner(
+                                message = entradasState.message,
+                                modifier = Modifier.padding(vertical = SpacingSmall),
+                                onRetry = { seleccionViewModel.loadEntradas() }
                             )
                         }
                     }
-
-                    items(searchResults, key = { it.id }) { entrada ->
-                        EntradaListItem(
-                            entrada = entrada,
-                            imageUrl = seleccionViewModel.imagenesMap[entrada.imagenId],
-                            isSelected = selectedEntradas.any { it.id == entrada.id },
-                            onToggle = { checked ->
-                                if (checked) {
-                                    menuViewModel.updateEntradas(selectedEntradas + entrada)
-                                } else {
-                                    menuViewModel.updateEntradas(selectedEntradas - entrada)
-                                }
+                    is State.Success -> {
+                        if (sinResultados) {
+                            item {
+                                AnadirNuevaListItem(
+                                    onClick = {
+                                        entradaViewModel.loadTiposEntrada()
+                                        entradaViewModel.initForCreate()
+                                        entradaViewModel.updateField("entnom", TextFieldValue(searchQuery))
+                                        showBottomSheet = true
+                                    }
+                                )
                             }
-                        )
+                        }
+
+                        items(searchResults, key = { it.id }) { entrada ->
+                            EntradaListItem(
+                                entrada = entrada,
+                                imageUrl = seleccionViewModel.imagenesMap[entrada.imagenId],
+                                isSelected = selectedEntradas.any { it.id == entrada.id },
+                                isSwipeOpen = openedEntradaId == entrada.id,
+                                onOpen = { openedEntradaId = entrada.id },
+                                onClose = { openedEntradaId = null },
+                                onToggle = { checked ->
+                                    if (checked) {
+                                        menuViewModel.updateEntradas(selectedEntradas + entrada)
+                                    } else {
+                                        menuViewModel.updateEntradas(selectedEntradas - entrada)
+                                    }
+                                },
+                                onEdit = {
+                                    entradaViewModel.loadTiposEntrada()
+                                    entradaViewModel.initForEdit(entrada)
+                                    entradaToEdit = entrada
+                                    openedEntradaId = null
+                                },
+                                onDelete = {
+                                    entradaToDelete = entrada
+                                    openedEntradaId = null
+                                }
+                            )
+                        }
+
+                        if (searchQuery.isNotBlank() && searchResults.isNotEmpty()) {
+                            item {
+                                AnadirNuevaListItem(
+                                    onClick = {
+                                        entradaViewModel.loadTiposEntrada()
+                                        entradaViewModel.initForCreate()
+                                        entradaViewModel.updateField("entnom", TextFieldValue(searchQuery))
+                                        showBottomSheet = true
+                                    }
+                                )
+                            }
+                        }
                     }
+                    else -> {}
                 }
-                else -> {}
             }
 
-            // Espacio extra para que el botón inferior no tape
-            item { Spacer(modifier = Modifier.height(SpacingLarge)) }
-        }
-
-        // Indicador de scroll
-        AnimatedVisibility(
-            visible = canScrollDown,
-            modifier = Modifier.align(Alignment.BottomCenter),
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(ButtonHeightLarge)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+            if (canScrollDown) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(ButtonHeightLarge)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+                            )
                         )
-                    )
-            )
+                )
+            }
         }
-    } // Box
+    }
 }
 
 @Composable
@@ -484,7 +481,12 @@ private fun EntradaListItem(
     entrada: EntradaResponseDto,
     imageUrl: String?,
     isSelected: Boolean,
-    onToggle: (Boolean) -> Unit
+    isSwipeOpen: Boolean,
+    onOpen: () -> Unit,
+    onClose: () -> Unit,
+    onToggle: (Boolean) -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     var nombreOverflows by remember { mutableStateOf(false) }
@@ -492,6 +494,13 @@ private fun EntradaListItem(
     val hasOverflow = nombreOverflows || descripcionOverflows
     val minTextColumnHeight = ((LineHeightNombre.value * 2 + LineHeightDescripcion.value) * LocalDensity.current.fontScale).dp
 
+    SwipeableActionsContainer(
+        isOpen = isSwipeOpen,
+        onOpen = onOpen,
+        onClose = onClose,
+        onEdit = onEdit,
+        onDelete = onDelete
+    ) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
@@ -580,6 +589,7 @@ private fun EntradaListItem(
             )
         }
     }
+    } // SwipeableActionsContainer
 }
 
 @Composable
@@ -638,6 +648,7 @@ private class FakeEntradaRepository : IEntradaRepository {
     override suspend fun findSimilarEntradas(nombre: String, excludeId: Int?) = emptyList<EntradaResponseDto>()
     override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto = throw NotImplementedError()
     override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto = throw NotImplementedError()
+    override suspend fun deleteEntrada(id: Int) {}
     override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> = emptyList()
     override suspend fun uploadImage(imageBytes: ByteArray, fileName: String, extension: String): ImagenResponseDto = throw NotImplementedError()
 }
@@ -680,7 +691,8 @@ private fun SeleccionEntradasScreenDarkPreview() {
 @Composable
 private fun EntradaListItemSelectedPreview() {
     MenuAppTheme(darkTheme = false) {
-        EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = true, onToggle = {})
+        EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = true,
+            isSwipeOpen = false, onOpen = {}, onClose = {}, onToggle = {}, onEdit = {}, onDelete = {})
     }
 }
 
@@ -688,7 +700,8 @@ private fun EntradaListItemSelectedPreview() {
 @Composable
 private fun EntradaListItemUnselectedPreview() {
     MenuAppTheme(darkTheme = false) {
-        EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = false, onToggle = {})
+        EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = false,
+            isSwipeOpen = false, onOpen = {}, onClose = {}, onToggle = {}, onEdit = {}, onDelete = {})
     }
 }
 
@@ -697,7 +710,8 @@ private fun EntradaListItemUnselectedPreview() {
 private fun EntradaListItemDarkPreview() {
     MenuAppTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = false, onToggle = {})
+            EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = false,
+                isSwipeOpen = false, onOpen = {}, onClose = {}, onToggle = {}, onEdit = {}, onDelete = {})
         }
     }
 }

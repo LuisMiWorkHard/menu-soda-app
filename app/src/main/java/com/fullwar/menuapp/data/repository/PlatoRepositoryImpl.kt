@@ -48,6 +48,11 @@ class PlatoRepositoryImpl(
             platoService.updatePlato(id, request).also { cachedPlatos = null }
         }
 
+    override suspend fun deletePlato(id: Int) =
+        withContext(Dispatchers.IO) {
+            platoService.deletePlato(id).also { cachedPlatos = null }
+        }
+
     override suspend fun getTiposPlato(): List<TipoPlatoResponseDto> =
         withContext(Dispatchers.IO) { tipoPlatoService.getTiposPlato() }
 

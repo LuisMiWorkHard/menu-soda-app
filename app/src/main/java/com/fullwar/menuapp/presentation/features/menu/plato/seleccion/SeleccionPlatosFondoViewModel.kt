@@ -64,4 +64,15 @@ class SeleccionPlatosFondoViewModel(
         val state = platosState
         if (state is State.Success) searchResults = state.data
     }
+
+    fun deletePlato(id: Int) {
+        viewModelScope.launch {
+            try {
+                platoRepository.deletePlato(id)
+                loadPlatos()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error deleting plato", e)
+            }
+        }
+    }
 }

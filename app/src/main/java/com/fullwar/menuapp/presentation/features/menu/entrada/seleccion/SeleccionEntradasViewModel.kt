@@ -64,4 +64,15 @@ class SeleccionEntradasViewModel(
         val state = entradasState
         if (state is State.Success) searchResults = state.data
     }
+
+    fun deleteEntrada(id: Int) {
+        viewModelScope.launch {
+            try {
+                entradaRepository.deleteEntrada(id)
+                loadEntradas()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error deleting entrada", e)
+            }
+        }
+    }
 }

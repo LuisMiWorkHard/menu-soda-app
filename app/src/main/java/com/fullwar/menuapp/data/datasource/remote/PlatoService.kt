@@ -7,6 +7,7 @@ import com.fullwar.menuapp.data.model.PlatoResponseDto
 import com.fullwar.menuapp.data.model.PlatoUpdateRequestDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
@@ -39,5 +40,10 @@ class PlatoService(private val httpClient: HttpClient) {
             setBody(request)
         }
         Log.d(TAG, "updatePlato() - Status: ${response.status.value}")
+    }
+
+    suspend fun deletePlato(id: Int) {
+        val response = httpClient.delete("api/plato/$id")
+        Log.d(TAG, "deletePlato() - Status: ${response.status.value}")
     }
 }

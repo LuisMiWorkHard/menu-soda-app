@@ -48,6 +48,11 @@ class EntradaRepositoryImpl(
             entradaService.updateEntrada(id, request).also { cachedEntradas = null }
         }
 
+    override suspend fun deleteEntrada(id: Int) =
+        withContext(Dispatchers.IO) {
+            entradaService.deleteEntrada(id).also { cachedEntradas = null }
+        }
+
     override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> =
         withContext(Dispatchers.IO) {
             tipoEntradaService.getTiposEntrada()

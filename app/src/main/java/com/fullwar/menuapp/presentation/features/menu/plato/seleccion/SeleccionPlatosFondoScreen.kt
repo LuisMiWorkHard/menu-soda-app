@@ -46,9 +46,13 @@ import com.fullwar.menuapp.domain.repository.IPlatoRepository
 import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.components.ItemListSkeleton
+import com.fullwar.menuapp.presentation.common.components.MenuSodaDialog
+import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
+import com.fullwar.menuapp.presentation.common.components.SwipeableActionsContainer
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
 import com.fullwar.menuapp.presentation.features.menu.MenuViewModel
+import com.fullwar.menuapp.presentation.features.menu.plato.gestion.editar.EditarPlatoBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.nuevo.NuevoPlatoBottomSheet
 import com.fullwar.menuapp.presentation.features.menu.plato.gestion.shared.PlatoViewModel
 import android.widget.Toast
@@ -73,6 +77,9 @@ fun SeleccionPlatosFondoScreen(
     var searchQuery by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
     var pendingAutoSelectNombre by remember { mutableStateOf<String?>(null) }
+    var openedPlatoId by remember { mutableStateOf<Int?>(null) }
+    var platoToEdit by remember { mutableStateOf<PlatoResponseDto?>(null) }
+    var platoToDelete by remember { mutableStateOf<PlatoResponseDto?>(null) }
     val context = LocalContext.current
     val toastElementosNoDisponibles = stringResource(R.string.toast_elementos_no_disponibles)
 
@@ -138,9 +145,6 @@ fun SeleccionPlatosFondoScreen(
 
     val sinResultados = searchQuery.isNotBlank() && searchResults.isEmpty()
 
-    val listState = rememberLazyListState()
-    val canScrollDown by remember { derivedStateOf { listState.canScrollForward } }
-
     // Bottom sheet para añadir nuevo plato
     if (showBottomSheet) {
         NuevoPlatoBottomSheet(
@@ -166,171 +170,175 @@ fun SeleccionPlatosFondoScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            state = listState,
+    platoToEdit?.let { plato ->
+        EditarPlatoBottomSheet(
+            viewModel = platoViewModel,
+            plato = plato,
+            onDismiss = {
+                platoViewModel.initForCreate()
+                platoToEdit = null
+            },
+            onSuccess = {
+                platoToEdit = null
+                seleccionViewModel.loadPlatos()
+            }
+        )
+    }
+
+    platoToDelete?.let { plato ->
+        MenuSodaDialog(
+            title = stringResource(R.string.dialog_eliminar_plato_titulo),
+            message = stringResource(R.string.dialog_eliminar_plato_mensaje, plato.nombre),
+            onDismissRequest = { platoToDelete = null },
+            confirmLabel = stringResource(R.string.dialog_eliminar_confirmar),
+            onConfirm = {
+                seleccionViewModel.deletePlato(plato.id)
+                platoToDelete = null
+            },
+            dismissLabel = stringResource(R.string.calendar_cancel),
+            onDismiss = { platoToDelete = null },
+            icon = Icons.Filled.Delete,
+            variant = MenuSodaDialogVariant.Warning
+        )
+    }
+
+    val listState = rememberLazyListState()
+    val canScrollDown by remember { derivedStateOf { listState.canScrollForward } }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = SpacingLarge)
+    ) {
+        Spacer(modifier = Modifier.height(SpacingSmall))
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = SpacingLarge),
-            contentPadding = PaddingValues(bottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()),
-            verticalArrangement = Arrangement.spacedBy(SpacingMedium)
-        ) {
-            // Sugerencias Inteligentes — próximamente
-            /*
-            if (showSugerencias && todosLosPlatos.isNotEmpty() && sugerencias.isNotEmpty()) {
-                item {
-                    Spacer(modifier = Modifier.height(SpacingSmall))
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(CornerRadiusMedium),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(SpacingMedium)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(imageVector = Icons.Filled.Lightbulb, contentDescription = null, tint = YellowIdea, modifier = Modifier.size(IconSizeSmall))
-                                    Spacer(modifier = Modifier.width(SpacingSmall))
-                                    Text(text = stringResource(id = R.string.platos_fondo_sugerencias), fontWeight = FontWeight.Bold, fontSize = TextSizeSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                                IconButton(
-                                    onClick = { menuViewModel.hideSugerencias() },
-                                    modifier = Modifier.size(IconSizeSmall)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Close,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                            LazyRow(
-                                modifier = Modifier.padding(top = SpacingMedium),
-                                horizontalArrangement = Arrangement.spacedBy(SpacingMedium)
-                            ) {
-                                items(sugerencias) { item ->
-                                    SugerenciaPlatoCard(item) {
-                                        val dto = todosLosPlatos.find { it.nombre == item.nombre }
-                                        dto?.let { menuViewModel.updatePlatosFuertes(menuViewModel.selectedPlatosFuertes + it) }
-                                    }
-                                }
-                            }
+                .fillMaxWidth()
+                .background(
+                    color = White,
+                    shape = RoundedCornerShape(CornerRadiusMedium)
+                ),
+            placeholder = { Text(text = stringResource(id = R.string.platos_fondo_buscar), color = HeavyGray) },
+            leadingIcon = { Icon(imageVector = Icons.Filled.Search, contentDescription = null, tint = HeavyGray) },
+            shape = RoundedCornerShape(CornerRadiusMedium),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.primary,
+                unfocusedTextColor = MaterialTheme.colorScheme.primary,
+                focusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                cursorColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(SpacingSmall))
+        Text(
+            text = stringResource(id = R.string.platos_fondo_disponibles),
+            fontWeight = FontWeight.Bold,
+            fontSize = TextSizeMedium
+        )
+
+        Box(modifier = Modifier.weight(1f)) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    top = SpacingMedium,
+                    bottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding() + SpacingLarge
+                ),
+                verticalArrangement = Arrangement.spacedBy(SpacingMedium)
+            ) {
+                when (platosState) {
+                    is State.Loading -> {
+                        items(5) {
+                            ItemListSkeleton()
                         }
                     }
-                }
-            }
-            */
-
-            // Buscador
-            item {
-                Spacer(modifier = Modifier.height(SpacingSmall))
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = ButtonHeightLarge)
-                        .background(
-                            color = White,
-                            shape = RoundedCornerShape(CornerRadiusMedium)
-                        ),
-                    placeholder = { Text(text = stringResource(id = R.string.platos_fondo_buscar), color = HeavyGray) },
-                    leadingIcon = { Icon(imageVector = Icons.Filled.Search, contentDescription = null, tint = HeavyGray) },
-                    shape = RoundedCornerShape(CornerRadiusMedium),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        cursorColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    singleLine = true
-                )
-            }
-
-            // Header listado
-            item {
-                Spacer(modifier = Modifier.height(SpacingSmall))
-                Text(
-                    text = stringResource(id = R.string.platos_fondo_disponibles),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = TextSizeMedium
-                )
-            }
-
-            // Estado de carga
-            when (platosState) {
-                is State.Loading -> {
-                    items(5) {
-                        ItemListSkeleton()
-                    }
-                }
-                is State.Error -> {
-                    item {
-                        ErrorBanner(
-                            message = platosState.message,
-                            modifier = Modifier.padding(vertical = SpacingSmall),
-                            onRetry = { seleccionViewModel.loadPlatos() }
-                        )
-                    }
-                }
-                is State.Success -> {
-                    // Botón añadir nueva cuando la búsqueda no tiene resultados
-                    if (sinResultados) {
+                    is State.Error -> {
                         item {
-                            AnadirNuevoListItem(
-                                onClick = {
-                                    platoViewModel.loadTiposPlato()
-                                    platoViewModel.initForCreate()
-                                    platoViewModel.updateField("platnom", TextFieldValue(searchQuery))
-                                    showBottomSheet = true
-                                }
+                            ErrorBanner(
+                                message = platosState.message,
+                                modifier = Modifier.padding(vertical = SpacingSmall),
+                                onRetry = { seleccionViewModel.loadPlatos() }
                             )
                         }
                     }
-
-                    items(searchResults, key = { it.id }) { plato ->
-                        PlatoDisponibleCard(
-                            plato = plato,
-                            imageUrl = seleccionViewModel.imagenesMap[plato.imagenId],
-                            isSelected = selectedPlatos.any { it.id == plato.id },
-                            onToggle = { checked ->
-                                if (checked) {
-                                    menuViewModel.updatePlatosFuertes(selectedPlatos + plato)
-                                } else {
-                                    menuViewModel.updatePlatosFuertes(selectedPlatos - plato)
-                                }
+                    is State.Success -> {
+                        if (sinResultados) {
+                            item {
+                                AnadirNuevoListItem(
+                                    onClick = {
+                                        platoViewModel.loadTiposPlato()
+                                        platoViewModel.initForCreate()
+                                        platoViewModel.updateField("platnom", TextFieldValue(searchQuery))
+                                        showBottomSheet = true
+                                    }
+                                )
                             }
-                        )
+                        }
+
+                        items(searchResults, key = { it.id }) { plato ->
+                            PlatoDisponibleCard(
+                                plato = plato,
+                                imageUrl = seleccionViewModel.imagenesMap[plato.imagenId],
+                                isSelected = selectedPlatos.any { it.id == plato.id },
+                                isSwipeOpen = openedPlatoId == plato.id,
+                                onOpen = { openedPlatoId = plato.id },
+                                onClose = { openedPlatoId = null },
+                                onToggle = { checked ->
+                                    if (checked) {
+                                        menuViewModel.updatePlatosFuertes(selectedPlatos + plato)
+                                    } else {
+                                        menuViewModel.updatePlatosFuertes(selectedPlatos - plato)
+                                    }
+                                },
+                                onEdit = {
+                                    platoViewModel.loadTiposPlato()
+                                    platoViewModel.initForEdit(plato)
+                                    platoToEdit = plato
+                                    openedPlatoId = null
+                                },
+                                onDelete = {
+                                    platoToDelete = plato
+                                    openedPlatoId = null
+                                }
+                            )
+                        }
+
+                        if (searchQuery.isNotBlank() && searchResults.isNotEmpty()) {
+                            item {
+                                AnadirNuevoListItem(
+                                    onClick = {
+                                        platoViewModel.loadTiposPlato()
+                                        platoViewModel.initForCreate()
+                                        platoViewModel.updateField("platnom", TextFieldValue(searchQuery))
+                                        showBottomSheet = true
+                                    }
+                                )
+                            }
+                        }
                     }
+                    else -> {}
                 }
-                else -> {}
             }
 
-            item { Spacer(modifier = Modifier.height(SpacingLarge)) }
-        }
-
-        // Indicador de scroll
-        AnimatedVisibility(
-            visible = canScrollDown,
-            modifier = Modifier.align(Alignment.BottomCenter),
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(ButtonHeightLarge)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+            if (canScrollDown) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(ButtonHeightLarge)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+                            )
                         )
-                    )
-            )
+                )
+            }
         }
-    } // Box
+    }
 }
 
 @Composable
@@ -506,13 +514,30 @@ fun SugerenciaPlatoCard(item: SugerenciaPlatoItem, onAdd: () -> Unit) {
 }
 
 @Composable
-fun PlatoDisponibleCard(plato: PlatoResponseDto, imageUrl: String?, isSelected: Boolean, onToggle: (Boolean) -> Unit) {
+fun PlatoDisponibleCard(
+    plato: PlatoResponseDto,
+    imageUrl: String?,
+    isSelected: Boolean,
+    isSwipeOpen: Boolean = false,
+    onOpen: () -> Unit = {},
+    onClose: () -> Unit = {},
+    onToggle: (Boolean) -> Unit,
+    onEdit: () -> Unit = {},
+    onDelete: () -> Unit = {}
+) {
     var isExpanded by remember { mutableStateOf(false) }
     var nombreOverflows by remember { mutableStateOf(false) }
     var descripcionOverflows by remember { mutableStateOf(false) }
     val hasOverflow = nombreOverflows || descripcionOverflows
     val minTextColumnHeight = ((LineHeightNombre.value * 2 + LineHeightDescripcion.value) * LocalDensity.current.fontScale).dp
 
+    SwipeableActionsContainer(
+        isOpen = isSwipeOpen,
+        onOpen = onOpen,
+        onClose = onClose,
+        onEdit = onEdit,
+        onDelete = onDelete
+    ) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
@@ -601,6 +626,7 @@ fun PlatoDisponibleCard(plato: PlatoResponseDto, imageUrl: String?, isSelected: 
             )
         }
     }
+    } // SwipeableActionsContainer
 }
 
 @Composable
@@ -659,6 +685,7 @@ private class FakePlatoRepository : IPlatoRepository {
     override suspend fun findSimilarPlatos(nombre: String, excludeId: Int?) = emptyList<PlatoResponseDto>()
     override suspend fun createPlato(request: PlatoCreateRequestDto): PlatoCreateResponseDto = throw NotImplementedError()
     override suspend fun updatePlato(id: Int, request: PlatoUpdateRequestDto) = throw NotImplementedError()
+    override suspend fun deletePlato(id: Int) {}
     override suspend fun getTiposPlato(): List<TipoPlatoResponseDto> = listOf(
         TipoPlatoResponseDto(1, "Carnes", 1, "01/01/2024", "admin"),
         TipoPlatoResponseDto(2, "Pescados", 1, "01/01/2024", "admin"),

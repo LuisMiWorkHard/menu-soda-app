@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -58,6 +59,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.R
+import com.fullwar.menuapp.presentation.common.components.MenuSodaDialog
+import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
 import com.fullwar.menuapp.presentation.features.menu.estilo.SaveUiState
 import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloViewModel
 import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionPlatosFondoScreen
@@ -161,6 +164,7 @@ fun MenuScreen(
 
     var isExpanded by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
+    var showValidacionMenuDialog by remember { mutableStateOf(false) }
 
     val currentStep = when (currentRoute) {
         MenuRoute.Entradas.route -> 1
@@ -217,6 +221,18 @@ fun MenuScreen(
     val fechaLabel = menuViewModel.menuDateLabel
         ?: menuViewModel.selectedDateMillis?.let { formatMenuFechaLabel(it) }
 
+    if (showValidacionMenuDialog) {
+        MenuSodaDialog(
+            title = stringResource(R.string.dialog_validacion_menu_titulo),
+            message = stringResource(R.string.dialog_validacion_menu_mensaje),
+            onDismissRequest = { showValidacionMenuDialog = false },
+            confirmLabel = stringResource(R.string.dialog_validacion_menu_confirmar),
+            onConfirm = { showValidacionMenuDialog = false },
+            icon = Icons.Filled.Warning,
+            variant = MenuSodaDialogVariant.Warning
+        )
+    }
+
     MenuScreenContent(
         currentStep = currentStep,
         screenTitle = if (menuViewModel.isEditMode) stringResource(R.string.menu_editar_titulo) else stringResource(R.string.menu_crear_titulo),
@@ -232,7 +248,14 @@ fun MenuScreen(
         onSiguiente = {
             when (currentStep) {
                 1 -> navController.navigate(MenuRoute.PlatosFondo.route)
-                2 -> navController.navigate(MenuRoute.Estilo.route)
+                2 -> {
+                    if (menuViewModel.selectedEntradas.isNotEmpty() &&
+                        menuViewModel.selectedPlatosFuertes.isNotEmpty()) {
+                        navController.navigate(MenuRoute.Estilo.route)
+                    } else {
+                        showValidacionMenuDialog = true
+                    }
+                }
                 3 -> pasoEstiloViewModel.onFinalizarClicked()
             }
         },

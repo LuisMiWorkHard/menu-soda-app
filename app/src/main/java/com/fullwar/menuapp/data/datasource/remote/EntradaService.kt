@@ -7,6 +7,7 @@ import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.data.model.EntradaUpdateRequestDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
@@ -41,5 +42,10 @@ class EntradaService(private val httpClient: HttpClient) {
         }
         Log.d(TAG, "updateEntrada() - Status: ${response.status.value}")
         return response.body()
+    }
+
+    suspend fun deleteEntrada(id: Int) {
+        val response = httpClient.delete("api/entrada/$id")
+        Log.d(TAG, "deleteEntrada() - Status: ${response.status.value}")
     }
 }
