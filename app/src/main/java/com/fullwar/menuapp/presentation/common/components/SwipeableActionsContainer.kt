@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.fullwar.menuapp.ui.theme.White
@@ -28,9 +27,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 private val ACTION_BUTTON_WIDTH = 60.dp
-private val ACTION_TOTAL_WIDTH  = ACTION_BUTTON_WIDTH * 2   // 120.dp
-private const val OPEN_THRESHOLD_FRACTION = 0.4f
-private const val FLING_VELOCITY_THRESHOLD = 300f           // dp/s para disparar fling
+private val ACTION_TOTAL_WIDTH  = ACTION_BUTTON_WIDTH * 2     // 120.dp
 
 @Composable
 fun SwipeableActionsContainer(
@@ -42,17 +39,13 @@ fun SwipeableActionsContainer(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val scope     = rememberCoroutineScope()
+    val scope      = rememberCoroutineScope()
     val offsetAnim = remember { Animatable(0f) }
 
-    // Cierra con spring cuando el padre lo solicita (otro item abierto)
     LaunchedEffect(isOpen) {
         if (!isOpen) offsetAnim.animateTo(
-            targetValue    = 0f,
-            animationSpec  = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness    = Spring.StiffnessMedium
-            )
+            targetValue   = 0f,
+            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium)
         )
     }
 
@@ -61,9 +54,17 @@ fun SwipeableActionsContainer(
             .fillMaxWidth()
             .clipToBounds()
     ) {
-        // Botones fijos a la derecha — zona izquierda transparente
+        // matchParentSize() toma la altura del contenido (medición en segunda pasada del Box).
+        // El offset sincroniza la posición con el contenido en la misma fase de layout.
         Row(
-            modifier              = Modifier.matchParentSize(),
+            modifier = Modifier
+                .matchParentSize()
+                .offset {
+                    IntOffset(
+                        x = ACTION_TOTAL_WIDTH.toPx().roundToInt() + offsetAnim.value.roundToInt(),
+                        y = 0
+                    )
+                },
             horizontalArrangement = Arrangement.End
         ) {
             Box(
@@ -104,30 +105,28 @@ fun SwipeableActionsContainer(
             }
         }
 
-        // Card: desplazamiento limitado a ACTION_TOTAL_WIDTH con fling + spring
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetAnim.value.roundToInt(), 0) }
                 .pointerInput(Unit) {
-                    val maxOffsetPx   = -ACTION_TOTAL_WIDTH.toPx()
-                    val thresholdPx   = maxOffsetPx * OPEN_THRESHOLD_FRACTION
-                    val velocityTracker = VelocityTracker()
+                    val maxOffsetPx = -ACTION_TOTAL_WIDTH.toPx()
+                    val minSwipePx  = 4.dp.toPx()
+                    var wasOpen = false
 
                     detectHorizontalDragGestures(
-                        onDragStart = { velocityTracker.resetTracking() },
-                        onHorizontalDrag = { change, delta ->
-                            velocityTracker.addPosition(change.uptimeMillis, change.position)
+                        onDragStart = {
+                            wasOpen = offsetAnim.value <= maxOffsetPx * 0.5f
+                        },
+                        onHorizontalDrag = { _, delta ->
                             val newOffset = (offsetAnim.value + delta).coerceIn(maxOffsetPx, 0f)
                             scope.launch { offsetAnim.snapTo(newOffset) }
                         },
                         onDragEnd = {
-                            // Velocidad del gesto: positiva = derecha, negativa = izquierda
-                            val velocity = velocityTracker.calculateVelocity().x
-                            val shouldOpen = when {
-                                velocity < -FLING_VELOCITY_THRESHOLD -> true   // fling rápido a la izquierda
-                                velocity >  FLING_VELOCITY_THRESHOLD -> false  // fling rápido a la derecha
-                                else -> offsetAnim.value <= thresholdPx        // umbral de posición
+                            val shouldOpen = if (wasOpen) {
+                                offsetAnim.value <= maxOffsetPx + minSwipePx
+                            } else {
+                                offsetAnim.value < -minSwipePx
                             }
                             val target = if (shouldOpen) maxOffsetPx else 0f
                             scope.launch {
@@ -142,11 +141,12 @@ fun SwipeableActionsContainer(
                             }
                         },
                         onDragCancel = {
+                            val target = if (wasOpen) maxOffsetPx else 0f
                             scope.launch {
                                 offsetAnim.animateTo(
-                                    0f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium)
+                                    target, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium)
                                 )
-                                onClose()
+                                if (wasOpen) onOpen() else onClose()
                             }
                         }
                     )

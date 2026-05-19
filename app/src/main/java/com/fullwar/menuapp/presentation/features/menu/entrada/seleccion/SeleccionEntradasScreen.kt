@@ -502,8 +502,8 @@ private fun EntradaListItem(
         onDelete = onDelete
     ) {
     Surface(
-        shape = RoundedCornerShape(CornerRadiusMedium),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+        shape = RoundedCornerShape(0.dp),
+        color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize()
