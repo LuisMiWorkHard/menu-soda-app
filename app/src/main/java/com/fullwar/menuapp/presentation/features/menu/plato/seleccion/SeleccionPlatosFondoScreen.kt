@@ -48,6 +48,7 @@ import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.components.ItemListSkeleton
 import com.fullwar.menuapp.presentation.common.components.MenuSodaDialog
 import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
+import com.fullwar.menuapp.presentation.common.components.SwipeAction
 import com.fullwar.menuapp.presentation.common.components.SwipeableActionsContainer
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
@@ -294,16 +295,28 @@ fun SeleccionPlatosFondoScreen(
                                         menuViewModel.updatePlatosFuertes(selectedPlatos - plato)
                                     }
                                 },
-                                onEdit = {
-                                    platoViewModel.loadTiposPlato()
-                                    platoViewModel.initForEdit(plato)
-                                    platoToEdit = plato
-                                    openedPlatoId = null
-                                },
-                                onDelete = {
-                                    platoToDelete = plato
-                                    openedPlatoId = null
-                                }
+                                actions = listOf(
+                                    SwipeAction(
+                                        icon = Icons.Filled.Edit,
+                                        contentDescription = "Editar",
+                                        backgroundColor = MaterialTheme.colorScheme.primary,
+                                        onClick = {
+                                            platoViewModel.loadTiposPlato()
+                                            platoViewModel.initForEdit(plato)
+                                            platoToEdit = plato
+                                            openedPlatoId = null
+                                        }
+                                    ),
+                                    SwipeAction(
+                                        icon = Icons.Filled.Delete,
+                                        contentDescription = "Eliminar",
+                                        backgroundColor = MaterialTheme.colorScheme.error,
+                                        onClick = {
+                                            platoToDelete = plato
+                                            openedPlatoId = null
+                                        }
+                                    )
+                                )
                             )
                         }
 
@@ -522,8 +535,7 @@ fun PlatoDisponibleCard(
     onOpen: () -> Unit = {},
     onClose: () -> Unit = {},
     onToggle: (Boolean) -> Unit,
-    onEdit: () -> Unit = {},
-    onDelete: () -> Unit = {}
+    actions: List<SwipeAction> = emptyList()
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     var nombreOverflows by remember { mutableStateOf(false) }
@@ -535,8 +547,7 @@ fun PlatoDisponibleCard(
         isOpen = isSwipeOpen,
         onOpen = onOpen,
         onClose = onClose,
-        onEdit = onEdit,
-        onDelete = onDelete
+        actions = actions
     ) {
     Surface(
         shape = RoundedCornerShape(CornerRadiusMedium),

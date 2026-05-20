@@ -45,6 +45,7 @@ import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.components.ItemListSkeleton
 import com.fullwar.menuapp.presentation.common.components.MenuSodaDialog
 import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
+import com.fullwar.menuapp.presentation.common.components.SwipeAction
 import com.fullwar.menuapp.presentation.common.components.SwipeableActionsContainer
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.common.utils.toSmartUpperCase
@@ -302,16 +303,28 @@ fun SeleccionEntradasScreen(
                                         menuViewModel.updateEntradas(selectedEntradas - entrada)
                                     }
                                 },
-                                onEdit = {
-                                    entradaViewModel.loadTiposEntrada()
-                                    entradaViewModel.initForEdit(entrada)
-                                    entradaToEdit = entrada
-                                    openedEntradaId = null
-                                },
-                                onDelete = {
-                                    entradaToDelete = entrada
-                                    openedEntradaId = null
-                                }
+                                actions = listOf(
+                                    SwipeAction(
+                                        icon = Icons.Filled.Edit,
+                                        contentDescription = "Editar",
+                                        backgroundColor = MaterialTheme.colorScheme.primary,
+                                        onClick = {
+                                            entradaViewModel.loadTiposEntrada()
+                                            entradaViewModel.initForEdit(entrada)
+                                            entradaToEdit = entrada
+                                            openedEntradaId = null
+                                        }
+                                    ),
+                                    SwipeAction(
+                                        icon = Icons.Filled.Delete,
+                                        contentDescription = "Eliminar",
+                                        backgroundColor = MaterialTheme.colorScheme.error,
+                                        onClick = {
+                                            entradaToDelete = entrada
+                                            openedEntradaId = null
+                                        }
+                                    )
+                                )
                             )
                         }
 
@@ -485,8 +498,7 @@ private fun EntradaListItem(
     onOpen: () -> Unit,
     onClose: () -> Unit,
     onToggle: (Boolean) -> Unit,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+    actions: List<SwipeAction>
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     var nombreOverflows by remember { mutableStateOf(false) }
@@ -498,8 +510,7 @@ private fun EntradaListItem(
         isOpen = isSwipeOpen,
         onOpen = onOpen,
         onClose = onClose,
-        onEdit = onEdit,
-        onDelete = onDelete
+        actions = actions
     ) {
     Surface(
         shape = RoundedCornerShape(0.dp),
@@ -692,7 +703,7 @@ private fun SeleccionEntradasScreenDarkPreview() {
 private fun EntradaListItemSelectedPreview() {
     MenuAppTheme(darkTheme = false) {
         EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = true,
-            isSwipeOpen = false, onOpen = {}, onClose = {}, onToggle = {}, onEdit = {}, onDelete = {})
+            isSwipeOpen = false, onOpen = {}, onClose = {}, onToggle = {}, actions = emptyList())
     }
 }
 
@@ -701,7 +712,7 @@ private fun EntradaListItemSelectedPreview() {
 private fun EntradaListItemUnselectedPreview() {
     MenuAppTheme(darkTheme = false) {
         EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = false,
-            isSwipeOpen = false, onOpen = {}, onClose = {}, onToggle = {}, onEdit = {}, onDelete = {})
+            isSwipeOpen = false, onOpen = {}, onClose = {}, onToggle = {}, actions = emptyList())
     }
 }
 
@@ -711,7 +722,7 @@ private fun EntradaListItemDarkPreview() {
     MenuAppTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             EntradaListItem(entrada = fakeEntrada, imageUrl = null, isSelected = false,
-                isSwipeOpen = false, onOpen = {}, onClose = {}, onToggle = {}, onEdit = {}, onDelete = {})
+                isSwipeOpen = false, onOpen = {}, onClose = {}, onToggle = {}, actions = emptyList())
         }
     }
 }
