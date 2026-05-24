@@ -37,14 +37,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.*
+import com.fullwar.menuapp.di.Constants
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
-import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.components.ItemListSkeleton
-import com.fullwar.menuapp.presentation.common.components.MenuSodaDialog
-import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
+import com.fullwar.menuapp.presentation.common.components.ConfirmDeleteBottomSheet
 import com.fullwar.menuapp.presentation.common.components.SwipeAction
 import com.fullwar.menuapp.presentation.common.components.SwipeableActionsContainer
 import com.fullwar.menuapp.presentation.common.utils.State
@@ -178,19 +177,16 @@ fun SeleccionEntradasScreen(
     }
 
     entradaToDelete?.let { entrada ->
-        MenuSodaDialog(
-            title = stringResource(R.string.dialog_eliminar_entrada_titulo),
-            message = stringResource(R.string.dialog_eliminar_entrada_mensaje, entrada.nombre),
-            onDismissRequest = { entradaToDelete = null },
+        ConfirmDeleteBottomSheet(
+            title = stringResource(R.string.dialog_eliminar_entrada_titulo, entrada.nombre),
+            message = stringResource(R.string.dialog_eliminar_entrada_mensaje),
             confirmLabel = stringResource(R.string.dialog_eliminar_confirmar),
+            dismissLabel = stringResource(R.string.calendar_cancel),
             onConfirm = {
                 seleccionViewModel.deleteEntrada(entrada.id)
                 entradaToDelete = null
             },
-            dismissLabel = stringResource(R.string.calendar_cancel),
-            onDismiss = { entradaToDelete = null },
-            icon = Icons.Filled.Delete,
-            variant = MenuSodaDialogVariant.Warning
+            onDismiss = { entradaToDelete = null }
         )
     }
 
@@ -291,7 +287,7 @@ fun SeleccionEntradasScreen(
                         items(searchResults, key = { it.id }) { entrada ->
                             EntradaListItem(
                                 entrada = entrada,
-                                imageUrl = seleccionViewModel.imagenesMap[entrada.imagenId],
+                                imageUrl = entrada.imagenId?.let { "${Constants.BASE_URL}/api/imagen/$it/contenido" },
                                 isSelected = selectedEntradas.any { it.id == entrada.id },
                                 isSwipeOpen = openedEntradaId == entrada.id,
                                 onOpen = { openedEntradaId = entrada.id },
@@ -318,7 +314,7 @@ fun SeleccionEntradasScreen(
                                     SwipeAction(
                                         icon = Icons.Filled.Delete,
                                         contentDescription = "Eliminar",
-                                        backgroundColor = MaterialTheme.colorScheme.error,
+                                        backgroundColor = DangerRed,
                                         onClick = {
                                             entradaToDelete = entrada
                                             openedEntradaId = null
@@ -365,7 +361,6 @@ fun SeleccionEntradasScreen(
 @Composable
 fun SelectedEntradasBottomSheetContent(
     entradas: List<EntradaResponseDto>,
-    imagenesMap: Map<Int, String>,
     onRemove: (EntradaResponseDto) -> Unit,
     onMove: (Int, Int) -> Unit
 ) {
@@ -408,7 +403,7 @@ fun SelectedEntradasBottomSheetContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     CustomImageView(
-                        imageUrl = imagenesMap[entrada.imagenId],
+                        imageUrl = entrada.imagenId?.let { "${Constants.BASE_URL}/api/imagen/$it/contenido" },
                         modifier = Modifier.size(Spacing3XLarge)
                     )
                     Spacer(modifier = Modifier.width(SpacingMedium))
@@ -512,94 +507,94 @@ private fun EntradaListItem(
         onClose = onClose,
         actions = actions
     ) {
-    Surface(
-        shape = RoundedCornerShape(0.dp),
-        color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize()
-            .clickable { onToggle(!isSelected) }
-    ) {
-        Row(
-            modifier = Modifier.padding(SpacingMedium),
-            verticalAlignment = Alignment.Top
+        Surface(
+            shape = RoundedCornerShape(0.dp),
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize()
+                .clickable { onToggle(!isSelected) }
         ) {
-            CustomImageView(imageUrl = imageUrl, modifier = Modifier.align(Alignment.CenterVertically))
-            Spacer(modifier = Modifier.width(SpacingMedium))
-            Column(modifier = Modifier.weight(1f).heightIn(min = minTextColumnHeight).padding(end = SpacingSmall)) {
-                Text(
-                    text = entrada.nombre.toSmartUpperCase(),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = TextSizeMedium,
-                    lineHeight = LineHeightNombre,
-                    maxLines = if (isExpanded) Int.MAX_VALUE else 2,
-                    overflow = if (isExpanded) TextOverflow.Visible else TextOverflow.Ellipsis,
-                    onTextLayout = { result ->
-                        if (!isExpanded) nombreOverflows = result.hasVisualOverflow
-                    }
-                )
-                if (!isExpanded) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = SpacingXSmall),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+            Row(
+                modifier = Modifier.padding(SpacingMedium),
+                verticalAlignment = Alignment.Top
+            ) {
+                CustomImageView(imageUrl = imageUrl, modifier = Modifier.align(Alignment.CenterVertically))
+                Spacer(modifier = Modifier.width(SpacingMedium))
+                Column(modifier = Modifier.weight(1f).heightIn(min = minTextColumnHeight).padding(end = SpacingSmall)) {
+                    Text(
+                        text = entrada.nombre.toSmartUpperCase(),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = TextSizeMedium,
+                        lineHeight = LineHeightNombre,
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 2,
+                        overflow = if (isExpanded) TextOverflow.Visible else TextOverflow.Ellipsis,
+                        onTextLayout = { result ->
+                            if (!isExpanded) nombreOverflows = result.hasVisualOverflow
+                        }
+                    )
+                    if (!isExpanded) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = SpacingXSmall),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = entrada.descripcion.toSmartUpperCase(),
+                                fontSize = TextSizeXSmall,
+                                lineHeight = LineHeightDescripcion,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                onTextLayout = { result -> descripcionOverflows = result.hasVisualOverflow },
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (hasOverflow) {
+                                Text(
+                                    text = stringResource(R.string.ver_mas),
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    fontSize = TextSizeXXSmall,
+                                    lineHeight = LineHeightDescripcion,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier
+                                        .padding(start = SpacingXSmall)
+                                        .clickable(onClick = { isExpanded = true })
+                                )
+                            }
+                        }
+                    } else {
                         Text(
                             text = entrada.descripcion.toSmartUpperCase(),
                             fontSize = TextSizeXSmall,
                             lineHeight = LineHeightDescripcion,
                             color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            onTextLayout = { result -> descripcionOverflows = result.hasVisualOverflow },
-                            modifier = Modifier.weight(1f)
+                            maxLines = Int.MAX_VALUE,
+                            overflow = TextOverflow.Visible,
+                            modifier = Modifier.padding(top = SpacingXSmall)
                         )
                         if (hasOverflow) {
                             Text(
-                                text = stringResource(R.string.ver_mas),
+                                text = stringResource(R.string.ver_menos),
                                 color = MaterialTheme.colorScheme.onBackground,
                                 fontSize = TextSizeXXSmall,
-                                lineHeight = LineHeightDescripcion,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
-                                    .padding(start = SpacingXSmall)
-                                    .clickable(onClick = { isExpanded = true })
+                                    .align(Alignment.End)
+                                    .clickable(onClick = { isExpanded = false })
                             )
                         }
                     }
-                } else {
-                    Text(
-                        text = entrada.descripcion.toSmartUpperCase(),
-                        fontSize = TextSizeXSmall,
-                        lineHeight = LineHeightDescripcion,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = Int.MAX_VALUE,
-                        overflow = TextOverflow.Visible,
-                        modifier = Modifier.padding(top = SpacingXSmall)
-                    )
-                    if (hasOverflow) {
-                        Text(
-                            text = stringResource(R.string.ver_menos),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = TextSizeXXSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .clickable(onClick = { isExpanded = false })
-                        )
-                    }
                 }
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = null,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary,
+                        uncheckedColor = HeavyGray
+                    ),
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
             }
-            Checkbox(
-                checked = isSelected,
-                onCheckedChange = null,
-                colors = CheckboxDefaults.colors(
-                    checkedColor = MaterialTheme.colorScheme.primary,
-                    uncheckedColor = HeavyGray
-                ),
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
         }
-    }
     } // SwipeableActionsContainer
 }
 
@@ -643,10 +638,6 @@ private class FakeMenuDiarioRepository : IMenuDiarioRepository {
     override suspend fun deleteMenuDiario(id: Int) {}
 }
 
-private class FakeMenuImagenRepository : IMenuImagenRepository {
-    override suspend fun getMenuImagenes(): List<MenuImagenResponseDto> = emptyList()
-}
-
 private class FakeEntradaRepository : IEntradaRepository {
     private val all = listOf(
         EntradaResponseDto(id = 1, nombre = "Ceviche Clásico", descripcion = "Fresco y ligero", estadoId = 1, tipoEntradaId = 1, imagenId = null, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
@@ -658,7 +649,7 @@ private class FakeEntradaRepository : IEntradaRepository {
         if (query.isBlank()) all else all.filter { it.nombre.contains(query, ignoreCase = true) }
     override suspend fun findSimilarEntradas(nombre: String, excludeId: Int?) = emptyList<EntradaResponseDto>()
     override suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto = throw NotImplementedError()
-    override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto = throw NotImplementedError()
+    override suspend fun updateEntrada(request: EntradaUpdateRequestDto) = throw NotImplementedError()
     override suspend fun deleteEntrada(id: Int) {}
     override suspend fun getTiposEntrada(): List<TipoEntradaResponseDto> = emptyList()
     override suspend fun uploadImage(imageBytes: ByteArray, fileName: String, extension: String): ImagenResponseDto = throw NotImplementedError()
@@ -679,7 +670,7 @@ private val fakeSugerencia = SugerenciaItem(
 private fun SeleccionEntradasScreenPreview() {
     val menuVm = remember { MenuViewModel(FakeMenuDiarioRepository()) }
     val entradaVm = remember { EntradaViewModel(FakeEntradaRepository()) }
-    val seleccionVm = remember { SeleccionEntradasViewModel(FakeEntradaRepository(), FakeMenuImagenRepository()) }
+    val seleccionVm = remember { SeleccionEntradasViewModel(FakeEntradaRepository()) }
     MenuAppTheme(darkTheme = false) {
         SeleccionEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm, seleccionViewModel = seleccionVm)
     }
@@ -690,7 +681,7 @@ private fun SeleccionEntradasScreenPreview() {
 private fun SeleccionEntradasScreenDarkPreview() {
     val menuVm = remember { MenuViewModel(FakeMenuDiarioRepository()) }
     val entradaVm = remember { EntradaViewModel(FakeEntradaRepository()) }
-    val seleccionVm = remember { SeleccionEntradasViewModel(FakeEntradaRepository(), FakeMenuImagenRepository()) }
+    val seleccionVm = remember { SeleccionEntradasViewModel(FakeEntradaRepository()) }
     MenuAppTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             SeleccionEntradasScreen(menuViewModel = menuVm, entradaViewModel = entradaVm, seleccionViewModel = seleccionVm)

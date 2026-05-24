@@ -48,7 +48,8 @@ fun NuevaEntradaBottomSheet(
         isLoading = createState is State.Loading,
         errorMessage = (createState as? State.Error)?.message,
         onSave = { viewModel.save(context) },
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
+        swipeToDismissEnabled = false
     ) {
         EntradaForm(viewModel = viewModel, onSelectExisting = onSelectExisting)
     }

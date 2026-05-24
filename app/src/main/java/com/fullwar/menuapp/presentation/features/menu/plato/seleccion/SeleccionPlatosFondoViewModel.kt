@@ -7,15 +7,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullwar.menuapp.data.model.PlatoResponseDto
-import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.domain.repository.IPlatoRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class SeleccionPlatosFondoViewModel(
-    private val platoRepository: IPlatoRepository,
-    private val menuImagenRepository: IMenuImagenRepository
+    private val platoRepository: IPlatoRepository
 ) : ViewModel() {
 
     companion object {
@@ -28,9 +26,6 @@ class SeleccionPlatosFondoViewModel(
     var searchResults by mutableStateOf<List<PlatoResponseDto>>(emptyList())
         private set
 
-    var imagenesMap by mutableStateOf<Map<Int, String>>(emptyMap())
-        private set
-
     private var searchJob: Job? = null
 
     fun loadPlatos() {
@@ -38,8 +33,6 @@ class SeleccionPlatosFondoViewModel(
             platosState = State.Loading
             try {
                 val platos = platoRepository.getPlatos()
-                val imagenes = menuImagenRepository.getMenuImagenes()
-                imagenesMap = imagenes.associate { it.imagenId to it.imagenUrl }
                 platosState = State.Success(platos)
                 searchResults = platos
             } catch (e: Exception) {

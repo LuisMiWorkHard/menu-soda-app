@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.common.components
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -8,7 +9,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -19,9 +26,13 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.fullwar.menuapp.ui.theme.MenuAppTheme
+import com.fullwar.menuapp.ui.theme.SpacingMedium
 import com.fullwar.menuapp.ui.theme.White
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -162,5 +173,78 @@ fun SwipeableActionsContainer(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SwipeablePreviewContent() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(72.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = SpacingMedium),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(text = "Ítem de lista de ejemplo", fontWeight = FontWeight.Medium)
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "SwipeableActionsContainer - Cerrado - Claro")
+@Preview(showBackground = true, name = "SwipeableActionsContainer - Cerrado - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun SwipeableCerradoPreview() {
+    MenuAppTheme {
+        SwipeableActionsContainer(
+            isOpen = false,
+            onOpen = {},
+            onClose = {},
+            actions = listOf(
+                SwipeAction(
+                    icon = Icons.Filled.Edit,
+                    contentDescription = "Editar",
+                    backgroundColor = MaterialTheme.colorScheme.primary,
+                    onClick = {}
+                ),
+                SwipeAction(
+                    icon = Icons.Filled.Delete,
+                    contentDescription = "Eliminar",
+                    backgroundColor = MaterialTheme.colorScheme.error,
+                    onClick = {}
+                )
+            )
+        ) { SwipeablePreviewContent() }
+    }
+}
+
+@Preview(showBackground = true, name = "SwipeableActionsContainer - Abierto - Claro")
+@Preview(showBackground = true, name = "SwipeableActionsContainer - Abierto - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun SwipeableAbiertoPreview() {
+    MenuAppTheme {
+        SwipeableActionsContainer(
+            isOpen = true,
+            onOpen = {},
+            onClose = {},
+            actions = listOf(
+                SwipeAction(
+                    icon = Icons.Filled.Edit,
+                    contentDescription = "Editar",
+                    backgroundColor = MaterialTheme.colorScheme.primary,
+                    onClick = {}
+                ),
+                SwipeAction(
+                    icon = Icons.Filled.Delete,
+                    contentDescription = "Eliminar",
+                    backgroundColor = MaterialTheme.colorScheme.error,
+                    onClick = {}
+                )
+            )
+        ) { SwipeablePreviewContent() }
     }
 }

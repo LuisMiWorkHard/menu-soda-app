@@ -1,5 +1,6 @@
 package com.fullwar.menuapp.presentation.features.home
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -19,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.presentation.features.home.tabs.historial.HistorialTab
 import com.fullwar.menuapp.presentation.features.home.tabs.PerfilTab
+import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.ui.theme.SetNavigationBarColor
 
 enum class HomeTab(val route: String, val labelRes: Int, val icon: ImageVector) {
@@ -84,5 +87,14 @@ fun HomeScreen(
             }
             composable(HomeTab.PERFIL.route) { PerfilTab() }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "HomeScreen - Claro")
+@Preview(showBackground = true, name = "HomeScreen - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun HomeScreenPreview() {
+    MenuAppTheme {
+        HomeScreen()
     }
 }

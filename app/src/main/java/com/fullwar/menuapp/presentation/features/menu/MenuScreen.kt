@@ -264,7 +264,6 @@ fun MenuScreen(
                 1 -> {
                     SelectedEntradasBottomSheetContent(
                         entradas = menuViewModel.selectedEntradas,
-                        imagenesMap = seleccionEntradasViewModel.imagenesMap,
                         onRemove = { entrada ->
                             menuViewModel.updateEntradas(menuViewModel.selectedEntradas - entrada)
                         },
@@ -274,7 +273,6 @@ fun MenuScreen(
                 2 -> {
                     SelectedPlatosFondoBottomSheetContent(
                         platos = menuViewModel.selectedPlatosFuertes,
-                        imagenesMap = seleccionPlatosFondoViewModel.imagenesMap,
                         onRemove = { plato ->
                             menuViewModel.updatePlatosFuertes(menuViewModel.selectedPlatosFuertes - plato)
                         },
@@ -726,7 +724,6 @@ private fun MenuScreenSelectionPreview() {
             bottomSheetContent = {
                 SelectedEntradasBottomSheetContent(
                     entradas = mockEntradas,
-                    imagenesMap = emptyMap(),
                     onRemove = {},
                     onMove = { _, _ -> }
                 )
@@ -774,7 +771,6 @@ private fun MenuScreenSelectionDarkPreview() {
             bottomSheetContent = {
                 SelectedEntradasBottomSheetContent(
                     entradas = mockEntradas,
-                    imagenesMap = emptyMap(),
                     onRemove = {},
                     onMove = { _, _ -> }
                 )

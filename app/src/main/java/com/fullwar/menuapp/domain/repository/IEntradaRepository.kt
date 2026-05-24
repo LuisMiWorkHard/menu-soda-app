@@ -12,7 +12,7 @@ interface IEntradaRepository {
     suspend fun searchEntradas(query: String): List<EntradaResponseDto>
     suspend fun findSimilarEntradas(nombre: String, excludeId: Int? = null): List<EntradaResponseDto>
     suspend fun createEntrada(request: EntradaCreateRequestDto): EntradaCreateResponseDto
-    suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto
+    suspend fun updateEntrada(request: EntradaUpdateRequestDto)
     suspend fun deleteEntrada(id: Int)
     suspend fun getTiposEntrada(): List<TipoEntradaResponseDto>
     suspend fun uploadImage(imageBytes: ByteArray, fileName: String, extension: String): ImagenResponseDto

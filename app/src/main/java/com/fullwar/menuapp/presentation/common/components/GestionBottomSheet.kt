@@ -3,11 +3,13 @@ package com.fullwar.menuapp.presentation.common.components
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
+import androidx.compose.material3.SheetValue
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,12 +64,17 @@ internal fun GestionBottomSheetContent(
                 fontWeight = FontWeight.Bold,
                 fontSize = TextSizeXLarge
             )
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = null,
-                    tint = HeavyGray
-                )
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
 
@@ -258,12 +265,17 @@ fun GestionBottomSheet(
     errorMessage: String?,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
+    swipeToDismissEnabled: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { value -> swipeToDismissEnabled || value != SheetValue.Hidden }
+    )
 
+    val onDismissRequest: () -> Unit = { if (swipeToDismissEnabled) onDismiss() }
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = onDismissRequest,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.background,
         shape = RoundedCornerShape(topStart = CornerRadiusLarge, topEnd = CornerRadiusLarge)

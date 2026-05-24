@@ -40,14 +40,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.*
+import com.fullwar.menuapp.di.Constants
 import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
-import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.domain.repository.IPlatoRepository
 import com.fullwar.menuapp.presentation.common.components.CustomImageView
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.components.ItemListSkeleton
-import com.fullwar.menuapp.presentation.common.components.MenuSodaDialog
-import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
+import com.fullwar.menuapp.presentation.common.components.ConfirmDeleteBottomSheet
 import com.fullwar.menuapp.presentation.common.components.SwipeAction
 import com.fullwar.menuapp.presentation.common.components.SwipeableActionsContainer
 import com.fullwar.menuapp.presentation.common.utils.State
@@ -187,19 +186,16 @@ fun SeleccionPlatosFondoScreen(
     }
 
     platoToDelete?.let { plato ->
-        MenuSodaDialog(
-            title = stringResource(R.string.dialog_eliminar_plato_titulo),
-            message = stringResource(R.string.dialog_eliminar_plato_mensaje, plato.nombre),
-            onDismissRequest = { platoToDelete = null },
+        ConfirmDeleteBottomSheet(
+            title = stringResource(R.string.dialog_eliminar_plato_titulo, plato.nombre),
+            message = stringResource(R.string.dialog_eliminar_plato_mensaje),
             confirmLabel = stringResource(R.string.dialog_eliminar_confirmar),
+            dismissLabel = stringResource(R.string.calendar_cancel),
             onConfirm = {
                 seleccionViewModel.deletePlato(plato.id)
                 platoToDelete = null
             },
-            dismissLabel = stringResource(R.string.calendar_cancel),
-            onDismiss = { platoToDelete = null },
-            icon = Icons.Filled.Delete,
-            variant = MenuSodaDialogVariant.Warning
+            onDismiss = { platoToDelete = null }
         )
     }
 
@@ -283,7 +279,7 @@ fun SeleccionPlatosFondoScreen(
                         items(searchResults, key = { it.id }) { plato ->
                             PlatoDisponibleCard(
                                 plato = plato,
-                                imageUrl = seleccionViewModel.imagenesMap[plato.imagenId],
+                                imageUrl = plato.imagenId?.let { "${Constants.BASE_URL}/api/imagen/$it/contenido" },
                                 isSelected = selectedPlatos.any { it.id == plato.id },
                                 isSwipeOpen = openedPlatoId == plato.id,
                                 onOpen = { openedPlatoId = plato.id },
@@ -310,7 +306,7 @@ fun SeleccionPlatosFondoScreen(
                                     SwipeAction(
                                         icon = Icons.Filled.Delete,
                                         contentDescription = "Eliminar",
-                                        backgroundColor = MaterialTheme.colorScheme.error,
+                                        backgroundColor = DangerRed,
                                         onClick = {
                                             platoToDelete = plato
                                             openedPlatoId = null
@@ -357,7 +353,6 @@ fun SeleccionPlatosFondoScreen(
 @Composable
 fun SelectedPlatosFondoBottomSheetContent(
     platos: List<PlatoResponseDto>,
-    imagenesMap: Map<Int, String>,
     onRemove: (PlatoResponseDto) -> Unit,
     onMove: (Int, Int) -> Unit
 ) {
@@ -400,7 +395,7 @@ fun SelectedPlatosFondoBottomSheetContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     CustomImageView(
-                        imageUrl = imagenesMap[plato.imagenId],
+                        imageUrl = plato.imagenId?.let { "${Constants.BASE_URL}/api/imagen/$it/contenido" },
                         modifier = Modifier.size(Spacing3XLarge)
                     )
                     Spacer(modifier = Modifier.width(SpacingMedium))
@@ -550,8 +545,8 @@ fun PlatoDisponibleCard(
         actions = actions
     ) {
     Surface(
-        shape = RoundedCornerShape(CornerRadiusMedium),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+        shape = RoundedCornerShape(0.dp),
+        color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize()
@@ -680,10 +675,6 @@ private class FakeMenuDiarioRepository : IMenuDiarioRepository {
     override suspend fun deleteMenuDiario(id: Int) {}
 }
 
-private class FakeMenuImagenRepository : IMenuImagenRepository {
-    override suspend fun getMenuImagenes(): List<MenuImagenResponseDto> = emptyList()
-}
-
 private class FakePlatoRepository : IPlatoRepository {
     private val all = listOf(
         PlatoResponseDto(id = 1, nombre = "Pollo a la Plancha", descripcion = "Con ensalada fresca o papas", tipoPlatoId = 1, estadoId = 1, fechaRegistro = "01/01/2024", usuarioRegistro = "admin"),
@@ -720,7 +711,7 @@ private val fakeSugerenciaPlato = SugerenciaPlatoItem(
 private fun SeleccionPlatosFondoScreenPreview() {
     val menuVm = remember { MenuViewModel(FakeMenuDiarioRepository()) }
     val platoVm = remember { PlatoViewModel(FakePlatoRepository()) }
-    val seleccionVm = remember { SeleccionPlatosFondoViewModel(FakePlatoRepository(), FakeMenuImagenRepository()) }
+    val seleccionVm = remember { SeleccionPlatosFondoViewModel(FakePlatoRepository()) }
     MenuAppTheme(darkTheme = false) {
         SeleccionPlatosFondoScreen(menuViewModel = menuVm, platoViewModel = platoVm, seleccionViewModel = seleccionVm)
     }
@@ -731,7 +722,7 @@ private fun SeleccionPlatosFondoScreenPreview() {
 private fun SeleccionPlatosFondoScreenDarkPreview() {
     val menuVm = remember { MenuViewModel(FakeMenuDiarioRepository()) }
     val platoVm = remember { PlatoViewModel(FakePlatoRepository()) }
-    val seleccionVm = remember { SeleccionPlatosFondoViewModel(FakePlatoRepository(), FakeMenuImagenRepository()) }
+    val seleccionVm = remember { SeleccionPlatosFondoViewModel(FakePlatoRepository()) }
     MenuAppTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             SeleccionPlatosFondoScreen(menuViewModel = menuVm, platoViewModel = platoVm, seleccionViewModel = seleccionVm)

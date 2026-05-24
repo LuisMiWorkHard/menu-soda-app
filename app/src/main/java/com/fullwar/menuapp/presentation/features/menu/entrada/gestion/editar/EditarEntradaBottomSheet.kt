@@ -35,7 +35,7 @@ fun EditarEntradaBottomSheet(
     }
 
     LaunchedEffect(editState) {
-        if (editState is State.Success<EntradaResponseDto>) {
+        if (editState is State.Success<Unit>) {
             onSuccess()
         }
     }
@@ -47,7 +47,8 @@ fun EditarEntradaBottomSheet(
         isLoading = editState is State.Loading,
         errorMessage = (editState as? State.Error)?.message,
         onSave = { viewModel.save(context) },
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
+        swipeToDismissEnabled = false
     ) {
         EntradaForm(viewModel = viewModel)
     }

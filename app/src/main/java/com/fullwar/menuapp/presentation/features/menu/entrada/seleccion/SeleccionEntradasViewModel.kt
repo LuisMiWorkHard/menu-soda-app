@@ -8,14 +8,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
-import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class SeleccionEntradasViewModel(
-    private val entradaRepository: IEntradaRepository,
-    private val menuImagenRepository: IMenuImagenRepository
+    private val entradaRepository: IEntradaRepository
 ) : ViewModel() {
 
     companion object {
@@ -28,9 +26,6 @@ class SeleccionEntradasViewModel(
     var searchResults by mutableStateOf<List<EntradaResponseDto>>(emptyList())
         private set
 
-    var imagenesMap by mutableStateOf<Map<Int, String>>(emptyMap())
-        private set
-
     private var searchJob: Job? = null
 
     fun loadEntradas() {
@@ -38,8 +33,6 @@ class SeleccionEntradasViewModel(
             entradasState = State.Loading
             try {
                 val entradas = entradaRepository.getEntradas()
-                val imagenes = menuImagenRepository.getMenuImagenes()
-                imagenesMap = imagenes.associate { it.imagenId to it.imagenUrl }
                 entradasState = State.Success(entradas)
                 searchResults = entradas
             } catch (e: Exception) {

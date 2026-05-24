@@ -40,6 +40,7 @@ class EntradaViewModel(
     // --- Modo editar ---
     private var editingId: Int? = null
     private var originalImagenId: Int? = null
+    private var originalEstadoId: Int = 1
 
     var currentImagenId: Int? by mutableStateOf(null)
         private set
@@ -60,7 +61,7 @@ class EntradaViewModel(
     var createState by mutableStateOf<State<EntradaCreateResponseDto>>(State.Initial)
         private set
 
-    var editState by mutableStateOf<State<EntradaResponseDto>>(State.Initial)
+    var editState by mutableStateOf<State<Unit>>(State.Initial)
         private set
 
     var tiposEntradaState by mutableStateOf<State<List<TipoEntrada>>>(State.Initial)
@@ -76,6 +77,7 @@ class EntradaViewModel(
     fun initForCreate() {
         editingId = null
         originalImagenId = null
+        originalEstadoId = 1
         currentImagenId = null
         createState = State.Initial
         resetForm()
@@ -84,6 +86,7 @@ class EntradaViewModel(
     fun initForEdit(entrada: EntradaResponseDto) {
         editingId = entrada.id
         originalImagenId = entrada.imagenId
+        originalEstadoId = entrada.estadoId
         currentImagenId = entrada.imagenId
         editState = State.Initial
         formFields = DynamicFormState(
@@ -204,14 +207,16 @@ class EntradaViewModel(
                 }
 
                 val request = EntradaUpdateRequestDto(
+                    id = id,
                     nombre = nombre,
                     descripcion = descripcion?.ifBlank { null } ?: "",
                     tipoEntradaId = tipo.id,
+                    estadoId = originalEstadoId,
                     imagenId = codima
                 )
 
-                val response = entradaRepository.updateEntrada(id, request)
-                editState = State.Success(response)
+                entradaRepository.updateEntrada(request)
+                editState = State.Success(Unit)
             } catch (e: ApiException) {
                 Log.e(TAG, "ApiException updating entrada: ${e.message}")
                 if (e.validationErrors != null) {

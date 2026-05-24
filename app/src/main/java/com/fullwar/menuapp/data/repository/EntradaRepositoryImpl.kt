@@ -43,9 +43,9 @@ class EntradaRepositoryImpl(
             entradaService.createEntrada(request).also { cachedEntradas = null }
         }
 
-    override suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto =
+    override suspend fun updateEntrada(request: EntradaUpdateRequestDto) =
         withContext(Dispatchers.IO) {
-            entradaService.updateEntrada(id, request).also { cachedEntradas = null }
+            entradaService.updateEntrada(request).also { cachedEntradas = null }
         }
 
     override suspend fun deleteEntrada(id: Int) =

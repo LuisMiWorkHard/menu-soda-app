@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +42,7 @@ import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.CornerRadiusXLarge
 import com.fullwar.menuapp.ui.theme.CornerRadiusXXSmall
 import com.fullwar.menuapp.ui.theme.ElevationSmall
+import com.fullwar.menuapp.ui.theme.HeavyGray
 import com.fullwar.menuapp.ui.theme.IconSizeMedium
 import com.fullwar.menuapp.ui.theme.IconSizeXLarge
 import com.fullwar.menuapp.ui.theme.ImageSizeMedium
@@ -58,6 +60,150 @@ import com.fullwar.menuapp.ui.theme.TextSizeXLarge
 import com.fullwar.menuapp.ui.theme.TextSizeXSmall
 
 @Composable
+internal fun FotoOrigenDialogContent(
+    onDismissRequest: () -> Unit,
+    onCamara: () -> Unit,
+    onGaleria: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .wrapContentHeight(),
+        shape = RoundedCornerShape(CornerRadiusXLarge),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = ElevationSmall
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(SpacingXLarge),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Ícono principal con destellos decorativos
+            Box(
+                modifier = Modifier.size(104.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "✦",
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(start = 2.dp, top = 16.dp),
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                )
+                Text(
+                    text = "✦",
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 4.dp, top = 8.dp),
+                    fontSize = 8.sp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)
+                )
+                Text(
+                    text = "✦",
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(start = 6.dp, bottom = 10.dp),
+                    fontSize = 7.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                )
+                Text(
+                    text = "✦",
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 2.dp, bottom = 14.dp),
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .size(ImageSizeXLarge)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Image,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(IconSizeXLarge)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(SpacingMedium))
+
+            Text(
+                text = stringResource(R.string.foto_origen_pregunta),
+                fontWeight = FontWeight.Bold,
+                fontSize = TextSizeXLarge,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = 28.sp
+            )
+
+            Spacer(modifier = Modifier.height(SpacingSmall))
+
+            // Línea separadora
+            Box(
+                modifier = Modifier
+                    .width(IconSizeXLarge)
+                    .height(StrokeWidthThick)
+                    .background(
+                        MaterialTheme.colorScheme.primary,
+                        RoundedCornerShape(CornerRadiusXXSmall)
+                    )
+            )
+
+            Spacer(modifier = Modifier.height(SpacingLarge))
+
+            FotoOrigenOpcionItem(
+                icon = Icons.Outlined.PhotoLibrary,
+                iconBgColor = MaterialTheme.colorScheme.primary,
+                iconTint = MaterialTheme.colorScheme.onPrimary,
+                titulo = stringResource(R.string.foto_origen_galeria),
+                subtitulo = stringResource(R.string.foto_origen_galeria_subtitulo),
+                onClick = {
+                    onDismissRequest()
+                    onGaleria()
+                }
+            )
+
+            Spacer(modifier = Modifier.height(SpacingSmall))
+
+            FotoOrigenOpcionItem(
+                icon = Icons.Outlined.PhotoCamera,
+                iconBgColor = MaterialTheme.colorScheme.secondary,
+                iconTint = MaterialTheme.colorScheme.onSecondary,
+                titulo = stringResource(R.string.foto_origen_camara),
+                subtitulo = stringResource(R.string.foto_origen_camara_subtitulo),
+                onClick = {
+                    onDismissRequest()
+                    onCamara()
+                }
+            )
+
+            Spacer(modifier = Modifier.height(SpacingSmall))
+
+            TextButton(
+                onClick = onDismissRequest,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(R.string.calendar_cancel),
+                    color = HeavyGray,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = TextSizeMedium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(SpacingSmall))
+        }
+    }
+}
+
+@Composable
 fun FotoOrigenDialog(
     onDismissRequest: () -> Unit,
     onCamara: () -> Unit,
@@ -67,139 +213,11 @@ fun FotoOrigenDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(CornerRadiusXLarge),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = ElevationSmall
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(SpacingXLarge),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Ícono principal con destellos decorativos
-                Box(
-                    modifier = Modifier.size(104.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "✦",
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(start = 2.dp, top = 16.dp),
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
-                    )
-                    Text(
-                        text = "✦",
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(end = 4.dp, top = 8.dp),
-                        fontSize = 8.sp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)
-                    )
-                    Text(
-                        text = "✦",
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(start = 6.dp, bottom = 10.dp),
-                        fontSize = 7.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    )
-                    Text(
-                        text = "✦",
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(end = 2.dp, bottom = 14.dp),
-                        fontSize = 9.sp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .size(ImageSizeXLarge)
-                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Image,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(IconSizeXLarge)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(SpacingMedium))
-
-                Text(
-                    text = stringResource(R.string.foto_origen_pregunta),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = TextSizeXLarge,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    lineHeight = 28.sp
-                )
-
-                Spacer(modifier = Modifier.height(SpacingSmall))
-
-                // Línea separadora
-                Box(
-                    modifier = Modifier
-                        .width(IconSizeXLarge)
-                        .height(StrokeWidthThick)
-                        .background(
-                            MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(CornerRadiusXXSmall)
-                        )
-                )
-
-                Spacer(modifier = Modifier.height(SpacingLarge))
-
-                FotoOrigenOpcionItem(
-                    icon = Icons.Outlined.PhotoLibrary,
-                    iconBgColor = MaterialTheme.colorScheme.primary,
-                    iconTint = MaterialTheme.colorScheme.onPrimary,
-                    titulo = stringResource(R.string.foto_origen_galeria),
-                    subtitulo = stringResource(R.string.foto_origen_galeria_subtitulo),
-                    onClick = {
-                        onDismissRequest()
-                        onGaleria()
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(SpacingSmall))
-
-                FotoOrigenOpcionItem(
-                    icon = Icons.Outlined.PhotoCamera,
-                    iconBgColor = MaterialTheme.colorScheme.secondary,
-                    iconTint = MaterialTheme.colorScheme.onSecondary,
-                    titulo = stringResource(R.string.foto_origen_camara),
-                    subtitulo = stringResource(R.string.foto_origen_camara_subtitulo),
-                    onClick = {
-                        onDismissRequest()
-                        onCamara()
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(SpacingSmall))
-
-                FotoOrigenOpcionItem(
-                    icon = Icons.Filled.Close,
-                    iconBgColor = MaterialTheme.colorScheme.surfaceVariant,
-                    iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    titulo = stringResource(R.string.calendar_cancel),
-                    subtitulo = stringResource(R.string.foto_origen_cancelar_subtitulo),
-                    onClick = onDismissRequest
-                )
-
-                Spacer(modifier = Modifier.height(SpacingSmall))
-            }
-        }
+        FotoOrigenDialogContent(
+            onDismissRequest = onDismissRequest,
+            onCamara = onCamara,
+            onGaleria = onGaleria,
+        )
     }
 }
 
@@ -246,25 +264,25 @@ private fun FotoOrigenOpcionItem(
                     text = titulo,
                     fontWeight = FontWeight.Bold,
                     fontSize = TextSizeMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(StrokeWidthMedium))
                 Text(
                     text = subtitulo,
                     fontSize = TextSizeXSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
             }
         }
     }
 }
 
-@Preview(name = "FotoOrigenDialog - Claro")
-@Preview(name = "FotoOrigenDialog - Oscuro", uiMode = UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, name = "FotoOrigenDialog - Claro")
+@Preview(showBackground = true, name = "FotoOrigenDialog - Oscuro", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewFotoOrigenDialog() {
     MenuAppTheme {
-        FotoOrigenDialog(
+        FotoOrigenDialogContent(
             onDismissRequest = {},
             onCamara = {},
             onGaleria = {}

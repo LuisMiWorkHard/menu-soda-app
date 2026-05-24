@@ -5,6 +5,7 @@ import com.fullwar.menuapp.data.model.EntradaCreateRequestDto
 import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
 import com.fullwar.menuapp.data.model.EntradaUpdateRequestDto
+
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -36,12 +37,11 @@ class EntradaService(private val httpClient: HttpClient) {
         return response.body()
     }
 
-    suspend fun updateEntrada(id: Int, request: EntradaUpdateRequestDto): EntradaResponseDto {
-        val response = httpClient.put("api/entrada/$id") {
+    suspend fun updateEntrada(request: EntradaUpdateRequestDto) {
+        val response = httpClient.put("api/entrada") {
             setBody(request)
         }
         Log.d(TAG, "updateEntrada() - Status: ${response.status.value}")
-        return response.body()
     }
 
     suspend fun deleteEntrada(id: Int) {

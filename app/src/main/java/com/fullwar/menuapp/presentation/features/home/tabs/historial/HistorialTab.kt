@@ -41,6 +41,7 @@ import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
 import com.fullwar.menuapp.presentation.common.utils.State
 import com.fullwar.menuapp.presentation.features.home.tabs.historial.HistorialViewModel
 import com.fullwar.menuapp.ui.theme.*
+import com.fullwar.menuapp.ui.theme.DangerRed
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -268,7 +269,11 @@ fun HistorialTabContent(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
+                    .background(
+                    color = White,
+                    shape = RoundedCornerShape(CornerRadiusMedium)
+                ),
                 placeholder = { Text(text = stringResource(id = R.string.historial_buscar), color = HeavyGray) },
                 leadingIcon = { Icon(imageVector = Icons.Filled.Search, contentDescription = null, tint = HeavyGray) },
                 trailingIcon = {
@@ -575,11 +580,13 @@ private fun OpcionItem(
     icono: ImageVector,
     texto: String,
     onClick: () -> Unit,
-    tintColor: Color = MaterialTheme.colorScheme.onBackground
+    tintColor: Color = MaterialTheme.colorScheme.onBackground,
+    backgroundColor: Color = Color.Transparent
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(backgroundColor)
             .clickable(onClick = onClick)
             .padding(horizontal = SpacingLarge, vertical = SpacingMedium),
         verticalAlignment = Alignment.CenterVertically,
@@ -609,9 +616,9 @@ private fun MenuHistorialOpcionesSheetContent(
         )
         HorizontalDivider(color = HeavyGray)
         OpcionItem(icono = Icons.Filled.MenuBook, texto = "Ver Carta", onClick = { onVerCarta(); onDismiss() })
-        OpcionItem(icono = Icons.Filled.Edit, texto = "Editar Menú", onClick = { onEditarMenu(); onDismiss() })
+        OpcionItem(icono = Icons.Filled.Edit, texto = "Editar Menú", onClick = { onEditarMenu(); onDismiss() }, tintColor = MaterialTheme.colorScheme.onSurface, backgroundColor = MaterialTheme.colorScheme.surface)
         OpcionItem(icono = Icons.Filled.Share, texto = "Compartir", onClick = { onCompartir(); onDismiss() })
-        OpcionItem(icono = Icons.Filled.Delete, texto = "Eliminar", onClick = { onEliminar(); onDismiss() }, tintColor = MaterialTheme.colorScheme.error)
+        OpcionItem(icono = Icons.Filled.Delete, texto = "Eliminar", onClick = { onEliminar(); onDismiss() }, tintColor = White, backgroundColor = DangerRed)
     }
 }
 
@@ -797,9 +804,14 @@ internal fun DatePickerDialogContent(
             if (isRangeMode) {
                 DateRangePicker(
                     state = dateRangePickerState,
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    modifier = Modifier.weight(1f)
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surface
+                        ),
                     title = null, headline = null, showModeToggle = false,
                     colors = DatePickerDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surface,
                         navigationContentColor = MaterialTheme.colorScheme.onSurface,
                         todayContentColor = MaterialTheme.colorScheme.onBackground,
                         todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
@@ -811,9 +823,14 @@ internal fun DatePickerDialogContent(
             } else {
                 DatePicker(
                     state = datePickerState,
-                    modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = SpacingSmall),
+                    modifier = Modifier.weight(1f)
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surface
+                        ),
                     title = null, headline = null, showModeToggle = false,
                     colors = DatePickerDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surface,
                         navigationContentColor = MaterialTheme.colorScheme.onSurface,
                         todayContentColor = MaterialTheme.colorScheme.onBackground,
                         todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
@@ -934,13 +951,13 @@ fun MenuFechaPickerDialog(
         selectableDates = selectableDates
     )
 
-    androidx.compose.ui.window.Dialog(
+    Dialog(
         onDismissRequest = onDismiss,
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        androidx.compose.material3.Surface(
+        Surface(
             modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.85f),
-            shape = RoundedCornerShape(com.fullwar.menuapp.ui.theme.CornerRadiusLarge),
+            shape = RoundedCornerShape(CornerRadiusLarge),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = ElevationSmall
         ) {
@@ -948,9 +965,10 @@ fun MenuFechaPickerDialog(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = com.fullwar.menuapp.ui.theme.SpacingLarge,
-                                 end = com.fullwar.menuapp.ui.theme.SpacingSmall,
-                                 top = com.fullwar.menuapp.ui.theme.SpacingMedium),
+                        .background(color = MaterialTheme.colorScheme.surface)
+                        .padding(start = SpacingLarge,
+                                 end = SpacingSmall,
+                                 top = SpacingMedium),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -965,10 +983,12 @@ fun MenuFechaPickerDialog(
 
                 DatePicker(
                     state = state,
-                    modifier = Modifier.weight(1f).fillMaxWidth()
-                        .padding(horizontal = com.fullwar.menuapp.ui.theme.SpacingSmall),
+                    modifier = Modifier.weight(1f)
+                        .fillMaxWidth()
+                        .background(color = MaterialTheme.colorScheme.surface),
                     title = null, headline = null, showModeToggle = false,
                     colors = DatePickerDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surface,
                         navigationContentColor = MaterialTheme.colorScheme.onSurface,
                         todayContentColor = MaterialTheme.colorScheme.onBackground,
                         todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
