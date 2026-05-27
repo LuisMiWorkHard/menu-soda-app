@@ -49,6 +49,11 @@ fun SetupNavigation(startDestination: String) {
                 },
                 onEditarMenuClick = { menuId ->
                     navController.navigate(AppScreens.MenuScreen.withId(menuId))
+                },
+                onLogout = {
+                    navController.navigate(AppScreens.LoginScreen.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }

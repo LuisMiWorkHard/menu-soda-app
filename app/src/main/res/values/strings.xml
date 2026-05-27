@@ -29,7 +29,16 @@
     <string name="tab_nuevo">Nuevo</string>
     <string name="tab_perfil">Perfil</string>
     <string name="tab_nuevo_placeholder">Crear nuevo menú</string>
-    <string name="tab_perfil_placeholder">Datos de perfil</string>
+
+    <!-- Perfil Screen -->
+    <string name="perfil_saludo">Hola, %1$s</string>
+    <string name="perfil_usuario_titulo">Perfil de usuario</string>
+    <string name="perfil_usuario_subtitulo">Ver y editar tu información</string>
+    <string name="perfil_password_titulo">Contraseña</string>
+    <string name="perfil_password_subtitulo">Cambia o recupera tu contraseña</string>
+    <string name="perfil_cerrar_sesion">Cerrar sesión</string>
+    <string name="perfil_cerrar_sesion_mensaje">¿Estás seguro de que deseas cerrar sesión?</string>
+    <string name="perfil_error">No se pudo cargar tu perfil</string>
 
     <!-- Historial Screen -->
     <string name="historial_titulo">Historial de Menús</string>
