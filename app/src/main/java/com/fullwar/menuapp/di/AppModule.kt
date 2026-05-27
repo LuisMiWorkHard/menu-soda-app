@@ -8,7 +8,7 @@ import com.fullwar.menuapp.data.datasource.remote.EntradaService
 import com.fullwar.menuapp.data.datasource.remote.ImagenService
 import com.fullwar.menuapp.data.datasource.remote.MenuDiarioService
 import com.fullwar.menuapp.data.datasource.remote.MenuImagenService
-import com.fullwar.menuapp.data.datasource.remote.PerfilService
+import com.fullwar.menuapp.data.datasource.remote.UsuarioService
 import com.fullwar.menuapp.data.datasource.remote.PlatoService
 import com.fullwar.menuapp.data.datasource.remote.TipoEntradaService
 import com.fullwar.menuapp.data.datasource.remote.TipoPlatoService
@@ -17,12 +17,12 @@ import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
 import com.fullwar.menuapp.data.repository.EntradaRepositoryImpl
 import com.fullwar.menuapp.data.repository.MenuDiarioRepositoryImpl
 import com.fullwar.menuapp.data.repository.MenuImagenRepositoryImpl
-import com.fullwar.menuapp.data.repository.PerfilRepositoryImpl
+import com.fullwar.menuapp.data.repository.UsuarioRepositoryImpl
 import com.fullwar.menuapp.data.repository.PlatoRepositoryImpl
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
 import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
-import com.fullwar.menuapp.domain.repository.IPerfilRepository
+import com.fullwar.menuapp.domain.repository.IUsuarioRepository
 import com.fullwar.menuapp.domain.repository.IPlatoRepository
 import com.fullwar.menuapp.data.repository.LocationProviderImpl
 import com.fullwar.menuapp.data.repository.SecureCookiesStorageImpl
@@ -34,6 +34,7 @@ import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionP
 import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloViewModel
 import com.fullwar.menuapp.presentation.features.home.tabs.historial.HistorialViewModel
 import com.fullwar.menuapp.presentation.features.home.tabs.perfil.PerfilViewModel
+import com.fullwar.menuapp.presentation.features.usuario.InformacionPersonalViewModel
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import com.fullwar.menuapp.presentation.features.splash.SplashViewModel
@@ -50,6 +51,7 @@ val appModule = module {
     viewModelOf(::LoginViewModel)
     viewModelOf(::HistorialViewModel)
     viewModelOf(::PerfilViewModel)
+    viewModelOf(::InformacionPersonalViewModel)
     viewModelOf(::MenuViewModel)
     viewModelOf(::EntradaViewModel)
     viewModelOf(::SeleccionEntradasViewModel)
@@ -91,7 +93,7 @@ val appModule = module {
     single { MenuDiarioService(get(named("AuthClient"))) }
     singleOf(::MenuDiarioRepositoryImpl) bind IMenuDiarioRepository::class
 
-    // Perfil feature: service usa AuthClient (Bearer token)
-    single { PerfilService(get(named("AuthClient"))) }
-    singleOf(::PerfilRepositoryImpl) bind IPerfilRepository::class
+    // Usuario feature: service usa AuthClient (Bearer token)
+    single { UsuarioService(get(named("AuthClient"))) }
+    singleOf(::UsuarioRepositoryImpl) bind IUsuarioRepository::class
 }

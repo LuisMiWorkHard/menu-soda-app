@@ -1,7 +1,6 @@
-package com.fullwar.menuapp.presentation.features.home.tabs
+package com.fullwar.menuapp.presentation.features.home.tabs.perfil
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,8 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,20 +41,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.fullwar.menuapp.R
-import com.fullwar.menuapp.data.model.PerfilResponseDto
+import com.fullwar.menuapp.data.model.UsuarioResponseDto
 import com.fullwar.menuapp.presentation.common.components.ErrorBanner
 import com.fullwar.menuapp.presentation.common.components.MenuSodaDialog
 import com.fullwar.menuapp.presentation.common.components.MenuSodaDialogVariant
 import com.fullwar.menuapp.presentation.common.utils.State
-import com.fullwar.menuapp.presentation.features.home.tabs.perfil.PerfilViewModel
 import com.fullwar.menuapp.ui.theme.CornerRadiusMedium
 import com.fullwar.menuapp.ui.theme.DangerRed
 import com.fullwar.menuapp.ui.theme.HeavyGray
 import com.fullwar.menuapp.ui.theme.IconSize2XLarge
-import com.fullwar.menuapp.ui.theme.IconSizeLarge
 import com.fullwar.menuapp.ui.theme.IconSizeMedium
-import com.fullwar.menuapp.ui.theme.IconSize3XLarge
-import com.fullwar.menuapp.ui.theme.IconSizeXLarge
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.ui.theme.Spacing3XLarge
 import com.fullwar.menuapp.ui.theme.SpacingLarge
@@ -68,9 +60,7 @@ import com.fullwar.menuapp.ui.theme.SpacingXLarge
 import com.fullwar.menuapp.ui.theme.SpacingXSmall
 import com.fullwar.menuapp.ui.theme.TextSizeLarge
 import com.fullwar.menuapp.ui.theme.TextSizeSmall
-import com.fullwar.menuapp.ui.theme.TextSizeXLarge
 import com.fullwar.menuapp.ui.theme.TextSizeXXLarge
-import com.fullwar.menuapp.ui.theme.White
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -100,7 +90,7 @@ fun PerfilTab(
 @Composable
 private fun PerfilTabContent(
     modifier: Modifier = Modifier,
-    perfilState: State<PerfilResponseDto>,
+    perfilState: State<UsuarioResponseDto>,
     onRetry: () -> Unit = {},
     onPerfilUsuarioClick: () -> Unit = {},
     onContrasenaClick: () -> Unit = {},
@@ -200,7 +190,7 @@ private fun PerfilTabContent(
 }
 
 @Composable
-private fun PerfilCabecera(perfil: PerfilResponseDto) {
+private fun PerfilCabecera(perfil: UsuarioResponseDto) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -319,9 +309,13 @@ private fun PerfilTabPreview() {
     MenuAppTheme {
         PerfilTabContent(
             perfilState = State.Success(
-                PerfilResponseDto(
+                UsuarioResponseDto(
                     nombreCompleto = "Juan Pérez",
-                    email = "juan.perez@email.com"
+                    email = "juan.perez@email.com",
+                    documento = "DNI 12345678",
+                    telefono = "987654321",
+                    genero = "Masculino",
+                    fechaNacimiento = "10 de enero de 1990"
                 )
             )
         )

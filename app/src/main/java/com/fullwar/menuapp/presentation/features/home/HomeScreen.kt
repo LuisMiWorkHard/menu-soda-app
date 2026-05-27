@@ -20,7 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.presentation.features.home.tabs.historial.HistorialTab
-import com.fullwar.menuapp.presentation.features.home.tabs.PerfilTab
+import com.fullwar.menuapp.presentation.features.home.tabs.perfil.PerfilTab
 import com.fullwar.menuapp.ui.theme.MenuAppTheme
 import com.fullwar.menuapp.ui.theme.SetNavigationBarColor
 
@@ -34,7 +34,8 @@ enum class HomeTab(val route: String, val labelRes: Int, val icon: ImageVector) 
 fun HomeScreen(
     onNuevoMenuClick: (dateMillis: Long, conflictoMenuId: Int?) -> Unit = { _, _ -> },
     onEditarMenuClick: (Int) -> Unit = {},
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    onVerInformacionPersonalClick: () -> Unit = {}
 ) {
     SetNavigationBarColor(MaterialTheme.colorScheme.surface)
 
@@ -86,7 +87,12 @@ fun HomeScreen(
                     onEditarMenuClick = onEditarMenuClick
                 )
             }
-            composable(HomeTab.PERFIL.route) { PerfilTab(onLogout = onLogout) }
+            composable(HomeTab.PERFIL.route) {
+                PerfilTab(
+                    onLogout = onLogout,
+                    onPerfilUsuarioClick = onVerInformacionPersonalClick
+                )
+            }
         }
     }
 }

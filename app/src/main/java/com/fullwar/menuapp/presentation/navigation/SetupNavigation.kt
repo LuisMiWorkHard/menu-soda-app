@@ -13,6 +13,7 @@ import com.fullwar.menuapp.data.util.AuthEventBus
 import com.fullwar.menuapp.presentation.features.home.HomeScreen
 import com.fullwar.menuapp.presentation.features.login.LoginScreen
 import com.fullwar.menuapp.presentation.features.menu.MenuScreen
+import com.fullwar.menuapp.presentation.features.usuario.InformacionPersonalScreen
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -54,7 +55,15 @@ fun SetupNavigation(startDestination: String) {
                     navController.navigate(AppScreens.LoginScreen.route) {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onVerInformacionPersonalClick = {
+                    navController.navigate(AppScreens.InformacionPersonalScreen.route)
                 }
+            )
+        }
+        composable(route = AppScreens.InformacionPersonalScreen.route) {
+            InformacionPersonalScreen(
+                onBack = { navController.popBackStack() }
             )
         }
         composable(

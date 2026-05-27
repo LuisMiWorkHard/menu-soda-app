@@ -8,4 +8,5 @@ sealed class AppScreens(val route: String) {
         fun withDate(dateMillis: Long, conflictoId: Int? = null) =
             "menu_screen?selectedDate=$dateMillis&conflictoId=${conflictoId ?: -1}"
     }
+    object InformacionPersonalScreen : AppScreens("informacion_personal_screen")
 }

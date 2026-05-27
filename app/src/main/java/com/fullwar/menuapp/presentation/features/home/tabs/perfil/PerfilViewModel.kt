@@ -5,18 +5,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fullwar.menuapp.data.model.PerfilResponseDto
+import com.fullwar.menuapp.data.model.UsuarioResponseDto
 import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
-import com.fullwar.menuapp.domain.repository.IPerfilRepository
+import com.fullwar.menuapp.domain.repository.IUsuarioRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import kotlinx.coroutines.launch
 
 class PerfilViewModel(
-    private val repo: IPerfilRepository,
+    private val repo: IUsuarioRepository,
     private val authRepository: AuthRepositoryImpl
 ) : ViewModel() {
 
-    var perfilState by mutableStateOf<State<PerfilResponseDto>>(State.Initial)
+    var perfilState by mutableStateOf<State<UsuarioResponseDto>>(State.Initial)
         private set
 
     fun loadPerfil() {
@@ -24,9 +24,9 @@ class PerfilViewModel(
         viewModelScope.launch {
             perfilState = State.Loading
             try {
-                perfilState = State.Success(repo.getPerfil())
+                perfilState = State.Success(repo.getUsuario())
             } catch (e: Exception) {
-                perfilState = State.Error(e.message ?: "Error cargando perfil")
+                perfilState = State.Error(e.message ?: "Error cargando datos del usuario")
             }
         }
     }

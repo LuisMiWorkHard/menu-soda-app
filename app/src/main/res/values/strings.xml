@@ -165,6 +165,21 @@
     <string name="foto_origen_camara_subtitulo">Abrir cámara</string>
     <string name="foto_origen_cancelar_subtitulo">No agregar imagen</string>
 
+    <!-- Información Personal Screen -->
+    <string name="informacion_personal_titulo">Información personal</string>
+    <string name="informacion_personal_volver">Volver</string>
+    <string name="informacion_personal_nombre">Nombre</string>
+    <string name="informacion_personal_documento">Documento</string>
+    <string name="informacion_personal_genero">Género</string>
+    <string name="informacion_personal_correo">Correo electrónico</string>
+    <string name="informacion_personal_telefono">Teléfono</string>
+    <string name="informacion_personal_fecha_nac">Fecha de nacimiento</string>
+    <string name="informacion_personal_idioma">Idioma</string>
+    <string name="informacion_personal_dir_casa">Dirección de casa</string>
+    <string name="informacion_personal_dir_trabajo">Dirección de trabajo</string>
+    <string name="informacion_personal_otras_dir">Otras direcciones</string>
+    <string name="sin_establecer">Sin establecer</string>
+
     <!-- Diálogos de confirmación e informativos -->
     <string name="dialog_error_guardar_titulo">Error al guardar</string>
     <string name="dialog_error_guardar_confirmar">Aceptar</string>
