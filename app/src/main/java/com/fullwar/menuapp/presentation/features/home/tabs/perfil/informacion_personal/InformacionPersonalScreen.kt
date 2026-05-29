@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.usuario
+package com.fullwar.menuapp.presentation.features.home.tabs.perfil.informacion_personal
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Box
@@ -20,11 +20,8 @@ import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -131,49 +128,42 @@ private fun InformacionPersonalContent(
                         title = stringResource(id = R.string.informacion_personal_nombre),
                         value = dto.nombreCompleto.ifBlank { null }
                     )
-                    Spacer(modifier = Modifier.height(SpacingSmall))
+                    Spacer(modifier = Modifier.height(SpacingXSmall))
 
                     InfoPersonalItem(
                         icon = Icons.Filled.CreditCard,
                         title = stringResource(id = R.string.informacion_personal_documento),
                         value = dto.documento.ifBlank { null }
                     )
-                    Spacer(modifier = Modifier.height(SpacingSmall))
+                    Spacer(modifier = Modifier.height(SpacingXSmall))
 
                     InfoPersonalItem(
                         icon = Icons.Filled.Person,
                         title = stringResource(id = R.string.informacion_personal_genero),
                         value = dto.genero.ifBlank { null }
                     )
-                    Spacer(modifier = Modifier.height(SpacingSmall))
+                    Spacer(modifier = Modifier.height(SpacingXSmall))
 
                     InfoPersonalItem(
                         icon = Icons.Filled.Email,
                         title = stringResource(id = R.string.informacion_personal_correo),
                         value = dto.email.ifBlank { null }
                     )
-                    Spacer(modifier = Modifier.height(SpacingSmall))
+                    Spacer(modifier = Modifier.height(SpacingXSmall))
 
                     InfoPersonalItem(
                         icon = Icons.Filled.Phone,
                         title = stringResource(id = R.string.informacion_personal_telefono),
                         value = dto.telefono.ifBlank { null }
                     )
-                    Spacer(modifier = Modifier.height(SpacingSmall))
+                    Spacer(modifier = Modifier.height(SpacingXSmall))
 
                     InfoPersonalItem(
                         icon = Icons.Filled.Cake,
                         title = stringResource(id = R.string.informacion_personal_fecha_nac),
                         value = dto.fechaNacimiento.ifBlank { null }
                     )
-                    Spacer(modifier = Modifier.height(SpacingSmall))
-
-                    InfoPersonalItem(
-                        icon = Icons.Filled.Language,
-                        title = stringResource(id = R.string.informacion_personal_idioma),
-                        value = null
-                    )
-                    Spacer(modifier = Modifier.height(SpacingSmall))
+                    Spacer(modifier = Modifier.height(SpacingXSmall))
 
                     if (dto.direccionCasa != null) {
                         InfoPersonalItem(
@@ -181,21 +171,8 @@ private fun InformacionPersonalContent(
                             title = stringResource(id = R.string.informacion_personal_dir_casa),
                             value = dto.direccionCasa
                         )
-                        Spacer(modifier = Modifier.height(SpacingSmall))
+                        Spacer(modifier = Modifier.height(SpacingXSmall))
                     }
-
-                    InfoPersonalItem(
-                        icon = Icons.Filled.Work,
-                        title = stringResource(id = R.string.informacion_personal_dir_trabajo),
-                        value = null
-                    )
-                    Spacer(modifier = Modifier.height(SpacingSmall))
-
-                    InfoPersonalItem(
-                        icon = Icons.Filled.LocationOn,
-                        title = stringResource(id = R.string.informacion_personal_otras_dir),
-                        value = null
-                    )
                 }
             }
 

@@ -1,4 +1,4 @@
-package com.fullwar.menuapp.presentation.features.usuario
+package com.fullwar.menuapp.presentation.features.home.tabs.perfil.informacion_personal
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

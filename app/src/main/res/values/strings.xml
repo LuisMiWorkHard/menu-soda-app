@@ -180,6 +180,46 @@
     <string name="informacion_personal_otras_dir">Otras direcciones</string>
     <string name="sin_establecer">Sin establecer</string>
 
+    <!-- Cambiar Contraseña Screen -->
+    <string name="cambiar_contrasena_titulo">Cambia tu contraseña</string>
+    <string name="cambiar_contrasena_subtitulo">Asegúrate de usar una contraseña segura.</string>
+    <string name="cambiar_contrasena_actual">Contraseña actual</string>
+    <string name="cambiar_contrasena_nueva">Nueva contraseña</string>
+    <string name="cambiar_contrasena_confirmar">Confirmar nueva contraseña</string>
+    <string name="cambiar_contrasena_boton">Cambiar contraseña</string>
+    <string name="cambiar_contrasena_olvidaste">¿Olvidaste tu contraseña?</string>
+    <string name="cambiar_contrasena_volver">Volver</string>
+    <string name="cambiar_contrasena_seguridad">Seguridad: %1$s</string>
+    <string name="cambiar_contrasena_debil">Débil</string>
+    <string name="cambiar_contrasena_moderada">Moderada</string>
+    <string name="cambiar_contrasena_fuerte">Fuerte</string>
+    <string name="cambiar_contrasena_req_longitud">Al menos 8 caracteres</string>
+    <string name="cambiar_contrasena_req_mayuscula">Una letra mayúscula</string>
+    <string name="cambiar_contrasena_req_minuscula">Una letra minúscula</string>
+    <string name="cambiar_contrasena_req_numero">Un número</string>
+    <string name="cambiar_contrasena_req_especial">Un carácter especial</string>
+
+    <!-- Cambiar Contraseña Validations -->
+    <string name="error_contrasena_actual_vacia">Ingresa tu contraseña actual</string>
+    <string name="error_contrasena_nueva_vacia">Ingresa la nueva contraseña</string>
+    <string name="error_contrasenas_no_coinciden">Las contraseñas no coinciden</string>
+
+    <!-- Recuperar Contraseña Screen -->
+    <string name="recuperar_contrasena_titulo">Recuperar contraseña</string>
+    <string name="recuperar_contrasena_titulo_pantalla">Recupera tu contraseña</string>
+    <string name="recuperar_contrasena_descripcion">Te enviaremos un código de verificación a tu correo registrado.</string>
+    <string name="recuperar_contrasena_boton">Enviar código</string>
+    <string name="recuperar_contrasena_volver">Volver</string>
+    <string name="recuperar_contrasena_codigo_enviado_a">Código enviado a: %1$s</string>
+    <string name="recuperar_contrasena_valido_por">Código válido por %1$s</string>
+    <string name="recuperar_contrasena_reenviar">Reenviar código</string>
+
+    <!-- Nueva Contraseña Screen -->
+    <string name="nueva_contrasena_titulo">Nueva contraseña</string>
+    <string name="nueva_contrasena_subtitulo">Elige una contraseña segura para tu cuenta.</string>
+    <string name="nueva_contrasena_boton">Guardar contraseña</string>
+    <string name="nueva_contrasena_volver">Volver</string>
+
     <!-- Diálogos de confirmación e informativos -->
     <string name="dialog_error_guardar_titulo">Error al guardar</string>
     <string name="dialog_error_guardar_confirmar">Aceptar</string>

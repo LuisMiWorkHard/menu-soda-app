@@ -79,7 +79,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun LoginScreen(
     navController: NavController,
     viewModel: LoginViewModel = koinViewModel(),
-    sharedViewModel: SharedViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = koinViewModel()
 ) {
     SetNavigationBarColor(MaterialTheme.colorScheme.background)
 
@@ -437,6 +437,7 @@ fun LoginTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     isPasswordField: Boolean = false,
+    onForgotPassword: (() -> Unit)? = null,
     error: Int? = null,
     serverError: String? = null
 ) {
@@ -459,7 +460,11 @@ fun LoginTextField(
                     text = stringResource(id = R.string.login_forgot_password),
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = TextSizeSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = if (onForgotPassword != null)
+                        Modifier.clickable { onForgotPassword() }
+                    else
+                        Modifier
                 )
             }
         }

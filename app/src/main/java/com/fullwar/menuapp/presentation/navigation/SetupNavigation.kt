@@ -13,7 +13,10 @@ import com.fullwar.menuapp.data.util.AuthEventBus
 import com.fullwar.menuapp.presentation.features.home.HomeScreen
 import com.fullwar.menuapp.presentation.features.login.LoginScreen
 import com.fullwar.menuapp.presentation.features.menu.MenuScreen
-import com.fullwar.menuapp.presentation.features.usuario.InformacionPersonalScreen
+import com.fullwar.menuapp.presentation.features.home.tabs.perfil.informacion_personal.InformacionPersonalScreen
+import com.fullwar.menuapp.presentation.features.home.tabs.perfil.cambiar_contrasena.CambiarContrasenaScreen
+import com.fullwar.menuapp.presentation.features.home.tabs.perfil.recuperar_contrasena.NuevaContrasenaScreen
+import com.fullwar.menuapp.presentation.features.home.tabs.perfil.recuperar_contrasena.RecuperarContrasenaScreen
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -58,12 +61,38 @@ fun SetupNavigation(startDestination: String) {
                 },
                 onVerInformacionPersonalClick = {
                     navController.navigate(AppScreens.InformacionPersonalScreen.route)
+                },
+                onCambiarContrasenaClick = {
+                    navController.navigate(AppScreens.CambiarContrasenaScreen.route)
                 }
             )
         }
         composable(route = AppScreens.InformacionPersonalScreen.route) {
             InformacionPersonalScreen(
                 onBack = { navController.popBackStack() }
+            )
+        }
+        composable(route = AppScreens.CambiarContrasenaScreen.route) {
+            CambiarContrasenaScreen(
+                onBack      = { navController.popBackStack() },
+                onExito     = { navController.popBackStack() },
+                onOlvidaste = { navController.navigate(AppScreens.RecuperarContrasenaScreen.route) }
+            )
+        }
+        composable(route = AppScreens.RecuperarContrasenaScreen.route) {
+            RecuperarContrasenaScreen(
+                onBack           = { navController.popBackStack() },
+                onCodigoCorrecto = { navController.navigate(AppScreens.NuevaContrasenaRecuperacionScreen.route) }
+            )
+        }
+        composable(route = AppScreens.NuevaContrasenaRecuperacionScreen.route) {
+            NuevaContrasenaScreen(
+                onBack  = { navController.popBackStack() },
+                onExito = {
+                    navController.navigate(AppScreens.HomeScreen.route) {
+                        popUpTo(AppScreens.HomeScreen.route) { inclusive = false }
+                    }
+                }
             )
         }
         composable(

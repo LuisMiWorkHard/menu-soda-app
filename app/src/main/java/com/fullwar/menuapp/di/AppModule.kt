@@ -19,6 +19,7 @@ import com.fullwar.menuapp.data.repository.MenuDiarioRepositoryImpl
 import com.fullwar.menuapp.data.repository.MenuImagenRepositoryImpl
 import com.fullwar.menuapp.data.repository.UsuarioRepositoryImpl
 import com.fullwar.menuapp.data.repository.PlatoRepositoryImpl
+import com.fullwar.menuapp.domain.repository.IAuthRepository
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
 import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
@@ -34,7 +35,10 @@ import com.fullwar.menuapp.presentation.features.menu.plato.seleccion.SeleccionP
 import com.fullwar.menuapp.presentation.features.menu.estilo.SeleccionEstiloViewModel
 import com.fullwar.menuapp.presentation.features.home.tabs.historial.HistorialViewModel
 import com.fullwar.menuapp.presentation.features.home.tabs.perfil.PerfilViewModel
-import com.fullwar.menuapp.presentation.features.usuario.InformacionPersonalViewModel
+import com.fullwar.menuapp.presentation.features.home.tabs.perfil.informacion_personal.InformacionPersonalViewModel
+import com.fullwar.menuapp.presentation.features.home.tabs.perfil.cambiar_contrasena.CambiarContrasenaViewModel
+import com.fullwar.menuapp.presentation.features.home.tabs.perfil.recuperar_contrasena.NuevaContrasenaViewModel
+import com.fullwar.menuapp.presentation.features.home.tabs.perfil.recuperar_contrasena.RecuperarContrasenaViewModel
 import com.fullwar.menuapp.presentation.features.login.LoginViewModel
 import com.fullwar.menuapp.presentation.features.shared.SharedViewModel
 import com.fullwar.menuapp.presentation.features.splash.SplashViewModel
@@ -52,6 +56,9 @@ val appModule = module {
     viewModelOf(::HistorialViewModel)
     viewModelOf(::PerfilViewModel)
     viewModelOf(::InformacionPersonalViewModel)
+    viewModelOf(::CambiarContrasenaViewModel)
+    viewModelOf(::RecuperarContrasenaViewModel)
+    viewModelOf(::NuevaContrasenaViewModel)
     viewModelOf(::MenuViewModel)
     viewModelOf(::EntradaViewModel)
     viewModelOf(::SeleccionEntradasViewModel)
@@ -68,8 +75,9 @@ val appModule = module {
     // AuthService usa el PublicClient de NetworkModule para llamar al AuthController del backend
     single { AuthService(get(named("PublicClient")), get()) }
 
-    // AuthRepositoryImpl implementa TokenProvider
+    // AuthRepositoryImpl implementa TokenProvider e IAuthRepository
     singleOf(::AuthRepositoryImpl) bind TokenProvider::class
+    single<IAuthRepository> { get<AuthRepositoryImpl>() }
 
     // LocationProviderImpl implementa LocationProvider
     singleOf(::LocationProviderImpl) bind LocationProvider::class

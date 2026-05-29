@@ -21,7 +21,9 @@
       "mcp__postgres-railway__read_query",
       "Bash(dotnet build *)",
       "Bash(/usr/libexec/java_home)",
-      "Bash(export JAVA_HOME=$\\(/usr/libexec/java_home || echo \"/Applications/Android Studio.app/Contents/jbr/Contents/Home\"\\))"
+      "Bash(export JAVA_HOME=$\\(/usr/libexec/java_home || echo \"/Applications/Android Studio.app/Contents/jbr/Contents/Home\"\\))",
+      "mcp__postgres-railway__write_query",
+      "Bash(dotnet add *)"
     ]
   },
   "enableAllProjectMcpServers": true,

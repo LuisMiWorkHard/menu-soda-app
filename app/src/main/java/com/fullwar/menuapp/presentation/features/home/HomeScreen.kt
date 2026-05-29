@@ -35,7 +35,8 @@ fun HomeScreen(
     onNuevoMenuClick: (dateMillis: Long, conflictoMenuId: Int?) -> Unit = { _, _ -> },
     onEditarMenuClick: (Int) -> Unit = {},
     onLogout: () -> Unit = {},
-    onVerInformacionPersonalClick: () -> Unit = {}
+    onVerInformacionPersonalClick: () -> Unit = {},
+    onCambiarContrasenaClick: () -> Unit = {}
 ) {
     SetNavigationBarColor(MaterialTheme.colorScheme.surface)
 
@@ -90,7 +91,8 @@ fun HomeScreen(
             composable(HomeTab.PERFIL.route) {
                 PerfilTab(
                     onLogout = onLogout,
-                    onPerfilUsuarioClick = onVerInformacionPersonalClick
+                    onPerfilUsuarioClick = onVerInformacionPersonalClick,
+                    onContrasenaClick = onCambiarContrasenaClick
                 )
             }
         }
