@@ -43,7 +43,10 @@ import com.fullwar.menuapp.presentation.features.home.tabs.historial.HistorialVi
 import com.fullwar.menuapp.ui.theme.*
 import com.fullwar.menuapp.ui.theme.DangerRed
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
@@ -80,7 +83,7 @@ fun HistorialTab(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 fun HistorialTabContent(
     modifier: Modifier = Modifier,
@@ -125,13 +128,13 @@ fun HistorialTabContent(
     //val filters = listOf("Hoy", "Última Semana", "Platos Principales")
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("es")) }
 
-    LaunchedEffect(searchQuery) {
-        if (searchQuery.isBlank()) {
-            onResetSearch()
-        } else {
-            delay(300)
-            onSearch(searchQuery)
-        }
+    LaunchedEffect(Unit) {
+        snapshotFlow { searchQuery }
+            .drop(1)
+            .debounce(300)
+            .collectLatest { q ->
+                if (q.isBlank()) onResetSearch() else onSearch(q)
+            }
     }
 
     val activeDateChipText = remember(selectedDateMillis, selectedStartDateMillis, selectedEndDateMillis) {

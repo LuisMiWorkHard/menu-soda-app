@@ -213,6 +213,7 @@
     <string name="recuperar_contrasena_codigo_enviado_a">Código enviado a: %1$s</string>
     <string name="recuperar_contrasena_valido_por">Código válido por %1$s</string>
     <string name="recuperar_contrasena_reenviar">Reenviar código</string>
+    <string name="recuperar_contrasena_descripcion_email">Te enviaremos un código de recuperación a %1$s</string>
 
     <!-- Nueva Contraseña Screen -->
     <string name="nueva_contrasena_titulo">Nueva contraseña</string>

@@ -60,10 +60,9 @@ class SecureCookiesStorageImpl(
         mutex.withLock {
             val list = ensureLoaded()
             val now = GMTDate()
-            // Eliminar cookies expiradas
+            val sizeBefore = list.size
             list.removeAll { it.expires?.let { exp -> exp < now } == true }
-            saveCookies(list)
-            // Retornar cookies que coincidan con el dominio de la URL
+            if (list.size != sizeBefore) saveCookies(list)
             return list.filter { cookie ->
                 val cookieDomain = cookie.domain ?: return@filter true
                 requestUrl.host.endsWith(cookieDomain) || requestUrl.host == cookieDomain

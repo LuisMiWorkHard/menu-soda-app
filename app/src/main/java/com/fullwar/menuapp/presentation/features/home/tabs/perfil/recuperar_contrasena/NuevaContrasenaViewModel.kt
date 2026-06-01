@@ -7,12 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.ApiException
-import com.fullwar.menuapp.domain.repository.IAuthRepository
+import com.fullwar.menuapp.domain.repository.IRecuperarContrasenaRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import kotlinx.coroutines.launch
 
 class NuevaContrasenaViewModel(
-    private val repo: IAuthRepository
+    private val repo: IRecuperarContrasenaRepository
 ) : ViewModel() {
 
     var nuevaContrasena by mutableStateOf("")

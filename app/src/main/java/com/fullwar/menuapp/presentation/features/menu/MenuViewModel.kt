@@ -36,10 +36,10 @@ class MenuViewModel(private val repo: IMenuDiarioRepository) : ViewModel() {
 
     // IDs de entradas y platos del menú a editar; se usan para seleccionarlos
     // desde los listados completos de la API una vez que cargan.
-    var preSelectedEntradasIds by mutableStateOf<Set<Int>>(emptySet())
+    var preSelectedEntradasIds by mutableStateOf<List<Int>>(emptyList())
         private set
 
-    var preSelectedPlatosIds by mutableStateOf<Set<Int>>(emptySet())
+    var preSelectedPlatosIds by mutableStateOf<List<Int>>(emptyList())
         private set
 
     var isLoadingMenuDetail by mutableStateOf(false)
@@ -65,8 +65,8 @@ class MenuViewModel(private val repo: IMenuDiarioRepository) : ViewModel() {
         menuId = id
         selectedEntradas = emptyList()
         selectedPlatosFuertes = emptyList()
-        preSelectedEntradasIds = emptySet()
-        preSelectedPlatosIds = emptySet()
+        preSelectedEntradasIds = emptyList()
+        preSelectedPlatosIds = emptyList()
         preSelectedImagenId = null
         showSugerencias = false
         loadMenuDetail(id)
@@ -84,8 +84,8 @@ class MenuViewModel(private val repo: IMenuDiarioRepository) : ViewModel() {
             runCatching { repo.getMenuDiarioById(id) }
                 .onSuccess { detail ->
                     preSelectedImagenId = detail.imagen?.menuImagenId
-                    preSelectedEntradasIds = detail.entradas.map { it.entradaId }.toSet()
-                    preSelectedPlatosIds = detail.platos.map { it.platoId }.toSet()
+                    preSelectedEntradasIds = detail.entradas.map { it.entradaId }
+                    preSelectedPlatosIds = detail.platos.map { it.platoId }
                     menuDateLabel = runCatching {
                         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                         val display = SimpleDateFormat("EEE|dd|MMM", Locale("es"))
@@ -127,4 +127,24 @@ class MenuViewModel(private val repo: IMenuDiarioRepository) : ViewModel() {
     fun hideSugerencias() {
         showSugerencias = false
     }
+
+    // --- Coordinación del paso activo ---
+    // Cada destino del NavHost registra handlers y proyecta su loading aquí
+    // para que MenuScreen no necesite referenciar los ViewModels de paso.
+
+    var currentStepLoading by mutableStateOf(false)
+        private set
+
+    var isSiguienteEnabledForCurrentStep by mutableStateOf(true)
+        private set
+
+    private var onRefreshCurrentStep: (() -> Unit)? = null
+    private var onFinalizeCurrentStep: (() -> Unit)? = null
+
+    fun updateStepLoading(loading: Boolean) { currentStepLoading = loading }
+    fun updateSiguienteEnabled(enabled: Boolean) { isSiguienteEnabledForCurrentStep = enabled }
+    fun registerRefreshHandler(handler: (() -> Unit)?) { onRefreshCurrentStep = handler }
+    fun registerFinalizeHandler(handler: (() -> Unit)?) { onFinalizeCurrentStep = handler }
+    fun refreshCurrentStep() { onRefreshCurrentStep?.invoke() }
+    fun finalizeCurrentStep() { onFinalizeCurrentStep?.invoke() }
 }

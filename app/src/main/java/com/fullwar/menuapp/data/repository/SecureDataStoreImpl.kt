@@ -62,17 +62,13 @@ class SecureDataStoreImpl(private val context: Context) : SecureStorageProvider 
     }
 
     override suspend fun getString(key: String): String? = withContext(Dispatchers.IO) {
-        val startTime = System.currentTimeMillis()
         try {
             val prefKey = stringPreferencesKey(key)
             val encryptedValue = context.secureDataStore.data
                 .map { preferences -> preferences[prefKey] }
                 .first()
 
-            val result = encryptedValue?.let { decrypt(it) }
-            val elapsed = System.currentTimeMillis() - startTime
-            Log.d(TAG, "getString('$key') took ${elapsed}ms")
-            result
+            encryptedValue?.let { decrypt(it) }
         } catch (e: Exception) {
             Log.e(TAG, "Error getting string for key '$key': ${e.message}", e)
             null
@@ -81,7 +77,6 @@ class SecureDataStoreImpl(private val context: Context) : SecureStorageProvider 
 
     override suspend fun putString(key: String, value: String) {
         withContext(Dispatchers.IO) {
-            val startTime = System.currentTimeMillis()
             try {
                 val prefKey = stringPreferencesKey(key)
                 val encryptedValue = encrypt(value)
@@ -89,9 +84,6 @@ class SecureDataStoreImpl(private val context: Context) : SecureStorageProvider 
                 context.secureDataStore.edit { preferences ->
                     preferences[prefKey] = encryptedValue
                 }
-
-                val elapsed = System.currentTimeMillis() - startTime
-                Log.d(TAG, "putString('$key') took ${elapsed}ms")
             } catch (e: Exception) {
                 Log.e(TAG, "Error putting string for key '$key': ${e.message}", e)
                 throw e
@@ -106,7 +98,6 @@ class SecureDataStoreImpl(private val context: Context) : SecureStorageProvider 
                 context.secureDataStore.edit { preferences ->
                     preferences.remove(prefKey)
                 }
-                Log.d(TAG, "remove('$key') completed")
             } catch (e: Exception) {
                 Log.e(TAG, "Error removing key '$key': ${e.message}", e)
                 throw e

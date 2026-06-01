@@ -6,9 +6,6 @@ import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import com.fullwar.menuapp.data.datasource.remote.AuthService
 import com.fullwar.menuapp.data.model.LoginRequestDto
 import com.fullwar.menuapp.data.model.LoginResponseDto
-import com.fullwar.menuapp.data.model.RestablecerContrasenaRecuperacionRequestDto
-import com.fullwar.menuapp.data.model.VerificarCodigoRecuperacionRequestDto
-import com.fullwar.menuapp.domain.repository.IAuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -16,7 +13,7 @@ class AuthRepositoryImpl(
     private val authService: AuthService,
     private val secureStorage: SecureStorageProvider,
     private val cookiesStorage: SecureCookiesStorageImpl
-) : TokenProvider, IAuthRepository {
+) : TokenProvider {
 
     companion object {
         private const val TAG = "AuthRepositoryImpl"
@@ -103,27 +100,6 @@ class AuthRepositoryImpl(
         }
         Log.d(TAG, "clearLocalSession completed")
     }
-
-    override suspend fun enviarCodigoRecuperacion(): String =
-        withContext(Dispatchers.IO) {
-            val token = cachedToken ?: throw IllegalStateException("No hay sesión activa.")
-            authService.enviarCodigoRecuperacion(token).emailMasked
-        }
-
-    override suspend fun verificarCodigoRecuperacion(codigo: String) =
-        withContext(Dispatchers.IO) {
-            val token = cachedToken ?: throw IllegalStateException("No hay sesión activa.")
-            authService.verificarCodigoRecuperacion(token, VerificarCodigoRecuperacionRequestDto(codigo))
-        }
-
-    override suspend fun restablecerContrasenaRecuperacion(nuevaContrasena: String, confirmarContrasena: String) =
-        withContext(Dispatchers.IO) {
-            val token = cachedToken ?: throw IllegalStateException("No hay sesión activa.")
-            authService.restablecerContrasenaRecuperacion(
-                token,
-                RestablecerContrasenaRecuperacionRequestDto(nuevaContrasena, confirmarContrasena)
-            )
-        }
 
     suspend fun logoutAsync() {
         try {

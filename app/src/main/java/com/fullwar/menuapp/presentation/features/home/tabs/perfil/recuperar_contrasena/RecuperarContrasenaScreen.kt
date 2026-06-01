@@ -94,6 +94,7 @@ fun RecuperarContrasenaScreen(
         verificarState   = viewModel.verificarState,
         codigo           = viewModel.codigo,
         tiempoRestante   = viewModel.tiempoRestante,
+        emailMasked      = viewModel.emailMasked,
         onEnviarCodigo   = viewModel::enviarCodigo,
         onDigitChange    = viewModel::onDigitChange,
         onReenviarCodigo = viewModel::reenviarCodigo,
@@ -109,6 +110,7 @@ private fun RecuperarContrasenaContent(
     verificarState: State<Unit> = State.Initial,
     codigo: List<String> = listOf("", "", "", ""),
     tiempoRestante: Int = 0,
+    emailMasked: String = "",
     onEnviarCodigo: () -> Unit = {},
     onDigitChange: (Int, String) -> Unit = { _, _ -> },
     onReenviarCodigo: () -> Unit = {},
@@ -184,12 +186,13 @@ private fun RecuperarContrasenaContent(
 
             Spacer(modifier = Modifier.height(SpacingSmall))
 
-            val emailMasked = (enviarState as? State.Success)?.data ?: ""
+            val emailEtapa1 = (enviarState as? State.Success)?.data ?: emailMasked
             Text(
-                text = if (codigoEnviado)
-                    stringResource(id = R.string.recuperar_contrasena_codigo_enviado_a, emailMasked)
-                else
-                    stringResource(id = R.string.recuperar_contrasena_descripcion),
+                text = when {
+                    codigoEnviado            -> stringResource(R.string.recuperar_contrasena_codigo_enviado_a, emailEtapa1)
+                    emailMasked.isNotEmpty() -> stringResource(R.string.recuperar_contrasena_descripcion_email, emailMasked)
+                    else                     -> stringResource(R.string.recuperar_contrasena_descripcion)
+                },
                 fontSize = TextSizeSmall,
                 color = HeavyGray,
                 textAlign = TextAlign.Center
@@ -200,7 +203,7 @@ private fun RecuperarContrasenaContent(
             if (!codigoEnviado) {
                 // — Etapa 1: Botón enviar código —
                 Button(
-                    onClick = onEnviarCodigo,
+                onClick = onEnviarCodigo,
                     enabled = !isEnviando,
                     modifier = Modifier
                         .fillMaxWidth()

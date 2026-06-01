@@ -4,6 +4,7 @@ import com.fullwar.menuapp.data.datasource.local.LocationProvider
 import com.fullwar.menuapp.data.datasource.local.SecureStorageProvider
 import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import com.fullwar.menuapp.data.datasource.remote.AuthService
+import com.fullwar.menuapp.data.datasource.remote.RecuperarContrasenaService
 import com.fullwar.menuapp.data.datasource.remote.EntradaService
 import com.fullwar.menuapp.data.datasource.remote.ImagenService
 import com.fullwar.menuapp.data.datasource.remote.MenuDiarioService
@@ -12,6 +13,7 @@ import com.fullwar.menuapp.data.datasource.remote.UsuarioService
 import com.fullwar.menuapp.data.datasource.remote.PlatoService
 import com.fullwar.menuapp.data.datasource.remote.TipoEntradaService
 import com.fullwar.menuapp.data.datasource.remote.TipoPlatoService
+import com.fullwar.menuapp.data.repository.RecuperarContrasenaRepositoryImpl
 import com.fullwar.menuapp.data.repository.SecureDataStoreImpl
 import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
 import com.fullwar.menuapp.data.repository.EntradaRepositoryImpl
@@ -19,7 +21,7 @@ import com.fullwar.menuapp.data.repository.MenuDiarioRepositoryImpl
 import com.fullwar.menuapp.data.repository.MenuImagenRepositoryImpl
 import com.fullwar.menuapp.data.repository.UsuarioRepositoryImpl
 import com.fullwar.menuapp.data.repository.PlatoRepositoryImpl
-import com.fullwar.menuapp.domain.repository.IAuthRepository
+import com.fullwar.menuapp.domain.repository.IRecuperarContrasenaRepository
 import com.fullwar.menuapp.domain.repository.IEntradaRepository
 import com.fullwar.menuapp.domain.repository.IMenuDiarioRepository
 import com.fullwar.menuapp.domain.repository.IMenuImagenRepository
@@ -72,12 +74,17 @@ val appModule = module {
     // Almacenamiento persistente de cookies (refresh token)
     single { SecureCookiesStorageImpl(get()) }
 
-    // AuthService usa el PublicClient de NetworkModule para llamar al AuthController del backend
+    // AuthService usa el PublicClient (login / refresh / logout — sin Bearer)
     single { AuthService(get(named("PublicClient")), get()) }
 
-    // AuthRepositoryImpl implementa TokenProvider e IAuthRepository
+    // RecuperarContrasenaService usa el AuthClient para que el interceptor de 401 gestione refresh/logout
+    single { RecuperarContrasenaService(get(named("AuthClient")), get()) }
+
+    // AuthRepositoryImpl implementa TokenProvider
     singleOf(::AuthRepositoryImpl) bind TokenProvider::class
-    single<IAuthRepository> { get<AuthRepositoryImpl>() }
+
+    // RecuperarContrasenaRepositoryImpl usa AuthClient vía RecuperarContrasenaService (sin ciclo)
+    singleOf(::RecuperarContrasenaRepositoryImpl) bind IRecuperarContrasenaRepository::class
 
     // LocationProviderImpl implementa LocationProvider
     singleOf(::LocationProviderImpl) bind LocationProvider::class

@@ -10,22 +10,14 @@ import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import okio.Path.Companion.toOkioPath
 import com.fullwar.menuapp.data.datasource.local.TokenProvider
-import com.fullwar.menuapp.data.repository.AuthRepositoryImpl
 import com.fullwar.menuapp.di.appModule
 import com.fullwar.menuapp.di.networkModule
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext.startKoin
 import org.koin.java.KoinJavaComponent.get
 
 class MainApplication : Application(), SingletonImageLoader.Factory {
-
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onCreate() {
         super.onCreate()
@@ -57,7 +49,7 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
                     callFactory = {
                         OkHttpClient.Builder()
                             .addInterceptor { chain ->
-                                val token = runBlocking { tokenProvider.getToken() }
+                                val token = tokenProvider.getToken()
                                 val request = chain.request().newBuilder()
                                     .header("DeviceId", deviceId)
                                     .apply { token?.let { header("Authorization", "Bearer $it") } }

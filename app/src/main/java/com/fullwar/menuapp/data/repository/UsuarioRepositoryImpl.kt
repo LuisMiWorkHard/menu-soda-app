@@ -5,18 +5,22 @@ import com.fullwar.menuapp.data.model.CambiarContrasenaRequestDto
 import com.fullwar.menuapp.data.model.UsuarioResponseDto
 import com.fullwar.menuapp.domain.repository.IUsuarioRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 class UsuarioRepositoryImpl(
     private val usuarioService: UsuarioService
 ) : IUsuarioRepository {
 
-    private var cachedUsuario: UsuarioResponseDto? = null
+    private val mutex = Mutex()
+    @Volatile private var cachedUsuario: UsuarioResponseDto? = null
 
-    override suspend fun getUsuario(): UsuarioResponseDto =
-        withContext(Dispatchers.IO) {
+    override suspend fun getUsuario(): UsuarioResponseDto = withContext(Dispatchers.IO) {
+        cachedUsuario ?: mutex.withLock {
             cachedUsuario ?: usuarioService.getUsuario().also { cachedUsuario = it }
         }
+    }
 
     override suspend fun cambiarContrasena(request: CambiarContrasenaRequestDto) =
         withContext(Dispatchers.IO) { usuarioService.cambiarContrasena(request) }

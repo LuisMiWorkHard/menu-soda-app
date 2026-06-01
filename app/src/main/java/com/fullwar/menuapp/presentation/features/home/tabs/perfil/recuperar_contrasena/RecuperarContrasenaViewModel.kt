@@ -8,14 +8,16 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullwar.menuapp.data.model.ApiException
-import com.fullwar.menuapp.domain.repository.IAuthRepository
+import com.fullwar.menuapp.domain.repository.IRecuperarContrasenaRepository
+import com.fullwar.menuapp.domain.repository.IUsuarioRepository
 import com.fullwar.menuapp.presentation.common.utils.State
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class RecuperarContrasenaViewModel(
-    private val repo: IAuthRepository
+    private val repo: IRecuperarContrasenaRepository,
+    private val usuarioRepo: IUsuarioRepository
 ) : ViewModel() {
 
     var enviarState by mutableStateOf<State<String>>(State.Initial)
@@ -24,12 +26,38 @@ class RecuperarContrasenaViewModel(
     var verificarState by mutableStateOf<State<Unit>>(State.Initial)
         private set
 
+    var emailMasked by mutableStateOf("")
+        private set
+
     val codigo = mutableStateListOf("", "", "", "")
 
     var tiempoRestante by mutableIntStateOf(0)
         private set
 
     private var countdownJob: Job? = null
+
+    init { cargarEmail() }
+
+    private fun cargarEmail() {
+        viewModelScope.launch {
+            try {
+                val usuario = usuarioRepo.getUsuario()
+                emailMasked = maskEmail(usuario.email)
+            } catch (_: Exception) { }
+        }
+    }
+
+    private fun maskEmail(email: String): String {
+        val parts = email.split("@")
+        if (parts.size != 2) return "****"
+        val local = parts[0]
+        val masked = when {
+            local.length <= 2 -> "*".repeat(local.length)
+            local.length <= 6 -> "${local.first()}${"*".repeat(local.length - 2)}${local.last()}"
+            else              -> "${local.take(3)}${"*".repeat(local.length - 6)}${local.takeLast(3)}"
+        }
+        return "$masked@${parts[1]}"
+    }
 
     fun enviarCodigo() {
         viewModelScope.launch {

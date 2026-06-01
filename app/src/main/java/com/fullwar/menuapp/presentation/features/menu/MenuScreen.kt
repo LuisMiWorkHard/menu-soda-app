@@ -38,6 +38,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -119,48 +120,12 @@ fun MenuScreen(
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val menuViewModel: MenuViewModel = koinViewModel()
 
-    val entradaViewModel: EntradaViewModel = koinViewModel()
-    val seleccionEntradasViewModel: SeleccionEntradasViewModel = koinViewModel()
-    val platoViewModel: PlatoViewModel = koinViewModel()
-    val seleccionPlatosFondoViewModel: SeleccionPlatosFondoViewModel = koinViewModel()
-    val pasoEstiloViewModel: SeleccionEstiloViewModel = koinViewModel()
-
     LaunchedEffect(menuId) {
-        menuId?.let {
-            menuViewModel.initEditMode(it)
-            pasoEstiloViewModel.clearSelectedImagen()
-        }
+        menuId?.let { menuViewModel.initEditMode(it) }
     }
 
     LaunchedEffect(selectedDate) { selectedDate?.let { menuViewModel.setSelectedDate(it) } }
     LaunchedEffect(conflictoMenuId) { conflictoMenuId?.let { menuViewModel.setConflictoMenuId(it) } }
-
-    // Pre-selección centralizada para modo edición
-    LaunchedEffect(seleccionEntradasViewModel.entradasState, menuViewModel.preSelectedEntradasIds) {
-        val state = seleccionEntradasViewModel.entradasState
-        if (state !is State.Success) return@LaunchedEffect
-        val ids = menuViewModel.preSelectedEntradasIds
-        if (ids.isEmpty() || menuViewModel.selectedEntradas.isNotEmpty()) return@LaunchedEffect
-        state.data.filter { it.id in ids }.takeIf { it.isNotEmpty() }
-            ?.let { menuViewModel.updateEntradas(it) }
-    }
-
-    LaunchedEffect(seleccionPlatosFondoViewModel.platosState, menuViewModel.preSelectedPlatosIds) {
-        val state = seleccionPlatosFondoViewModel.platosState
-        if (state !is State.Success) return@LaunchedEffect
-        val ids = menuViewModel.preSelectedPlatosIds
-        if (ids.isEmpty() || menuViewModel.selectedPlatosFuertes.isNotEmpty()) return@LaunchedEffect
-        state.data.filter { it.id in ids }.takeIf { it.isNotEmpty() }
-            ?.let { menuViewModel.updatePlatosFuertes(it) }
-    }
-
-    LaunchedEffect(pasoEstiloViewModel.imagenesState, menuViewModel.preSelectedImagenId) {
-        val state = pasoEstiloViewModel.imagenesState
-        if (state !is State.Success) return@LaunchedEffect
-        val preId = menuViewModel.preSelectedImagenId ?: return@LaunchedEffect
-        if (pasoEstiloViewModel.selectedImagenId != null) return@LaunchedEffect
-        if (state.data.any { it.id == preId }) pasoEstiloViewModel.selectImagen(preId)
-    }
 
     var isExpanded by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
@@ -187,36 +152,16 @@ fun MenuScreen(
         else -> 0
     }
 
-    LaunchedEffect(
-        currentStep,
-        seleccionEntradasViewModel.entradasState,
-        seleccionPlatosFondoViewModel.platosState,
-        pasoEstiloViewModel.imagenesState
-    ) {
-        if (!isRefreshing) return@LaunchedEffect
-        val done = when (currentStep) {
-            1 -> seleccionEntradasViewModel.entradasState.let { it !is State.Loading && it !is State.Initial }
-            2 -> seleccionPlatosFondoViewModel.platosState.let { it !is State.Loading && it !is State.Initial }
-            3 -> pasoEstiloViewModel.imagenesState.let { it !is State.Loading && it !is State.Initial }
-            else -> true
-        }
-        if (done) isRefreshing = false
+    LaunchedEffect(menuViewModel.currentStepLoading) {
+        if (!menuViewModel.currentStepLoading && isRefreshing) isRefreshing = false
     }
 
     val onRefresh: () -> Unit = {
         isRefreshing = true
-        when (currentStep) {
-            1 -> seleccionEntradasViewModel.loadEntradas()
-            2 -> seleccionPlatosFondoViewModel.loadPlatos()
-            3 -> pasoEstiloViewModel.loadImagenes()
-        }
+        menuViewModel.refreshCurrentStep()
     }
 
-    val isSiguienteEnabled = when (currentStep) {
-        3 -> pasoEstiloViewModel.selectedImagenId != null &&
-                pasoEstiloViewModel.saveState !is SaveUiState.Loading
-        else -> true
-    }
+    val isSiguienteEnabled = menuViewModel.isSiguienteEnabledForCurrentStep
 
     val fechaLabel = menuViewModel.menuDateLabel
         ?: menuViewModel.selectedDateMillis?.let { formatMenuFechaLabel(it) }
@@ -256,7 +201,7 @@ fun MenuScreen(
                         showValidacionMenuDialog = true
                     }
                 }
-                3 -> pasoEstiloViewModel.onFinalizarClicked()
+                3 -> menuViewModel.finalizeCurrentStep()
             }
         },
         bottomSheetContent = {
@@ -287,7 +232,32 @@ fun MenuScreen(
             startDestination = MenuRoute.Entradas.route,
             modifier = Modifier.fillMaxSize()
         ) {
-            composable(MenuRoute.Entradas.route) {
+            composable(MenuRoute.Entradas.route) { backStackEntry ->
+                val seleccionEntradasViewModel: SeleccionEntradasViewModel =
+                    koinViewModel(viewModelStoreOwner = backStackEntry)
+                val entradaViewModel: EntradaViewModel =
+                    koinViewModel(viewModelStoreOwner = backStackEntry)
+
+                LaunchedEffect(seleccionEntradasViewModel.entradasState, menuViewModel.preSelectedEntradasIds) {
+                    val state = seleccionEntradasViewModel.entradasState
+                    if (state !is State.Success) return@LaunchedEffect
+                    val ids = menuViewModel.preSelectedEntradasIds
+                    if (ids.isEmpty() || menuViewModel.selectedEntradas.isNotEmpty()) return@LaunchedEffect
+                    val byId = state.data.associateBy { it.id }
+                    val ordered = ids.mapNotNull { byId[it] }
+                    if (ordered.isNotEmpty()) menuViewModel.updateEntradas(ordered)
+                }
+
+                LaunchedEffect(seleccionEntradasViewModel.entradasState) {
+                    val st = seleccionEntradasViewModel.entradasState
+                    menuViewModel.updateStepLoading(st is State.Loading || st is State.Initial)
+                }
+
+                DisposableEffect(Unit) {
+                    menuViewModel.registerRefreshHandler { seleccionEntradasViewModel.loadEntradas() }
+                    onDispose { menuViewModel.registerRefreshHandler(null) }
+                }
+
                 val detailError = menuViewModel.menuDetailError
                 when {
                     menuViewModel.isEditMode && menuViewModel.isLoadingMenuDetail ->
@@ -305,7 +275,32 @@ fun MenuScreen(
                     )
                 }
             }
-            composable(MenuRoute.PlatosFondo.route) {
+            composable(MenuRoute.PlatosFondo.route) { backStackEntry ->
+                val seleccionPlatosFondoViewModel: SeleccionPlatosFondoViewModel =
+                    koinViewModel(viewModelStoreOwner = backStackEntry)
+                val platoViewModel: PlatoViewModel =
+                    koinViewModel(viewModelStoreOwner = backStackEntry)
+
+                LaunchedEffect(seleccionPlatosFondoViewModel.platosState, menuViewModel.preSelectedPlatosIds) {
+                    val state = seleccionPlatosFondoViewModel.platosState
+                    if (state !is State.Success) return@LaunchedEffect
+                    val ids = menuViewModel.preSelectedPlatosIds
+                    if (ids.isEmpty() || menuViewModel.selectedPlatosFuertes.isNotEmpty()) return@LaunchedEffect
+                    val byId = state.data.associateBy { it.id }
+                    val ordered = ids.mapNotNull { byId[it] }
+                    if (ordered.isNotEmpty()) menuViewModel.updatePlatosFuertes(ordered)
+                }
+
+                LaunchedEffect(seleccionPlatosFondoViewModel.platosState) {
+                    val st = seleccionPlatosFondoViewModel.platosState
+                    menuViewModel.updateStepLoading(st is State.Loading || st is State.Initial)
+                }
+
+                DisposableEffect(Unit) {
+                    menuViewModel.registerRefreshHandler { seleccionPlatosFondoViewModel.loadPlatos() }
+                    onDispose { menuViewModel.registerRefreshHandler(null) }
+                }
+
                 val detailError = menuViewModel.menuDetailError
                 when {
                     menuViewModel.isEditMode && menuViewModel.isLoadingMenuDetail ->
@@ -323,7 +318,43 @@ fun MenuScreen(
                     )
                 }
             }
-            composable(MenuRoute.Estilo.route) {
+            composable(MenuRoute.Estilo.route) { backStackEntry ->
+                val pasoEstiloViewModel: SeleccionEstiloViewModel =
+                    koinViewModel(viewModelStoreOwner = backStackEntry)
+
+                LaunchedEffect(Unit) { pasoEstiloViewModel.clearSelectedImagen() }
+
+                LaunchedEffect(pasoEstiloViewModel.imagenesState, menuViewModel.preSelectedImagenId) {
+                    val state = pasoEstiloViewModel.imagenesState
+                    if (state !is State.Success) return@LaunchedEffect
+                    val preId = menuViewModel.preSelectedImagenId ?: return@LaunchedEffect
+                    if (pasoEstiloViewModel.selectedImagenId != null) return@LaunchedEffect
+                    if (state.data.any { it.id == preId }) pasoEstiloViewModel.selectImagen(preId)
+                }
+
+                LaunchedEffect(
+                    pasoEstiloViewModel.imagenesState,
+                    pasoEstiloViewModel.selectedImagenId,
+                    pasoEstiloViewModel.saveState
+                ) {
+                    val st = pasoEstiloViewModel.imagenesState
+                    menuViewModel.updateStepLoading(st is State.Loading || st is State.Initial)
+                    menuViewModel.updateSiguienteEnabled(
+                        pasoEstiloViewModel.selectedImagenId != null &&
+                            pasoEstiloViewModel.saveState !is SaveUiState.Loading
+                    )
+                }
+
+                DisposableEffect(Unit) {
+                    menuViewModel.registerRefreshHandler { pasoEstiloViewModel.loadImagenes() }
+                    menuViewModel.registerFinalizeHandler { pasoEstiloViewModel.onFinalizarClicked() }
+                    onDispose {
+                        menuViewModel.registerRefreshHandler(null)
+                        menuViewModel.registerFinalizeHandler(null)
+                        menuViewModel.updateSiguienteEnabled(true)
+                    }
+                }
+
                 val detailError = menuViewModel.menuDetailError
                 when {
                     menuViewModel.isEditMode && menuViewModel.isLoadingMenuDetail ->

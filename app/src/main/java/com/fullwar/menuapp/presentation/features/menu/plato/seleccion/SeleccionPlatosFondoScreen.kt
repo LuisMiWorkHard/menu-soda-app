@@ -110,11 +110,14 @@ fun SeleccionPlatosFondoScreen(
                 pendingAutoSelectNombre = null
             }
         }
-        val newIds = platosState.data.map { it.id }.toSet()
-        val removed = menuViewModel.selectedPlatosFuertes.filter { it.id !in newIds }
-        if (removed.isNotEmpty()) {
-            menuViewModel.updatePlatosFuertes(menuViewModel.selectedPlatosFuertes - removed.toSet())
-            Toast.makeText(context, toastElementosNoDisponibles, Toast.LENGTH_LONG).show()
+        val freshById = platosState.data.associateBy { it.id }
+        val current = menuViewModel.selectedPlatosFuertes
+        val patched = current.mapNotNull { freshById[it.id] }
+        if (patched != current) {
+            menuViewModel.updatePlatosFuertes(patched)
+            if (patched.size < current.size) {
+                Toast.makeText(context, toastElementosNoDisponibles, Toast.LENGTH_LONG).show()
+            }
         }
     }
 

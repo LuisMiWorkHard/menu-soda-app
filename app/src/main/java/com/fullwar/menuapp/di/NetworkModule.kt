@@ -2,6 +2,7 @@ package com.fullwar.menuapp.di
 
 import android.content.Context
 import android.provider.Settings
+import com.fullwar.menuapp.BuildConfig
 import com.fullwar.menuapp.data.datasource.local.TokenProvider
 import com.fullwar.menuapp.data.model.ApiErrorResponseDto
 import com.fullwar.menuapp.data.model.ApiException
@@ -43,7 +44,7 @@ val networkModule = module {
         HttpClient(Android) {
             install(Logging) {
                 logger = Logger.SIMPLE
-                level = LogLevel.ALL
+                level = if (BuildConfig.DEBUG) LogLevel.INFO else LogLevel.NONE
             }
             install(ContentNegotiation) {
                 json(Json {
@@ -102,7 +103,7 @@ val networkModule = module {
         HttpClient(Android) {
             install(Logging) {
                 logger = Logger.SIMPLE
-                level = LogLevel.ALL
+                level = if (BuildConfig.DEBUG) LogLevel.INFO else LogLevel.NONE
             }
             install(ContentNegotiation) {
                 json(Json {

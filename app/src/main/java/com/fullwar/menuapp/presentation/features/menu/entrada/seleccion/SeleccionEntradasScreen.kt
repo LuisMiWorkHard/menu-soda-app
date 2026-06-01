@@ -107,11 +107,14 @@ fun SeleccionEntradasScreen(
                 pendingAutoSelectNombre = null
             }
         }
-        val newIds = entradasState.data.map { it.id }.toSet()
-        val removed = menuViewModel.selectedEntradas.filter { it.id !in newIds }
-        if (removed.isNotEmpty()) {
-            menuViewModel.updateEntradas(menuViewModel.selectedEntradas - removed.toSet())
-            Toast.makeText(context, toastElementosNoDisponibles, Toast.LENGTH_LONG).show()
+        val freshById = entradasState.data.associateBy { it.id }
+        val current = menuViewModel.selectedEntradas
+        val patched = current.mapNotNull { freshById[it.id] }
+        if (patched != current) {
+            menuViewModel.updateEntradas(patched)
+            if (patched.size < current.size) {
+                Toast.makeText(context, toastElementosNoDisponibles, Toast.LENGTH_LONG).show()
+            }
         }
     }
 
