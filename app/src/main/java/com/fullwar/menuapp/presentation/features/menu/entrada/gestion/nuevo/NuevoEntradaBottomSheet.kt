@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.TextFieldValue
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.EntradaCreateResponseDto
 import com.fullwar.menuapp.data.model.EntradaResponseDto
@@ -24,6 +25,7 @@ import com.fullwar.menuapp.ui.theme.MenuAppTheme
 @Composable
 fun NuevaEntradaBottomSheet(
     viewModel: EntradaViewModel,
+    initialNombre: String = "",
     onDismiss: () -> Unit,
     onSuccess: () -> Unit,
     onSelectExisting: ((EntradaResponseDto) -> Unit)? = null
@@ -33,6 +35,9 @@ fun NuevaEntradaBottomSheet(
 
     LaunchedEffect(Unit) {
         viewModel.initForCreate()
+        if (initialNombre.isNotBlank()) {
+            viewModel.updateField("entnom", TextFieldValue(initialNombre))
+        }
     }
 
     LaunchedEffect(createState) {

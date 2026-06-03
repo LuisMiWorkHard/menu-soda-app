@@ -2,10 +2,10 @@ package com.fullwar.menuapp.presentation.features.menu.entrada.seleccion
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,8 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -34,7 +33,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import com.fullwar.menuapp.R
 import com.fullwar.menuapp.data.model.*
 import com.fullwar.menuapp.di.Constants
@@ -55,8 +53,11 @@ import com.fullwar.menuapp.presentation.features.menu.entrada.gestion.shared.Ent
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import com.fullwar.menuapp.ui.theme.*
 import kotlinx.coroutines.delay
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 data class SugerenciaItem(
     val nombre: String,
@@ -143,6 +144,7 @@ fun SeleccionEntradasScreen(
     if (showBottomSheet) {
         NuevaEntradaBottomSheet(
             viewModel = entradaViewModel,
+            initialNombre = searchQuery,
             onDismiss = {
                 entradaViewModel.resetForm()
                 showBottomSheet = false
@@ -280,7 +282,6 @@ fun SeleccionEntradasScreen(
                                     onClick = {
                                         entradaViewModel.loadTiposEntrada()
                                         entradaViewModel.initForCreate()
-                                        entradaViewModel.updateField("entnom", TextFieldValue(searchQuery))
                                         showBottomSheet = true
                                     }
                                 )
@@ -333,7 +334,6 @@ fun SeleccionEntradasScreen(
                                     onClick = {
                                         entradaViewModel.loadTiposEntrada()
                                         entradaViewModel.initForCreate()
-                                        entradaViewModel.updateField("entnom", TextFieldValue(searchQuery))
                                         showBottomSheet = true
                                     }
                                 )
@@ -367,118 +367,91 @@ fun SelectedEntradasBottomSheetContent(
     onRemove: (EntradaResponseDto) -> Unit,
     onMove: (Int, Int) -> Unit
 ) {
-    // Estado para seguir el desplazamiento del ítem arrastrado
-    var draggedItemIndex by remember { mutableStateOf<Int?>(null) }
-    var draggingOffset by remember { mutableFloatStateOf(0f) }
-    val listSize by rememberUpdatedState(entradas.size)
+    val lazyListState = rememberLazyListState()
+    val haptic = LocalHapticFeedback.current
+    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        // Los ítems arrastrables ocupan los índices 0..n-1; el Spacer final no es
+        // ReorderableItem, así que from.index/to.index mapean directo a la lista.
+        onMove(from.index, to.index)
+        haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+    }
 
     LazyColumn(
+        state = lazyListState,
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(max = ListMaxHeight)
             .padding(horizontal = SpacingLarge),
         verticalArrangement = Arrangement.spacedBy(SpacingSmall)
     ) {
-        itemsIndexed(entradas, key = { _, entrada -> entrada.id }) { index, entrada ->
-            // Usar rememberUpdatedState para asegurar que las lambdas capturen el índice actual
-            val currentIndexState by rememberUpdatedState(index)
-            val isDragging = draggedItemIndex == currentIndexState
-            
-            Surface(
-                shape = RoundedCornerShape(CornerRadiusMedium),
-                color = if (isDragging) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
-                tonalElevation = if (isDragging) SpacingSmall else 0.dp,
-                border = androidx.compose.foundation.BorderStroke(
-                    StrokeWidthThin,
-                    if (isDragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .zIndex(if (isDragging) 1f else 0f)
-                    .graphicsLayer {
-                        translationY = if (isDragging) draggingOffset else 0f
-                        scaleX = if (isDragging) 1.02f else 1.0f
-                        scaleY = if (isDragging) 1.02f else 1.0f
-                    }
-            ) {
-                Row(
-                    modifier = Modifier.padding(SpacingSmall),
-                    verticalAlignment = Alignment.CenterVertically
+        itemsIndexed(entradas, key = { _, entrada -> entrada.id }) { _, entrada ->
+            ReorderableItem(reorderableState, key = entrada.id) { isDragging ->
+                Surface(
+                    shape = RoundedCornerShape(CornerRadiusMedium),
+                    color = if (isDragging) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
+                    tonalElevation = if (isDragging) SpacingSmall else 0.dp,
+                    shadowElevation = if (isDragging) SpacingSmall else 0.dp,
+                    border = BorderStroke(
+                        StrokeWidthThin,
+                        if (isDragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    CustomImageView(
-                        imageUrl = entrada.imagenId?.let { "${Constants.BASE_URL}/api/imagen/$it/contenido" },
-                        modifier = Modifier.size(Spacing3XLarge)
-                    )
-                    Spacer(modifier = Modifier.width(SpacingMedium))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = entrada.nombre.toSmartUpperCase(),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = TextSizeXSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = entrada.descripcion.toSmartUpperCase(),
-                            fontSize = TextSizeXXSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                    
-                    // Manija de Arrastre (Drag Handle)
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .pointerInput(entrada.id) {
-                                detectDragGesturesAfterLongPress(
-                                    onDragStart = { draggedItemIndex = currentIndexState },
-                                    onDrag = { change, dragAmount ->
-                                        change.consume()
-                                        draggingOffset += dragAmount.y
-                                        
-                                        val activeIndex = draggedItemIndex ?: currentIndexState
-                                        val threshold = 50f
-                                        
-                                        val targetIndex = when {
-                                            draggingOffset > threshold && activeIndex < listSize - 1 -> activeIndex + 1
-                                            draggingOffset < -threshold && activeIndex > 0 -> activeIndex - 1
-                                            else -> null
-                                        }
-                                        
-                                        if (targetIndex != null) {
-                                            onMove(activeIndex, targetIndex)
-                                            draggedItemIndex = targetIndex
-                                            draggingOffset += if (targetIndex > activeIndex) -threshold else threshold
-                                        }
-                                    },
-                                    onDragEnd = {
-                                        draggedItemIndex = null
-                                        draggingOffset = 0f
-                                    },
-                                    onDragCancel = {
-                                        draggedItemIndex = null
-                                        draggingOffset = 0f
-                                    }
-                                )
-                            },
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier.padding(SpacingSmall),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.DragHandle,
-                            contentDescription = "Arrastrar",
-                            tint = if (isDragging) MaterialTheme.colorScheme.primary else HeavyGray
+                        CustomImageView(
+                            imageUrl = entrada.imagenId?.let { "${Constants.BASE_URL}/api/imagen/$it/contenido" },
+                            modifier = Modifier.size(Spacing3XLarge)
                         )
-                    }
+                        Spacer(modifier = Modifier.width(SpacingMedium))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = entrada.nombre.toSmartUpperCase(),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = TextSizeXSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = entrada.descripcion.toSmartUpperCase(),
+                                fontSize = TextSizeXXSmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
 
-                    IconButton(onClick = { onRemove(entrada) }) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "Remover",
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(IconSizeSmall)
-                        )
+                        // Manija de Arrastre: el arrastre inicia al tocar y mover (sin long-press)
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .draggableHandle(
+                                    onDragStarted = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                                    },
+                                    onDragStopped = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.DragHandle,
+                                contentDescription = "Arrastrar",
+                                tint = if (isDragging) MaterialTheme.colorScheme.primary else HeavyGray
+                            )
+                        }
+
+                        IconButton(onClick = { onRemove(entrada) }) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Remover",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(IconSizeSmall)
+                            )
+                        }
                     }
                 }
             }
