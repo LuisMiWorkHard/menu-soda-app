@@ -37,7 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -117,6 +116,15 @@ import com.fullwar.menuapp.ui.theme.TextSizeMedium
 import com.fullwar.menuapp.ui.theme.TextSizeSmall
 import com.fullwar.menuapp.ui.theme.TextSizeXLarge
 import com.fullwar.menuapp.ui.theme.White
+
+// Ajustes de tipografía de la carta:
+// TITLE_FONT_OFFSET_SP: cuánto más grande es el título (ENTRADAS/SEGUNDOS) que los ítems.
+// BASE_LINE_HEIGHT_EM:  interlineado compacto de los ítems (el espacio se llena con la fuente, no separando líneas).
+// MIN_FONT_SIZE / MAX_FONT_SIZE: límites de la fuente; crece hasta llenar el área sin desperdiciar espacio.
+private const val TITLE_FONT_OFFSET_SP = 4f
+private const val BASE_LINE_HEIGHT_EM = 1.2f
+private val MIN_FONT_SIZE = 8.sp
+private val MAX_FONT_SIZE = 40.sp
 
 @Composable
 fun SeleccionEstiloScreen(
@@ -399,12 +407,8 @@ fun MenuPreviewCard(
 
             val entradasText = buildMenuText(entradas.map { it.nombre.toSmartUpperCase() })
             val platosText   = buildMenuText(platos.map   { it.nombre.toSmartUpperCase() })
-            val maxFontSize       = imagen.maxFontSize.sp
             val fontFamilyEtiqueta  = FontFamily(Font(R.font.rubik_microbe_regular))
             val fontFamilyContenido = fontFamilyFromString(imagen.fontFamily)
-            val sharedFontSizeState = remember(entradasText, platosText, maxFontSize) {
-                mutableStateOf(maxFontSize)
-            }
 
             SubcomposeLayout(
                 modifier = Modifier
@@ -415,73 +419,51 @@ fun MenuPreviewCard(
                 val available = constraints.maxHeight
                 val measureConstraints = Constraints(maxWidth = constraints.maxWidth)
 
-                // Pase 1: altura natural de cada sección sin restricción de alto
-                val entradasNatural = subcompose("entradas_m") {
+                fun seccionHeight(slot: String, etiqueta: String, contenido: AnnotatedString, font: TextUnit): Int =
+                    subcompose(slot) {
+                        SeccionMenu(
+                            etiqueta = etiqueta,
+                            contenido = contenido,
+                            contentFontSize = font,
+                            fontFamilyEtiqueta = fontFamilyEtiqueta,
+                            fontFamily = fontFamilyContenido
+                        )
+                    }[0].measure(measureConstraints).height
+
+                // Mayor fuente compartida (igual para entradas y segundos) cuyo bloque apilado
+                // llena el área disponible. El espacio se ocupa creciendo la fuente, no el interlineado.
+                var lo = MIN_FONT_SIZE.value
+                var hi = MAX_FONT_SIZE.value
+                var best = MIN_FONT_SIZE.value
+                repeat(9) { i ->
+                    val mid = (lo + hi) / 2f
+                    val total = seccionHeight("e_s$i", "Entradas", entradasText, mid.sp) +
+                                seccionHeight("p_s$i", "Segundos", platosText, mid.sp)
+                    if (total <= available) { best = mid; lo = mid } else { hi = mid }
+                }
+                val sharedFont = best.sp
+
+                // Render final: ambas secciones al mismo tamaño, apiladas desde arriba,
+                // cada una a su altura natural (ítems compactos, sin huecos internos).
+                val entradasFinal = subcompose("e_final") {
                     SeccionMenu(
                         etiqueta = "Entradas",
                         contenido = entradasText,
-                        maxFontSize = maxFontSize,
+                        contentFontSize = sharedFont,
                         fontFamilyEtiqueta = fontFamilyEtiqueta,
-                        fontFamily = fontFamilyContenido,
-                        fillAvailableHeight = false
+                        fontFamily = fontFamilyContenido
                     )
-                }[0].measure(measureConstraints).height
+                }[0].measure(measureConstraints)
 
-                val platosNatural = subcompose("platos_m") {
+                val platosFinal = subcompose("p_final") {
                     SeccionMenu(
                         etiqueta = "Segundos",
                         contenido = platosText,
-                        maxFontSize = maxFontSize,
+                        contentFontSize = sharedFont,
                         fontFamilyEtiqueta = fontFamilyEtiqueta,
-                        fontFamily = fontFamilyContenido,
-                        fillAvailableHeight = false
+                        fontFamily = fontFamilyContenido
                     )
-                }[0].measure(measureConstraints).height
-
-                // Decidir alturas finales:
-                // eHByCount: espacio proporcional a la cantidad de ítems de cada seccion
-                // entradasH: el menor entre el espacio natural y el proporcional,
-                //             evitando que entradas reciba mas espacio del que ocupa
-                //             (si gana el proporcional, AutoSizeText reduce la fuente para caber)
-                val eHByCount = (available * entradas.size.coerceAtLeast(1).toFloat() /
-                    (entradas.size.coerceAtLeast(1) + platos.size.coerceAtLeast(1)).toFloat()).toInt()
-                val entradasH = minOf(entradasNatural, eHByCount)
-                val platosH = available - entradasH
-
-                // Pase 2: renderizado final con altura restringida
-                // Entradas: sin weight(1f), el texto se envuelve a su altura real
-                val entradasFinal = subcompose("entradas_f") {
-                    SeccionMenu(
-                        etiqueta = "Entradas",
-                        contenido = entradasText,
-                        maxFontSize = maxFontSize,
-                        fontFamilyEtiqueta = fontFamilyEtiqueta,
-                        fontFamily = fontFamilyContenido,
-                        fillAvailableHeight = false,
-                        resetKey = entradasH,
-                        fontSizeState = sharedFontSizeState
-                    )
-                }[0].measure(Constraints(
-                    minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth,
-                    minHeight = 0, maxHeight = entradasH
-                ))
-
-                // Platos: llena todo el espacio restante real
-                val actualPlatosH = constraints.maxHeight - entradasFinal.height
-                val platosFinal = subcompose("platos_f") {
-                    SeccionMenu(
-                        etiqueta = "Segundos",
-                        contenido = platosText,
-                        maxFontSize = maxFontSize,
-                        fontFamilyEtiqueta = fontFamilyEtiqueta,
-                        fontFamily = fontFamilyContenido,
-                        resetKey = actualPlatosH,
-                        fontSizeState = sharedFontSizeState
-                    )
-                }[0].measure(Constraints(
-                    minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth,
-                    minHeight = actualPlatosH, maxHeight = actualPlatosH
-                ))
+                }[0].measure(measureConstraints)
 
                 layout(constraints.maxWidth, constraints.maxHeight) {
                     entradasFinal.placeRelative(0, 0)
@@ -497,13 +479,10 @@ fun MenuPreviewCard(
 private fun SeccionMenu(
     etiqueta: String,
     contenido: AnnotatedString,
+    contentFontSize: TextUnit,
     modifier: Modifier = Modifier,
-    maxFontSize: TextUnit = 17.sp,
     fontFamilyEtiqueta: FontFamily = FontFamily.Default,
-    fontFamily: FontFamily = FontFamily.Default,
-    fillAvailableHeight: Boolean = true,
-    resetKey: Any = Unit,
-    fontSizeState: MutableState<TextUnit>? = null
+    fontFamily: FontFamily = FontFamily.Default
 ) {
     Column(
         modifier = modifier
@@ -514,7 +493,7 @@ private fun SeccionMenu(
     ) {
         Text(
             text = etiqueta,
-            fontSize = (maxFontSize.value + 1f).sp,
+            fontSize = (contentFontSize.value + TITLE_FONT_OFFSET_SP).sp,
             letterSpacing = 2.sp,
             fontWeight = FontWeight.SemiBold,
             fontFamily = fontFamilyEtiqueta,
@@ -522,61 +501,40 @@ private fun SeccionMenu(
             textAlign = TextAlign.Start
         )
         Spacer(Modifier.height(2.dp))
-        val textModifier = if (fillAvailableHeight)
-            Modifier.fillMaxWidth().weight(1f)
-        else
-            Modifier.fillMaxWidth()
-        AutoSizeText(
-            text = contenido,
-            resetKey = resetKey,
-            modifier = textModifier,
-            maxFontSize = maxFontSize,
-            fontFamily = fontFamily,
-            fontSizeState = fontSizeState
+        MenuContenidoText(
+            contenido = contenido,
+            fontSize = contentFontSize,
+            fontFamily = fontFamily
         )
     }
 }
 
 @Composable
-private fun AutoSizeText(
-    text: AnnotatedString,
-    resetKey: Any = Unit,
-    modifier: Modifier = Modifier,
-    maxFontSize: TextUnit = 17.sp,
-    minFontSize: TextUnit = 8.sp,
-    color: Color = White,
-    fontWeight: FontWeight = FontWeight.Bold,
-    fontFamily: FontFamily = FontFamily.Default,
-    textAlign: TextAlign = TextAlign.Start,
-    fontSizeState: MutableState<TextUnit>? = null
+private fun MenuContenidoText(
+    contenido: AnnotatedString,
+    fontSize: TextUnit,
+    fontFamily: FontFamily,
+    modifier: Modifier = Modifier
 ) {
-    val sizeState = fontSizeState ?: remember(text, maxFontSize, resetKey) { mutableStateOf(maxFontSize) }
-    var fontSize by sizeState
-
     Text(
-        text = text,
-        modifier = modifier,
+        text = contenido,
+        modifier = modifier.fillMaxWidth(),
         fontSize = fontSize,
-        color = color,
-        fontWeight = fontWeight,
+        color = White,
+        fontWeight = FontWeight.Bold,
         fontFamily = fontFamily,
-        textAlign = textAlign,
-        overflow = TextOverflow.Clip,
-        onTextLayout = { result ->
-            if (result.didOverflowHeight && fontSize > minFontSize) {
-                fontSize = (fontSize.value * 0.85f).coerceAtLeast(minFontSize.value).sp
-            }
-        }
+        textAlign = TextAlign.Start,
+        overflow = TextOverflow.Clip
     )
 }
 
-private fun buildMenuText(items: List<String>): AnnotatedString =
+private fun buildMenuText(items: List<String>, lineHeightEm: Float = BASE_LINE_HEIGHT_EM): AnnotatedString =
     if (items.isEmpty()) {
         AnnotatedString("—")
     } else {
         buildAnnotatedString {
-            items.forEachIndexed { index, item ->
-                withStyle(ParagraphStyle(textIndent = TextIndent(restLine = 0.85.em), lineHeight = 1.2.em)) {
+            items.forEach { item ->
+                withStyle(ParagraphStyle(textIndent = TextIndent(restLine = 0.85.em), lineHeight = lineHeightEm.em)) {
                     append("· $item")
                 }
             }
