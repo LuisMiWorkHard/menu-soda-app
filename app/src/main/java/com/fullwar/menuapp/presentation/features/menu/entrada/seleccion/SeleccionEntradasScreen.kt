@@ -55,7 +55,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import com.fullwar.menuapp.ui.theme.*
-import kotlinx.coroutines.delay
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -72,7 +71,7 @@ fun SeleccionEntradasScreen(
 ) {
     val selectedEntradas = menuViewModel.selectedEntradas
     // val showSugerencias = menuViewModel.showSugerencias
-    var searchQuery by remember { mutableStateOf("") }
+    val searchQuery = seleccionViewModel.searchQuery
     var showBottomSheet by remember { mutableStateOf(false) }
     var pendingAutoSelectNombre by remember { mutableStateOf<String?>(null) }
     var openedEntradaId by remember { mutableStateOf<Int?>(null) }
@@ -84,16 +83,6 @@ fun SeleccionEntradasScreen(
     // Cargar entradas al inicio
     LaunchedEffect(Unit) {
         seleccionViewModel.loadEntradas()
-    }
-
-    // Búsqueda fuzzy con debounce
-    LaunchedEffect(searchQuery) {
-        if (searchQuery.isBlank()) {
-            seleccionViewModel.resetSearch()
-        } else {
-            delay(300)
-            seleccionViewModel.searchEntradas(searchQuery)
-        }
     }
 
     val entradasState = seleccionViewModel.entradasState
@@ -155,13 +144,13 @@ fun SeleccionEntradasScreen(
                 entradaViewModel.resetForm()
                 seleccionViewModel.loadEntradas()
                 showBottomSheet = false
-                searchQuery = ""
+                seleccionViewModel.onSearchQueryChange("")
             },
             onSelectExisting = { dto ->
                 menuViewModel.updateEntradas(menuViewModel.selectedEntradas + dto)
                 entradaViewModel.resetForm()
                 showBottomSheet = false
-                searchQuery = ""
+                seleccionViewModel.onSearchQueryChange("")
             }
         )
     }
@@ -206,7 +195,7 @@ fun SeleccionEntradasScreen(
         Spacer(modifier = Modifier.height(SpacingSmall))
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = { searchQuery = it },
+            onValueChange = { seleccionViewModel.onSearchQueryChange(it) },
             modifier = Modifier
                 .fillMaxWidth()
                 .background(

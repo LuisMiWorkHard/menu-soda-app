@@ -40,12 +40,21 @@ class SeleccionEstiloViewModel(
     var triggerCapture by mutableStateOf(false)
         private set
 
+    var isPreviewReady by mutableStateOf(false)
+        private set
+
+    fun onPreviewRendered() {
+        isPreviewReady = true
+    }
+
     fun selectImagen(id: Int) {
+        if (selectedImagenId != id) isPreviewReady = false
         selectedImagenId = id
     }
 
     fun clearSelectedImagen() {
         selectedImagenId = null
+        isPreviewReady = false
     }
 
     fun loadImagenes() {
@@ -62,7 +71,7 @@ class SeleccionEstiloViewModel(
     }
 
     fun onFinalizarClicked() {
-        if (selectedImagenId == null) return
+        if (selectedImagenId == null || !isPreviewReady) return
         triggerCapture = true
     }
 

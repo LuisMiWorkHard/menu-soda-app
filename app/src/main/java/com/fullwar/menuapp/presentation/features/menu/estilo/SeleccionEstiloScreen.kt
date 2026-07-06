@@ -41,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -143,6 +144,7 @@ fun SeleccionEstiloScreen(
     val context = LocalContext.current
     val graphicsLayer = rememberGraphicsLayer()
     val toastImagenNoDisponible = stringResource(R.string.toast_imagen_no_disponible)
+    val toastCapturaError = stringResource(R.string.toast_captura_error)
 
     LaunchedEffect(Unit) { pasoEstiloViewModel.loadImagenes() }
 
@@ -158,29 +160,36 @@ fun SeleccionEstiloScreen(
 
     LaunchedEffect(triggerCapture) {
         if (!triggerCapture) return@LaunchedEffect
-        val bitmap = graphicsLayer.toImageBitmap()
-        val imagenFile = withContext(Dispatchers.IO) {
-            saveBitmapToCache(context, bitmap.asAndroidBitmap())
+        try {
+            // Garantiza que el último frame (fondo + textos) quedó registrado en la capa.
+            withFrameNanos { }
+            val bitmap = graphicsLayer.toImageBitmap()
+            val imagenFile = withContext(Dispatchers.IO) {
+                saveBitmapToCache(context, bitmap.asAndroidBitmap())
+            }
+            if (menuViewModel.isEditMode && menuViewModel.menuId != null) {
+                pasoEstiloViewModel.actualizarMenuDiario(
+                    menuId = menuViewModel.menuId!!,
+                    entradas = entradas,
+                    platos = platos,
+                    imagenId = selectedImagenId,
+                    imagenFile = imagenFile
+                )
+            } else {
+                pasoEstiloViewModel.guardarMenuDiario(
+                    entradas       = entradas,
+                    platos         = platos,
+                    imagenFile     = imagenFile,
+                    menuImagenId   = selectedImagenId,
+                    fechaMillis    = menuViewModel.selectedDateMillis,
+                    menuToDeleteId = menuViewModel.conflictoMenuId
+                )
+            }
+        } catch (e: Exception) {
+            Toast.makeText(context, toastCapturaError, Toast.LENGTH_LONG).show()
+        } finally {
+            pasoEstiloViewModel.onCaptureHandled()
         }
-        if (menuViewModel.isEditMode && menuViewModel.menuId != null) {
-            pasoEstiloViewModel.actualizarMenuDiario(
-                menuId = menuViewModel.menuId!!,
-                entradas = entradas,
-                platos = platos,
-                imagenId = selectedImagenId,
-                imagenFile = imagenFile
-            )
-        } else {
-            pasoEstiloViewModel.guardarMenuDiario(
-                entradas       = entradas,
-                platos         = platos,
-                imagenFile     = imagenFile,
-                menuImagenId   = selectedImagenId,
-                fechaMillis    = menuViewModel.selectedDateMillis,
-                menuToDeleteId = menuViewModel.conflictoMenuId
-            )
-        }
-        pasoEstiloViewModel.onCaptureHandled()
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -189,6 +198,8 @@ fun SeleccionEstiloScreen(
             selectedImagenId = selectedImagenId,
             entradas = entradas,
             platos = platos,
+            isPreviewReady = pasoEstiloViewModel.isPreviewReady,
+            onImagenLoaded = { pasoEstiloViewModel.onPreviewRendered() },
             previewCaptureModifier = Modifier.drawWithContent {
                 graphicsLayer.record { this@drawWithContent.drawContent() }
                 drawLayer(graphicsLayer)
@@ -234,12 +245,12 @@ private fun SeleccionEstiloContent(
     onSelectImagen: (Int) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    isPreviewReady: Boolean = false,
+    onImagenLoaded: () -> Unit = {},
     previewCaptureModifier: Modifier = Modifier
 ) {
     val selectedImagen = (imagenesState as? State.Success)
         ?.data?.firstOrNull { it.id == selectedImagenId }
-
-    var isPreviewReady by remember(selectedImagenId) { mutableStateOf(false) }
 
     LazyColumn(
         modifier = modifier
@@ -270,7 +281,7 @@ private fun SeleccionEstiloContent(
                             imagen = selectedImagen,
                             entradas = entradas,
                             platos = platos,
-                            onImagenLoaded = { isPreviewReady = true }
+                            onImagenLoaded = onImagenLoaded
                         )
                     }
                     AnimatedVisibility(

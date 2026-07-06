@@ -335,12 +335,14 @@ fun MenuScreen(
                 LaunchedEffect(
                     pasoEstiloViewModel.imagenesState,
                     pasoEstiloViewModel.selectedImagenId,
-                    pasoEstiloViewModel.saveState
+                    pasoEstiloViewModel.saveState,
+                    pasoEstiloViewModel.isPreviewReady
                 ) {
                     val st = pasoEstiloViewModel.imagenesState
                     menuViewModel.updateStepLoading(st is State.Loading || st is State.Initial)
                     menuViewModel.updateSiguienteEnabled(
                         pasoEstiloViewModel.selectedImagenId != null &&
+                            pasoEstiloViewModel.isPreviewReady &&
                             pasoEstiloViewModel.saveState !is SaveUiState.Loading
                     )
                 }

@@ -143,6 +143,7 @@
     <!-- Toast: elementos no disponibles tras refresco -->
     <string name="toast_elementos_no_disponibles">Algunos elementos seleccionados ya no están disponibles</string>
     <string name="toast_imagen_no_disponible">La imagen seleccionada ya no está disponible</string>
+    <string name="toast_captura_error">No se pudo generar la imagen del menú. Intenta nuevamente</string>
 
     <!-- MenuScreen Titles -->
     <string name="menu_crear_titulo">Crear Menú Diario</string>
